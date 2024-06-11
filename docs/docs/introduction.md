@@ -26,8 +26,8 @@ directly or integrated with frameworks like LangChain or LlamaIndex.
 ## How to Connect Data
 
 Patcha connects to data through Hasura. Hasura exposes a unified and secure SQL layer over all your data sources.
-Learn more about Hasura's [unified SQL layer](TODO).
+Learn more about Hasura's [unified SQL layer] (TODO).
 
 Hasura has 100+ connectors over various data sources including RDBMS (OLTP and OLAP), NoSQL, Vector databases, APIs and more.
-You can also build and deploy your own connector by following the [connector development guide](TODO) .
+You can also build and deploy your own connector by following the [connector development guide] (TODO) .
 
