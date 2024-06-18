@@ -1,20 +1,19 @@
 # pacha-ai
 
-Connect your private data to LLMs, Agentic RAG
+Connect your private data to LLMs
 
 ## What is it?
 
-Pacha is an AI agent built over a custom Python-language model that does complex planning and retrieval of context over private data.
+Pacha is an AI tool does query planning and retrieval of context for a natural language over a SQL interface.
 
 You would use Pacha with your favourite LLMs to generate grounded responses in your AI apps/agents.
-
 
 ## Quickstart
 
 #### Requirements
 
 - An LLM for response generation
-- A unified query execution layer like Hasura
+- A SQL layer (you can use Hasura DDN for a unified SQLlayer over all your data)
 
 
 ```python

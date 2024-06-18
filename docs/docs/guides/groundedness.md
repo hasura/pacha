@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Groundedness
 
 In the context of AI applications, "groundedness" refers to the alignment of an AI's responses with 
