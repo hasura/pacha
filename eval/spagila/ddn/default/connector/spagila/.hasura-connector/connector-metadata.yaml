@@ -1,0 +1,15 @@
+packagingDefinition:
+  type: PrebuiltDockerImage
+  dockerImage: ghcr.io/hasura/ndc-postgres:v0.7.0
+supportedEnvironmentVariables:
+- name: CONNECTION_URI
+  description: The PostgreSQL connection URI
+commands:
+  update: hasura-ndc-postgres update
+cliPlugin:
+  name: ndc-postgres
+  version: v0.7.0
+dockerComposeWatch:
+- path: ./
+  target: /etc/connector
+  action: sync+restart

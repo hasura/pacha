@@ -1,0 +1,5 @@
+# join
+# shows understanding of...
+# - timestamptz from just the custom scalar name (or later description)
+#   although note postgres is pretty flexible in how it parses already
+Show me names of movies added to inventory on or after Feb 15 2022

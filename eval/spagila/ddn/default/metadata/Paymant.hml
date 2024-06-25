@@ -1,0 +1,143 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Paymant
+  description: Each payment made by a customer
+  fields:
+    - name: amount
+      type: Numeric!
+    - name: customerId
+      type: Int4!
+    - name: handledBy
+      type: Int4!
+    - name: id
+      type: Int4!
+    - name: paymentDate
+      type: Timestamptz!
+      description: a postgres 'timestamptz'
+    - name: rentalId
+      type: Int4!
+      description: optional if e.g. for an outstanding fee
+  graphql:
+    typeName: Default_Paymant
+    inputTypeName: Default_PaymantInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: paymant
+      fieldMapping:
+        amount:
+          column:
+            name: amount
+        customerId:
+          column:
+            name: customer_id
+        handledBy:
+          column:
+            name: handled_by
+        id:
+          column:
+            name: id
+        paymentDate:
+          column:
+            name: payment_date
+        rentalId:
+          column:
+            name: rental_id
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Paymant
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - amount
+          - customerId
+          - handledBy
+          - id
+          - paymentDate
+          - rentalId
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: PaymantBoolExp
+  objectType: Paymant
+  dataConnectorName: spagila
+  dataConnectorObjectType: paymant
+  comparableFields:
+    - fieldName: amount
+      operators:
+        enableAll: true
+    - fieldName: customerId
+      operators:
+        enableAll: true
+    - fieldName: handledBy
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: paymentDate
+      operators:
+        enableAll: true
+    - fieldName: rentalId
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_PaymantBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Paymant
+  objectType: Paymant
+  source:
+    dataConnectorName: spagila
+    collection: paymant
+  filterExpressionType: PaymantBoolExp
+  orderableFields:
+    - fieldName: amount
+      orderByDirections:
+        enableAll: true
+    - fieldName: customerId
+      orderByDirections:
+        enableAll: true
+    - fieldName: handledBy
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: paymentDate
+      orderByDirections:
+        enableAll: true
+    - fieldName: rentalId
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_paymant
+    selectUniques:
+      - queryRootField: default_paymantByPaymentPkey
+        uniqueIdentifier:
+          - id
+          - paymentDate
+    orderByExpressionType: Default_PaymantOrderBy
+  description: Each payment made by a customer
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Paymant
+  permissions:
+    - role: admin
+      select:
+        filter: null
+

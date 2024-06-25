@@ -1,0 +1,48 @@
+services:
+  auth_hook:
+    image: ghcr.io/hasura/v3-dev-auth-webhook
+    ports:
+      - mode: ingress
+        target: 3050
+        published: "3050"
+        protocol: tcp
+  engine:
+    build:
+      context: engine
+      dockerfile: Dockerfile
+      pull: false
+    develop:
+      watch:
+        - path: engine
+          action: sync+restart
+          target: /md/
+    depends_on:
+      auth_hook:
+        condition: service_started
+        required: false
+    env_file:
+      - engine/.env.engine
+    extra_hosts:
+      - local.hasura.dev=host-gateway
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3000"
+        protocol: tcp
+  otel-collector:
+    command:
+      - --config=/etc/otel-collector-config.yaml
+    environment:
+      HASURA_DDN_PAT: ${HASURA_DDN_PAT}
+    image: otel/opentelemetry-collector
+    ports:
+      - mode: ingress
+        target: 4317
+        published: "4317"
+        protocol: tcp
+      - mode: ingress
+        target: 4318
+        published: "4318"
+        protocol: tcp
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml

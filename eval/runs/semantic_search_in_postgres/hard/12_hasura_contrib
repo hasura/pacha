@@ -1,0 +1,60 @@
+=== INPUT ===
+Best performing regions
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to the conversation, I think it would be useful to retrieve the top-performing regions in terms of sales. This could help the assistant provide more targeted information or recommendations.
+
+Here is the Python script to retrieve the data:
+```
+data = executor.get_from_database("SELECT store_id, SUM(amount) AS total_sales FROM public.paymant GROUP BY store_id ORDER BY total_sales DESC LIMIT 10")
+if len(data) == 0:
+  executor.output('No sales data found')
+else:
+  executor.output('Top 10 performing regions by sales:')
+  for region in data:
+    executor.output(f'Region ID: {region["store_id"]}, Total Sales: {region["total_sales"]}')
+```
+This script retrieves the top 10 performing regions by summing up the sales amounts for each region and ordering them in descending order. The results are then outputted with the region ID and total sales.
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/python_executor.py", line 34, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/postgres.py", line 119, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({
+psycopg2.errors.UndefinedColumn: column "store_id" does not exist
+LINE 1: SELECT json_agg(t) FROM (SELECT store_id, SUM(amount) AS tot...
+                                        ^
+
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the `paymant` table does not have a `store_id` column. It seems that the `store_id` is actually in the `franchise_unit` table. 
+
+To fix this, we need to join the `paymant` table with the `franchise_unit` table on the `handled_by` column, which is the manager ID. Here is the corrected script:
+```
+data = executor.get_from_database("""
+    SELECT fu.id AS store_id, SUM(p.amount) AS total_sales
+    FROM public.paymant p
+    JOIN public.franchise_unit fu ON p.handled_by = fu.id
+    GROUP BY fu.id
+    ORDER BY total_sales DESC
+    LIMIT 10
+""")
+if len(data) == 0:
+  executor.output('No sales data found')
+else:
+  executor.output('Top 10 performing regions by sales:')
+  for region in data:
+    executor.output(f'Region ID: {region["store_id"]}, Total Sales: {region["total_sales"]}')
+```
+This script joins the `paymant` table with the `franchise_unit` table on the `handled_by` column, groups the results by the `store_id`, and orders them by the total sales in descending order. The top 10 results are then outputted.
+=== EXECUTION RESULT ===
+Top 10 performing regions by sales:
+Region ID: 2, Total Sales: 33927.04
+Region ID: 1, Total Sales: 33489.47

@@ -1,0 +1,27 @@
+=== INPUT ===
+Has Tom Cruise done any films in Spanish?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question about whether Tom Cruise has done any films in Spanish, we would need to retrieve data from the database to check if there are any movies featuring Tom Cruise that are in the Spanish language.
+
+We can retrieve this information by querying the database tables "movie" and "movie_cm" to find movies that Tom Cruise has been a cast member in and then checking the language of those movies.
+
+Here is the Python script to retrieve the relevant data:
+
+```
+# Query to retrieve movies featuring Tom Cruise in Spanish
+data = executor.get_from_database("SELECT m.title, m.language_id, l.lang FROM movie m \
+                                    JOIN movie_cm mc ON m.id = mc.film_id \
+                                    JOIN lang l ON m.language_id = l.language_id \
+                                    JOIN castmember c ON mc.id = c.id \
+                                    WHERE c.given_name = 'Tom' AND c.surname = 'Cruise' AND l.lang = 'Spanish'")
+
+# Output the data
+for row in data:
+    executor.output(f'Movie Title: {row["title"]}, Language: {row["lang"]}')
+```
+
+This script will retrieve and output the titles of movies featuring Tom Cruise that are in the Spanish language.
+=== EXECUTION RESULT ===

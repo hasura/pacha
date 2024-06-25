@@ -1,0 +1,40 @@
+=== INPUT ===
+Show me titles of all the french PG13 movies (dubbed into french is fine)
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the titles of French PG-13 movies from the database. 
+
+```
+data = executor.get_from_database("SELECT title FROM default.Movie WHERE languageId IN (SELECT languageId FROM default.Lang WHERE lang = 'French') AND rated = 'PG-13'")
+if len(data) == 0:
+  executor.output('No French PG-13 movies found')
+else:
+  executor.output('Titles of French PG-13 movies:')
+  for movie in data:
+    executor.output(f'{movie["title"]}')
+```
+=== EXECUTION RESULT ===
+Titles of French PG-13 movies:
+BLADE POLISH
+DIVIDE MONSTER
+DYNAMITE TARZAN
+FRONTIER CABIN
+HALF OUTFIELD
+HOLIDAY GAMES
+KICK SAVANNAH
+KWAI HOMEWARD
+LEBOWSKI SOLDIERS
+LOST BIRD
+LUCKY FLYING
+MADRE GABLES
+MILLION ACE
+OCTOBER SUBMARINE
+POSEIDON FOREVER
+RUGRATS SHAKESPEARE
+SADDLE ANTITRUST
+SLIPPER FIDELITY
+SPEED SUIT
+TELEMARK HEARTBREAKERS
+WANDA CHAMBER

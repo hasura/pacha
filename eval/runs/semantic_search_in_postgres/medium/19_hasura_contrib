@@ -1,0 +1,34 @@
+=== INPUT ===
+Has Tom Cruise done any films in Spanish?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I would like to retrieve information about Tom Cruise's filmography, specifically looking for films where he acted and the language of the film is Spanish.
+
+```
+query = """
+    SELECT 
+      m.title,
+      m.language_id,
+      l.lang
+    FROM public.movie m
+    JOIN public.movie_cm mc ON m.id = mc.film_id
+    JOIN public.castmember c ON mc.id = c.id
+    JOIN public.lang l ON m.language_id = l.language_id
+    WHERE c.given_name = 'Tom' AND c.surname = 'Cruise'
+"""
+
+data = executor.get_from_database(query)
+if len(data) == 0:
+  executor.output('No films found with Tom Cruise')
+else:
+  executor.output('Films with Tom Cruise:')
+  for film in data:
+    if film["lang"] == 'Spanish':
+      executor.output(f'Title: {film["title"]}, Language: {film["lang"]}')
+    else:
+      executor.output(f'Title: {film["title"]}, Language: {film["lang"]} (not Spanish)')
+```
+=== EXECUTION RESULT ===
+No films found with Tom Cruise

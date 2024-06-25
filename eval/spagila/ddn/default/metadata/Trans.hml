@@ -1,0 +1,316 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Trans
+  description: "a customer transaction (B.M.S.: these are now only rentals. this
+    table name should probably change)"
+  fields:
+    - name: customerId
+      type: Int4!
+    - name: id
+      type: Int4!
+    - name: inventoryId
+      type: Int4!
+    - name: rentalDate
+      type: Timestamptz!
+    - name: returnDate
+      type: Timestamptz
+    - name: staffId
+      type: Int4!
+    - name: updated
+      type: Timestamptz!
+  graphql:
+    typeName: Default_Trans
+    inputTypeName: Default_TransInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: trans
+      fieldMapping:
+        customerId:
+          column:
+            name: customer_id
+        id:
+          column:
+            name: id
+        inventoryId:
+          column:
+            name: inventory_id
+        rentalDate:
+          column:
+            name: rental_date
+        returnDate:
+          column:
+            name: return_date
+        staffId:
+          column:
+            name: staff_id
+        updated:
+          column:
+            name: updated
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Trans
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - customerId
+          - id
+          - inventoryId
+          - rentalDate
+          - returnDate
+          - staffId
+          - updated
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: TransBoolExp
+  objectType: Trans
+  dataConnectorName: spagila
+  dataConnectorObjectType: trans
+  comparableFields:
+    - fieldName: customerId
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: inventoryId
+      operators:
+        enableAll: true
+    - fieldName: rentalDate
+      operators:
+        enableAll: true
+    - fieldName: returnDate
+      operators:
+        enableAll: true
+    - fieldName: staffId
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_TransBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Trans
+  objectType: Trans
+  source:
+    dataConnectorName: spagila
+    collection: trans
+  filterExpressionType: TransBoolExp
+  orderableFields:
+    - fieldName: customerId
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: inventoryId
+      orderByDirections:
+        enableAll: true
+    - fieldName: rentalDate
+      orderByDirections:
+        enableAll: true
+    - fieldName: returnDate
+      orderByDirections:
+        enableAll: true
+    - fieldName: staffId
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_trans
+    selectUniques:
+      - queryRootField: default_transById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_TransOrderBy
+  description: "a customer transaction (B.M.S.: these are now only rentals. this
+    table name should probably change)"
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Trans
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202201S
+  sourceType: Trans
+  target:
+    model:
+      name: PaymentP202201
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: rentalId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202202S
+  sourceType: Trans
+  target:
+    model:
+      name: PaymentP202202
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: rentalId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202203S
+  sourceType: Trans
+  target:
+    model:
+      name: PaymentP202203
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: rentalId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202204S
+  sourceType: Trans
+  target:
+    model:
+      name: PaymentP202204
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: rentalId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202205S
+  sourceType: Trans
+  target:
+    model:
+      name: PaymentP202205
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: rentalId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202206S
+  sourceType: Trans
+  target:
+    model:
+      name: PaymentP202206
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: rentalId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: patron
+  sourceType: Trans
+  target:
+    model:
+      name: Patron
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: customerId
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: catalog
+  sourceType: Trans
+  target:
+    model:
+      name: Catalog
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: inventoryId
+      target:
+        modelField:
+          - fieldName: inventoryId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: team
+  sourceType: Trans
+  target:
+    model:
+      name: Team
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: staffId
+      target:
+        modelField:
+          - fieldName: id
+

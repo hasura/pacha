@@ -1,0 +1,17 @@
+=== INPUT ===
+What is Titanic rated?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question about the rating of the movie "Titanic", we would need to retrieve data from the `movie` table where the `title` is 'TITANIC'. Specifically, we would need to retrieve the `rated` column which contains the rating information.
+
+```python
+data = executor.get_from_database("SELECT rated FROM movie WHERE title = 'TITANIC'")
+if data:
+    executor.output(f'Titanic is rated: {data[0]["rated"]}')
+else:
+    executor.output("Sorry, the rating for Titanic is not available in the database.")
+```
+=== EXECUTION RESULT ===
+Sorry, the rating for Titanic is not available in the database.

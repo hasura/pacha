@@ -1,0 +1,29 @@
+=== INPUT ===
+"Which films are almost never checked out
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would like to retrieve data on the least rented movies from the database.
+
+```
+data = executor.get_from_database("SELECT m.title, COUNT(t.inventoryId) AS rental_count FROM default.Movie m LEFT JOIN default.Trans t ON m.id = t.inventoryId GROUP BY m.title ORDER BY rental_count LIMIT 10")
+if len(data) == 0:
+  executor.output('No rental data found')
+else:
+  executor.output('Least rented movies:')
+  for movie in data:
+    executor.output(f'{movie["title"]}: {movie["rental_count"]} rentals')
+```
+=== EXECUTION RESULT ===
+Least rented movies:
+AFRICAN EGG: 0 rentals
+BEAST HUNCHBACK: 2 rentals
+CROSSING DIVORCE: 2 rentals
+SADDLE ANTITRUST: 2 rentals
+VANILLA DAY: 2 rentals
+ALASKA PHANTOM: 2 rentals
+BIRCH ANTITRUST: 2 rentals
+CLASH FREDDY: 2 rentals
+FISH OPUS: 2 rentals
+IMPOSSIBLE PREJUDICE: 2 rentals

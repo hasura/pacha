@@ -1,0 +1,29 @@
+=== INPUT ===
+show me full names of employees who handled a transaction along with the id of
+
+the rental transaction, for all rentals handled by an employee no longer working here.
+
+i.e. one entry per rental, with above info pleas.
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question, we need to retrieve the full names of employees who handled a transaction along with the rental transaction ID for all rentals handled by an employee who is no longer working at the company.
+
+We can retrieve this information by querying the following tables:
+- `trans` table to get the rental transactions information.
+- `team` table to get the full names of employees.
+- We will join these two tables on the `staff_id` column in the `trans` table and the `id` column in the `team` table.
+
+Here is the Python script to retrieve the required data:
+
+```
+data = executor.get_from_database("SELECT t.id AS rental_transaction_id, CONCAT(tl.first_name, ' ', tl.last_name) AS employee_full_name \
+                                    FROM trans t \
+                                    JOIN team tl ON t.staff_id = tl.id \
+                                    WHERE tl.active = FALSE")
+
+for row in data:
+    executor.output(f'Rental Transaction ID: {row["rental_transaction_id"]}, Employee Full Name: {row["employee_full_name"]}')
+```
+=== EXECUTION RESULT ===

@@ -1,0 +1,29 @@
+=== INPUT ===
+top ten largest payment values
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I need to retrieve the top ten largest payment values from the database.
+
+```
+data = executor.get_from_database("SELECT amount FROM default.PaymentP202201 UNION ALL SELECT amount FROM default.PaymentP202202 UNION ALL SELECT amount FROM default.PaymentP202203 UNION ALL SELECT amount FROM default.PaymentP202204 UNION ALL SELECT amount FROM default.PaymentP202205 UNION ALL SELECT amount FROM default.PaymentP202206 UNION ALL SELECT amount FROM default.PaymentP202207 ORDER BY amount DESC LIMIT 10")
+if len(data) == 0:
+  executor.output('No payment records found')
+else:
+  executor.output('Top 10 largest payment values:')
+  for i, row in enumerate(data, 1):
+    executor.output(f'{i}. {row["amount"]}')
+```
+=== EXECUTION RESULT ===
+Top 10 largest payment values:
+1. 11.99
+2. 11.99
+3. 11.99
+4. 11.99
+5. 11.99
+6. 11.99
+7. 11.99
+8. 11.99
+9. 11.99
+10. 11.99

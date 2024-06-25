@@ -1,0 +1,24 @@
+=== INPUT ===
+what movies are being rented the most?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would like to retrieve the top 5 most rented movies from the database.
+
+```
+data = executor.get_from_database("SELECT m.title, COUNT(t.inventoryId) AS rental_count FROM default.Trans t JOIN default.Movie m ON t.inventoryId = m.id GROUP BY m.title ORDER BY rental_count DESC LIMIT 5")
+if len(data) == 0:
+  executor.output('No rental data found')
+else:
+  executor.output('Top 5 most rented movies:')
+  for i, movie in enumerate(data):
+    executor.output(f'{i+1}. {movie["title"]} - Rented {movie["rental_count"]} times')
+```
+=== EXECUTION RESULT ===
+Top 5 most rented movies:
+1. AGENT TRUMAN - Rented 5 times
+2. ALICE FANTASIA - Rented 5 times
+3. DATE SPEED - Rented 5 times
+4. ALONE TRIP - Rented 5 times
+5. ACE GOLDFINGER - Rented 5 times

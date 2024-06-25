@@ -1,0 +1,18 @@
+=== INPUT ===
+show me the id of the home store for every customer who has been deactivated
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the store ID of deactivated customers from the database.
+
+```
+data = executor.get_from_database("SELECT storeId FROM default.Patron WHERE active = FALSE")
+if len(data) == 0:
+  executor.output('No deactivated customers found')
+else:
+  for row in data:
+    executor.output(f'Store ID of deactivated customer: {row["storeId"]}')
+```
+=== EXECUTION RESULT ===
+No deactivated customers found

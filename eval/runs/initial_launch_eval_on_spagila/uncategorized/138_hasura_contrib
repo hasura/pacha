@@ -1,0 +1,118 @@
+=== INPUT ===
+Find me the top 100 movies in the collection
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to the conversation, I would like to retrieve the top 100 movies in the collection based on their rental frequency or sales. 
+
+Here is the Python script to retrieve the data:
+```
+data = executor.get_from_database("SELECT m.title, COUNT(t.inventoryId) AS rental_count FROM default.Trans t JOIN default.Movie m ON t.inventoryId = m.id GROUP BY m.title ORDER BY rental_count DESC LIMIT 100")
+if len(data) == 0:
+  executor.output('No movies found in the collection')
+else:
+  for i, movie in enumerate(data):
+    executor.output(f'Rank {i+1}: {movie["title"]} - Rented {movie["rental_count"]} times')
+```
+=== EXECUTION RESULT ===
+Rank 1: BREAKFAST GOLDFINGER - Rented 5 times
+Rank 2: BUBBLE GROSSE - Rented 5 times
+Rank 3: BLADE POLISH - Rented 5 times
+Rank 4: CREEPERS KANE - Rented 5 times
+Rank 5: CHITTY LOCK - Rented 5 times
+Rank 6: CROW GREASE - Rented 5 times
+Rank 7: BILKO ANONYMOUS - Rented 5 times
+Rank 8: GHOST GROUNDHOG - Rented 5 times
+Rank 9: BOONDOCK BALLROOM - Rented 5 times
+Rank 10: EARLY HOME - Rented 5 times
+Rank 11: CHILL LUCK - Rented 5 times
+Rank 12: DAUGHTER MADIGAN - Rented 5 times
+Rank 13: BUCKET BROTHERHOOD - Rented 5 times
+Rank 14: DARKO DORADO - Rented 5 times
+Rank 15: CHAMBER ITALIAN - Rented 5 times
+Rank 16: CRANES RESERVOIR - Rented 5 times
+Rank 17: CAUSE DATE - Rented 5 times
+Rank 18: GO PURPLE - Rented 5 times
+Rank 19: FOOL MOCKINGBIRD - Rented 5 times
+Rank 20: FANTASY TROOPERS - Rented 5 times
+Rank 21: CANYON STOCK - Rented 5 times
+Rank 22: FACTORY DRAGON - Rented 5 times
+Rank 23: CHISUM BEHAVIOR - Rented 5 times
+Rank 24: DOGMA FAMILY - Rented 5 times
+Rank 25: BANG KWAI - Rented 5 times
+Rank 26: DETAILS PACKER - Rented 5 times
+Rank 27: CHASING FIGHT - Rented 5 times
+Rank 28: CHEAPER CLYDE - Rented 5 times
+Rank 29: CHICAGO NORTH - Rented 5 times
+Rank 30: DURHAM PANKY - Rented 5 times
+Rank 31: GREEDY ROOTS - Rented 5 times
+Rank 32: GREASE YOUTH - Rented 5 times
+Rank 33: CENTER DINOSAUR - Rented 5 times
+Rank 34: GRAIL FRANKENSTEIN - Rented 5 times
+Rank 35: CONNECTION MICROCOSMOS - Rented 5 times
+Rank 36: CONTROL ANTHEM - Rented 5 times
+Rank 37: CASUALTIES ENCINO - Rented 5 times
+Rank 38: GRACELAND DYNAMITE - Rented 5 times
+Rank 39: FORWARD TEMPLE - Rented 5 times
+Rank 40: FORRESTER COMANCHEROS - Rented 5 times
+Rank 41: BONNIE HOLOCAUST - Rented 5 times
+Rank 42: FIRE WOLVES - Rented 5 times
+Rank 43: EFFECT GLADIATOR - Rented 5 times
+Rank 44: EARTH VISION - Rented 5 times
+Rank 45: DYNAMITE TARZAN - Rented 5 times
+Rank 46: GENTLEMEN STAGE - Rented 5 times
+Rank 47: CHICKEN HELLFIGHTERS - Rented 5 times
+Rank 48: DOOM DANCING - Rented 5 times
+Rank 49: DISTURBING SCARFACE - Rented 5 times
+Rank 50: DRUMS DYNAMITE - Rented 5 times
+Rank 51: ANNIE IDENTITY - Rented 5 times
+Rank 52: DESTINATION JERK - Rented 5 times
+Rank 53: DARN FORRESTER - Rented 5 times
+Rank 54: DUFFEL APOCALYPSE - Rented 5 times
+Rank 55: ALICE FANTASIA - Rented 5 times
+Rank 56: DANCES NONE - Rented 5 times
+Rank 57: BEACH HEARTBREAKERS - Rented 5 times
+Rank 58: DANGEROUS UPTOWN - Rented 5 times
+Rank 59: ANYTHING SAVANNAH - Rented 5 times
+Rank 60: CIDER DESIRE - Rented 5 times
+Rank 61: BED HIGHBALL - Rented 5 times
+Rank 62: HALLOWEEN NUTS - Rented 5 times
+Rank 63: ACE GOLDFINGER - Rented 5 times
+Rank 64: GREEK EVERYONE - Rented 5 times
+Rank 65: CRAFT OUTFIELD - Rented 5 times
+Rank 66: GUMP DATE - Rented 5 times
+Rank 67: ALONE TRIP - Rented 5 times
+Rank 68: GRADUATE LORD - Rented 5 times
+Rank 69: CORE SUIT - Rented 5 times
+Rank 70: GUN BONNIE - Rented 5 times
+Rank 71: BILL OTHERS - Rented 5 times
+Rank 72: GOLDMINE TYCOON - Rented 5 times
+Rank 73: ARIZONA BANG - Rented 5 times
+Rank 74: GONE TROUBLE - Rented 5 times
+Rank 75: CELEBRITY HORN - Rented 5 times
+Rank 76: GLASS DYING - Rented 5 times
+Rank 77: ARMAGEDDON LOST - Rented 5 times
+Rank 78: GUNFIGHTER MUSSOLINI - Rented 5 times
+Rank 79: ARMY FLINTSTONES - Rented 5 times
+Rank 80: FROGMEN BREAKING - Rented 5 times
+Rank 81: AGENT TRUMAN - Rented 5 times
+Rank 82: GARDEN ISLAND - Rented 5 times
+Rank 83: CLONES PINOCCHIO - Rented 5 times
+Rank 84: FIGHT JAWBREAKER - Rented 5 times
+Rank 85: FAMILY SWEET - Rented 5 times
+Rank 86: GATHERING CALENDAR - Rented 5 times
+Rank 87: BORN SPINAL - Rented 5 times
+Rank 88: EMPIRE MALKOVICH - Rented 5 times
+Rank 89: CINCINATTI WHISPERER - Rented 5 times
+Rank 90: ESCAPE METROPOLIS - Rented 5 times
+Rank 91: ANACONDA CONFESSIONS - Rented 5 times
+Rank 92: EAGLES PANKY - Rented 5 times
+Rank 93: CAPER MOTIONS - Rented 5 times
+Rank 94: GUYS FALCON - Rented 5 times
+Rank 95: DATE SPEED - Rented 5 times
+Rank 96: DOUBLE WRATH - Rented 5 times
+Rank 97: DONNIE ALLEY - Rented 5 times
+Rank 98: DRACULA CRYSTAL - Rented 5 times
+Rank 99: HAPPINESS UNITED - Rented 5 times
+Rank 100: BEDAZZLED MARRIED - Rented 5 times

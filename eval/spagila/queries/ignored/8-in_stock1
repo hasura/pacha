@@ -1,0 +1,8 @@
+# nested, where, join
+# understand...
+# - "all caps" description
+# - "number I can reach..." means phone
+# - Titanic refers to the film
+#
+# NOTE: db will return zero results; it doesn't have real movie titles
+I'm looking for stores that have Titanic in stock. Give me city state and number I can reach them at

@@ -1,0 +1,65 @@
+=== INPUT ===
+Show me titles of all the french PG13 movies (dubbed into french is fine)
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the titles of French PG-13 movies from the database. 
+
+```
+data = executor.get_from_database("SELECT title FROM default.Movie WHERE rated = 'PG-13' AND (languageId IN (SELECT languageId FROM default.Lang WHERE lang = 'French') OR languageOrig IN (SELECT languageId FROM default.Lang WHERE lang = 'French'))")
+if len(data) == 0:
+  executor.output('No French PG-13 movies found')
+else:
+  executor.output('Titles of French PG-13 movies:')
+  for movie in data:
+    executor.output(f'Title: {movie["title"]}')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: This feature is not implemented: Physical plan does not support logical expression InSubquery(InSubquery { expr: Column(Column { relation: Some(Partial { schema: "default", table: "Movie" }), name: "languageId" }), subquery: <subquery>, negated: false })
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the subquery in the WHERE clause. The database engine does not support this type of logical expression. We can rewrite the query to use JOINs instead of subqueries. Here's the corrected script:
+
+```
+data = executor.get_from_database("SELECT M.title FROM default.Movie M JOIN default.Lang L ON M.languageId = L.languageId WHERE M.rated = 'PG-13' AND L.lang = 'French' UNION SELECT M.title FROM default.Movie M JOIN default.Lang L ON M.languageOrig = L.languageId WHERE M.rated = 'PG-13' AND L.lang = 'French'")
+if len(data) == 0:
+  executor.output('No French PG-13 movies found')
+else:
+  executor.output('Titles of French PG-13 movies:')
+  for movie in data:
+    executor.output(f'Title: {movie["title"]}')
+```
+=== EXECUTION RESULT ===
+Titles of French PG-13 movies:
+Title: BLADE POLISH
+Title: DIVIDE MONSTER
+Title: DYNAMITE TARZAN
+Title: FRONTIER CABIN
+Title: HALF OUTFIELD
+Title: HOLIDAY GAMES
+Title: KICK SAVANNAH
+Title: KWAI HOMEWARD
+Title: LEBOWSKI SOLDIERS
+Title: LOST BIRD
+Title: LUCKY FLYING
+Title: MADRE GABLES
+Title: MILLION ACE
+Title: OCTOBER SUBMARINE
+Title: POSEIDON FOREVER
+Title: RUGRATS SHAKESPEARE
+Title: SADDLE ANTITRUST
+Title: SLIPPER FIDELITY
+Title: SPEED SUIT
+Title: TELEMARK HEARTBREAKERS
+Title: WANDA CHAMBER

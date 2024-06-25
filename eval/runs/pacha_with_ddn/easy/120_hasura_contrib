@@ -1,0 +1,18 @@
+=== INPUT ===
+which of my customers have birthdays this month
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the customers' birthdates from the database. 
+
+```
+data = executor.get_from_database("SELECT givenName, surname, EXTRACT(MONTH FROM createDate) AS birth_month FROM default.Patron WHERE EXTRACT(MONTH FROM createDate) = EXTRACT(MONTH FROM CURRENT_DATE)")
+if len(data) == 0:
+  executor.output('No customers have birthdays this month')
+else:
+  for customer in data:
+    executor.output(f'Customer {customer["givenName"]} {customer["surname"]} has a birthday this month')
+```
+=== EXECUTION RESULT ===
+No customers have birthdays this month

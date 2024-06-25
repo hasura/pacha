@@ -1,0 +1,17 @@
+=== INPUT ===
+Suggest a children's' movie by popularity
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+I need to retrieve the top-rated children's movies from the database to suggest a popular one. 
+
+```
+data = executor.get_from_database("SELECT title, rated FROM default.Movie WHERE rated IN ('G', 'PG') ORDER BY rate DESC LIMIT 1")
+if len(data) == 0:
+  executor.output('No children\'s movies found')
+else:
+  executor.output(f'Top-rated children\'s movie: {data[0]["title"]} (Rated {data[0]["rated"]})')
+```
+=== EXECUTION RESULT ===
+Top-rated children's movie: ACE GOLDFINGER (Rated G)

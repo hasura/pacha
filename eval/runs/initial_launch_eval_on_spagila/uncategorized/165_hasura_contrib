@@ -1,0 +1,18 @@
+=== INPUT ===
+How many films do I have checkout out currently in each country?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the number of films currently checked out by the user in each country. 
+
+```
+data = executor.get_from_database("SELECT c.country, COUNT(t.inventoryId) AS num_films FROM default.Trans t JOIN default.Patron p ON t.customerId = p.id JOIN default.Loc l ON p.addressId = l.id JOIN default.Muni m ON l.cityId = m.id JOIN default.Country c ON m.countryId = c.id WHERE t.returnDate IS NULL AND p.id = (SELECT id FROM default.Patron WHERE emailAddr = '<user_email>') GROUP BY c.country")
+if len(data) == 0:
+  executor.output('No films are currently checked out.')
+else:
+  for row in data:
+    executor.output(f'In {row["country"]}, you have {row["num_films"]} films checked out.')
+```
+=== EXECUTION RESULT ===
+No films are currently checked out.

@@ -1,0 +1,21 @@
+services:
+  default_spagila:
+    build:
+      context: .
+      dockerfile_inline: |-
+        FROM ghcr.io/hasura/ndc-postgres:v0.7.0
+        COPY ./ /etc/connector
+    develop:
+      watch:
+        - path: ./
+          action: sync+restart
+          target: /etc/connector
+    env_file:
+      - .env.local
+    extra_hosts:
+      - local.hasura.dev=host-gateway
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "8192"
+        protocol: tcp

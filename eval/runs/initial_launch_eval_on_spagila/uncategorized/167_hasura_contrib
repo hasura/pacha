@@ -1,0 +1,75 @@
+=== INPUT ===
+What is the most popular action movie by country and overall
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would like to retrieve data on the top-selling action movies by country and overall.
+
+```
+# Retrieve top-selling action movies by country
+data_country = executor.get_from_database("SELECT country, title, totalSales FROM default.SalesByCat JOIN default.Movie ON default.SalesByCat.category = default.Movie.title WHERE default.SalesByCat.category LIKE '%Action%' GROUP BY country, title, totalSales ORDER BY totalSales DESC")
+if len(data_country) > 0:
+    for row in data_country:
+        executor.output(f'Top-selling action movie in {row["country"]}: {row["title"]} with total sales of {row["totalSales"]}')
+
+# Retrieve top-selling action movie overall
+data_overall = executor.get_from_database("SELECT title, totalSales FROM default.SalesByCat JOIN default.Movie ON default.SalesByCat.category = default.Movie.title WHERE default.SalesByCat.category LIKE '%Action%' ORDER BY totalSales DESC LIMIT 1")
+if len(data_overall) > 0:
+    executor.output(f'Top-selling action movie overall: {data_overall[0]["title"]} with total sales of {data_overall[0]["totalSales"]}')
+else:
+    executor.output('No data found for top-selling action movie overall')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Schema error: No field named country. Valid fields are default."SalesByCat".category, default."SalesByCat"."totalSales", default."Movie"."dueBackDuration", default."Movie".id, default."Movie"."languageId", default."Movie"."languageOrig", default."Movie".length, default."Movie".logline, default."Movie".rate, default."Movie".rated, default."Movie"."releaseYear", default."Movie".replacement, default."Movie".title, default."Movie".updated.
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the `country` field is not present in the `SalesByCat` or `Movie` tables. It seems that the `country` field is actually present in the `Country` table.
+
+To fix this, we need to join the `SalesByCat` table with the `Movie` table and the `Country` table to get the country information. Here's the corrected script:
+
+```
+# Retrieve top-selling action movies by country
+data_country = executor.get_from_database("""
+    SELECT c.country, m.title, sbc.totalSales
+    FROM default.SalesByCat sbc
+    JOIN default.Movie m ON sbc.category = m.title
+    JOIN default.Catalog cat ON m.id = cat.filmId
+    JOIN default.FranchiseUnit fu ON cat.storeId = fu.id
+    JOIN default.Loc l ON fu.addressId = l.id
+    JOIN default.Muni mu ON l.cityId = mu.id
+    JOIN default.Country c ON mu.countryId = c.id
+    WHERE sbc.category LIKE '%Action%'
+    GROUP BY c.country, m.title, sbc.totalSales
+    ORDER BY sbc.totalSales DESC
+""")
+if len(data_country) > 0:
+    for row in data_country:
+        executor.output(f'Top-selling action movie in {row["country"]}: {row["title"]} with total sales of {row["totalSales"]}')
+
+# Retrieve top-selling action movie overall
+data_overall = executor.get_from_database("""
+    SELECT m.title, sbc.totalSales
+    FROM default.SalesByCat sbc
+    JOIN default.Movie m ON sbc.category = m.title
+    WHERE sbc.category LIKE '%Action%'
+    ORDER BY sbc.totalSales DESC
+    LIMIT 1
+""")
+if len(data_overall) > 0:
+    executor.output(f'Top-selling action movie overall: {data_overall[0]["title"]} with total sales of {data_overall[0]["totalSales"]}')
+else:
+    executor.output('No data found for top-selling action movie overall')
+```
+=== EXECUTION RESULT ===
+No data found for top-selling action movie overall

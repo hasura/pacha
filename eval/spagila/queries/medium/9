@@ -1,0 +1,11 @@
+# tags
+#
+# understanding of...
+# - poor wording, working backwards
+# - "full name" = first + last
+#
+# NOTE: bug/blocker:
+# https://hasurahq.slack.com/archives/C066TKMH79R/p1713801920425169?thread_ts=1713457406.823879&cid=C066TKMH79R
+show me full names of employees who handled a transaction along with the id of
+the rental transaction, for all rentals handled by an employee no longer working here.
+i.e. one entry per rental, with above info pleas.

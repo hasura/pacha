@@ -1,0 +1,17 @@
+=== INPUT ===
+what are our films rated pg? just names is fine
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question about films rated PG, we would need to retrieve the film titles from the `movie` table where the `rated` column is equal to 'PG'.
+
+We can retrieve this data using the following SQL query:
+```sql
+SELECT title
+FROM movie
+WHERE rated = 'PG'
+```
+
+I will now write a Python script to retrieve and output the film titles that are rated PG.
+=== EXECUTION RESULT ===

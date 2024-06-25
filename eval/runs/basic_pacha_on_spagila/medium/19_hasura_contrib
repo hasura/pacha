@@ -1,0 +1,16 @@
+=== INPUT ===
+Has Tom Cruise done any films in Spanish?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I would like to retrieve data from the database about Tom Cruise's filmography, specifically looking for films where the language is Spanish.
+
+```
+data = executor.get_from_database("SELECT m.title, l.lang FROM movie m JOIN movie_list ml ON m.id = ml.fid JOIN lang l ON m.language_id = l.language_id WHERE ml.actors LIKE '%Tom Cruise%' AND l.lang = 'Spanish'")
+executor.output(f'Tom Cruise has done the following films in Spanish: {", ".join([row["title"] for row in data])}')
+```
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+TypeError: 'NoneType' object is not iterable

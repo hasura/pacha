@@ -1,0 +1,19 @@
+=== INPUT ===
+Which Tom Cruise DVDs contain extra footage of him bragging about doing his own stunts?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve data from the database that could provide information about Tom Cruise movies with extra footage of him doing his own stunts.
+
+```
+data = executor.get_from_database("SELECT m.title, mc.categoryId FROM default.Movie m JOIN default.MovieCat mc ON m.id = mc.filmId WHERE m.title LIKE '%Tom Cruise%'")
+if len(data) > 0:
+    executor.output('Relevant Tom Cruise movies:')
+    for movie in data:
+        executor.output(f'Title: {movie["title"]}, Category ID: {movie["categoryId"]}')
+else:
+    executor.output('No Tom Cruise movies found')
+```
+=== EXECUTION RESULT ===
+No Tom Cruise movies found

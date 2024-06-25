@@ -1,0 +1,16 @@
+=== INPUT ===
+how many days can Cat Coneheads be checked out for?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the `due_back_duration` from the `movie` table where the `title` is 'Cat Coneheads'.
+
+```
+data = executor.get_from_database("SELECT due_back_duration FROM movie WHERE title = 'Cat Coneheads'")
+executor.output(f"Cat Coneheads can be checked out for {data[0]['due_back_duration']} days.")
+```
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+TypeError: 'NoneType' object is not subscriptable

@@ -1,0 +1,23 @@
+=== INPUT ===
+"Stack rank all the stores by their efficiency (efficiency = DVD rented/ DVD inventory
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I need to retrieve the total number of DVDs rented and the total DVD inventory for each store. 
+
+```
+data = executor.get_from_database("SELECT s.id, COUNT(t.inventoryId) AS total_rented, COUNT(c.inventoryId) AS total_inventory FROM default.Trans t JOIN default.Catalog c ON t.inventoryId = c.inventoryId JOIN default.FranchiseUnit s ON c.storeId = s.id GROUP BY s.id")
+if len(data) == 0:
+  executor.output('No store data found')
+else:
+  for row in data:
+    if row['total_inventory'] == 0:
+      executor.output(f'Store {row["id"]} has no DVD inventory')
+    else:
+      efficiency = row['total_rented'] / row['total_inventory']
+      executor.output(f'Store {row["id"]} efficiency: {efficiency:.2f}')
+```
+=== EXECUTION RESULT ===
+Store 1 efficiency: 1.00
+Store 2 efficiency: 1.00

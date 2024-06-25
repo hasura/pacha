@@ -1,0 +1,17 @@
+=== INPUT ===
+Best performing regions
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide information on the best performing regions, we would need to retrieve data on sales by store from the database. This data will help us identify which regions or stores are generating the highest total sales.
+
+```python
+data = executor.get_from_database("SELECT * FROM sales_by_store ORDER BY total_sales DESC")
+for row in data:
+    executor.output(f'Store: {row["store"]}, Manager: {row["manager"]}, Total Sales: {row["total_sales"]}')
+```
+
+=== EXECUTION RESULT ===
+Store: Hamilton,New Zealand, Manager: Lavone O'Reilly, Total Sales: 33726.77
+Store: Boksburg,South Africa, Manager: Warner Hudson, Total Sales: 33689.74

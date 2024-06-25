@@ -1,0 +1,134 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: NicerButSlowerFilmList
+  fields:
+    - name: actors
+      type: Text
+    - name: category
+      type: Text
+    - name: fid
+      type: Int4
+    - name: length
+      type: Int2
+    - name: logline
+      type: Text
+    - name: price
+      type: Numeric
+    - name: rating
+      type: MpaaRating
+    - name: title
+      type: Text
+  graphql:
+    typeName: Default_NicerButSlowerFilmList
+    inputTypeName: Default_NicerButSlowerFilmListInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: nicer_but_slower_film_list
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: NicerButSlowerFilmList
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - actors
+          - category
+          - fid
+          - length
+          - logline
+          - price
+          - rating
+          - title
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: NicerButSlowerFilmListBoolExp
+  objectType: NicerButSlowerFilmList
+  dataConnectorName: spagila
+  dataConnectorObjectType: nicer_but_slower_film_list
+  comparableFields:
+    - fieldName: actors
+      operators:
+        enableAll: true
+    - fieldName: category
+      operators:
+        enableAll: true
+    - fieldName: fid
+      operators:
+        enableAll: true
+    - fieldName: length
+      operators:
+        enableAll: true
+    - fieldName: logline
+      operators:
+        enableAll: true
+    - fieldName: price
+      operators:
+        enableAll: true
+    - fieldName: rating
+      operators:
+        enableAll: true
+    - fieldName: title
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_NicerButSlowerFilmListBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: NicerButSlowerFilmList
+  objectType: NicerButSlowerFilmList
+  source:
+    dataConnectorName: spagila
+    collection: nicer_but_slower_film_list
+  filterExpressionType: NicerButSlowerFilmListBoolExp
+  orderableFields:
+    - fieldName: actors
+      orderByDirections:
+        enableAll: true
+    - fieldName: category
+      orderByDirections:
+        enableAll: true
+    - fieldName: fid
+      orderByDirections:
+        enableAll: true
+    - fieldName: length
+      orderByDirections:
+        enableAll: true
+    - fieldName: logline
+      orderByDirections:
+        enableAll: true
+    - fieldName: price
+      orderByDirections:
+        enableAll: true
+    - fieldName: rating
+      orderByDirections:
+        enableAll: true
+    - fieldName: title
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_nicerButSlowerFilmList
+    selectUniques: []
+    orderByExpressionType: Default_NicerButSlowerFilmListOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: NicerButSlowerFilmList
+  permissions:
+    - role: admin
+      select:
+        filter: null
+

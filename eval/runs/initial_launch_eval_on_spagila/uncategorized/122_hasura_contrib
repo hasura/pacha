@@ -1,0 +1,129 @@
+=== INPUT ===
+Top 50 customers by number of videos rented and by amount of money spent
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I need to retrieve data from the database that shows the top 50 customers by the number of videos rented and by the amount of money spent.
+
+```
+data_rentals = executor.get_from_database("SELECT p.id, COUNT(t.id) AS num_rentals FROM Patron p JOIN Trans t ON p.id = t.customerId GROUP BY p.id ORDER BY num_rentals DESC LIMIT 50")
+data_spent = executor.get_from_database("SELECT p.id, SUM(pa.amount) AS total_spent FROM Patron p JOIN Paymant pa ON p.id = pa.customerId GROUP BY p.id ORDER BY total_spent DESC LIMIT 50")
+
+if len(data_rentals) == 0:
+  executor.output('No customers have rented any videos')
+else:
+  executor.output('Top 50 customers by number of videos rented:')
+  for row in data_rentals:
+    executor.output(f'Customer ID: {row["id"]}, Number of rentals: {row["num_rentals"]}')
+
+if len(data_spent) == 0:
+  executor.output('No customers have spent any money')
+else:
+  executor.output('Top 50 customers by amount of money spent:')
+  for row in data_spent:
+    executor.output(f'Customer ID: {row["id"]}, Total spent: {row["total_spent"]}')
+```
+=== EXECUTION RESULT ===
+Top 50 customers by number of videos rented:
+Customer ID: 148, Number of rentals: 46
+Customer ID: 526, Number of rentals: 45
+Customer ID: 236, Number of rentals: 42
+Customer ID: 144, Number of rentals: 42
+Customer ID: 75, Number of rentals: 41
+Customer ID: 197, Number of rentals: 40
+Customer ID: 469, Number of rentals: 40
+Customer ID: 137, Number of rentals: 39
+Customer ID: 178, Number of rentals: 39
+Customer ID: 468, Number of rentals: 39
+Customer ID: 459, Number of rentals: 38
+Customer ID: 295, Number of rentals: 38
+Customer ID: 5, Number of rentals: 38
+Customer ID: 410, Number of rentals: 38
+Customer ID: 198, Number of rentals: 37
+Customer ID: 257, Number of rentals: 37
+Customer ID: 366, Number of rentals: 37
+Customer ID: 176, Number of rentals: 37
+Customer ID: 348, Number of rentals: 36
+Customer ID: 439, Number of rentals: 36
+Customer ID: 267, Number of rentals: 36
+Customer ID: 29, Number of rentals: 36
+Customer ID: 354, Number of rentals: 36
+Customer ID: 380, Number of rentals: 36
+Customer ID: 381, Number of rentals: 35
+Customer ID: 196, Number of rentals: 35
+Customer ID: 273, Number of rentals: 35
+Customer ID: 371, Number of rentals: 35
+Customer ID: 274, Number of rentals: 35
+Customer ID: 373, Number of rentals: 35
+Customer ID: 50, Number of rentals: 35
+Customer ID: 368, Number of rentals: 35
+Customer ID: 403, Number of rentals: 35
+Customer ID: 506, Number of rentals: 35
+Customer ID: 204, Number of rentals: 35
+Customer ID: 21, Number of rentals: 35
+Customer ID: 91, Number of rentals: 35
+Customer ID: 473, Number of rentals: 34
+Customer ID: 119, Number of rentals: 34
+Customer ID: 576, Number of rentals: 34
+Customer ID: 207, Number of rentals: 34
+Customer ID: 360, Number of rentals: 34
+Customer ID: 241, Number of rentals: 34
+Customer ID: 147, Number of rentals: 34
+Customer ID: 502, Number of rentals: 34
+Customer ID: 211, Number of rentals: 34
+Customer ID: 181, Number of rentals: 34
+Customer ID: 138, Number of rentals: 34
+Customer ID: 566, Number of rentals: 34
+Customer ID: 26, Number of rentals: 34
+Top 50 customers by amount of money spent:
+Customer ID: 526, Total spent: 221.55000000000013
+Customer ID: 148, Total spent: 216.54000000000008
+Customer ID: 144, Total spent: 195.58000000000007
+Customer ID: 137, Total spent: 194.6100000000001
+Customer ID: 178, Total spent: 194.61000000000004
+Customer ID: 459, Total spent: 186.62000000000006
+Customer ID: 469, Total spent: 177.60000000000002
+Customer ID: 468, Total spent: 175.61000000000004
+Customer ID: 236, Total spent: 175.58
+Customer ID: 181, Total spent: 174.66000000000003
+Customer ID: 176, Total spent: 173.63000000000002
+Customer ID: 259, Total spent: 170.67000000000004
+Customer ID: 50, Total spent: 169.65000000000003
+Customer ID: 522, Total spent: 167.67
+Customer ID: 410, Total spent: 167.62000000000003
+Customer ID: 403, Total spent: 166.65000000000003
+Customer ID: 295, Total spent: 162.62
+Customer ID: 209, Total spent: 161.68
+Customer ID: 373, Total spent: 161.65
+Customer ID: 470, Total spent: 160.68
+Customer ID: 187, Total spent: 159.72
+Customer ID: 550, Total spent: 159.68000000000006
+Customer ID: 462, Total spent: 159.67000000000002
+Customer ID: 267, Total spent: 159.64
+Customer ID: 293, Total spent: 158.68999999999997
+Customer ID: 372, Total spent: 158.66
+Customer ID: 273, Total spent: 157.65000000000003
+Customer ID: 368, Total spent: 157.65
+Customer ID: 346, Total spent: 155.67999999999998
+Customer ID: 21, Total spent: 155.65
+Customer ID: 75, Total spent: 155.58999999999997
+Customer ID: 197, Total spent: 154.6
+Customer ID: 119, Total spent: 153.66000000000003
+Customer ID: 532, Total spent: 152.68
+Customer ID: 390, Total spent: 152.67
+Customer ID: 26, Total spent: 152.66000000000003
+Customer ID: 274, Total spent: 152.65
+Customer ID: 506, Total spent: 152.64999999999998
+Customer ID: 366, Total spent: 152.63
+Customer ID: 7, Total spent: 151.67000000000002
+Customer ID: 454, Total spent: 151.66999999999996
+Customer ID: 211, Total spent: 151.65999999999997
+Customer ID: 196, Total spent: 151.64999999999998
+Customer ID: 439, Total spent: 151.64
+Customer ID: 257, Total spent: 151.63000000000002
+Customer ID: 360, Total spent: 150.66000000000003
+Customer ID: 371, Total spent: 149.64999999999998
+Customer ID: 513, Total spent: 148.69
+Customer ID: 86, Total spent: 148.66999999999996
+Customer ID: 309, Total spent: 147.69

@@ -1,0 +1,19 @@
+=== INPUT ===
+Give me the top 10 rented movies amongst all stores in downtown new york
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I need to retrieve the top 10 rented movies amongst all stores in downtown New York. 
+
+```
+data = executor.get_from_database("SELECT m.title, COUNT(t.inventoryId) AS rental_count FROM default.Trans t JOIN default.Catalog c ON t.inventoryId = c.inventoryId JOIN default.Movie m ON c.filmId = m.id JOIN default.FranchiseUnit fu ON c.storeId = fu.id JOIN default.Loc l ON fu.addressId = l.id WHERE l.cityId IN (SELECT id FROM default.Muni WHERE city = 'New York' AND countryId IN (SELECT id FROM default.Country WHERE country = 'USA')) GROUP BY m.title ORDER BY rental_count DESC LIMIT 10")
+if len(data) == 0:
+  executor.output('No rental data found for downtown New York stores')
+else:
+  executor.output('Top 10 rented movies amongst all stores in downtown New York:')
+  for i, movie in enumerate(data):
+    executor.output(f'{i+1}. {movie["title"]} - Rented {movie["rental_count"]} times')
+```
+=== EXECUTION RESULT ===
+No rental data found for downtown New York stores

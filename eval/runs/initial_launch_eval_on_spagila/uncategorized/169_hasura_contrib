@@ -1,0 +1,17 @@
+=== INPUT ===
+which country has the most active movie rentals business
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I would need to retrieve the count of active rentals by country. 
+
+```
+data = executor.get_from_database("SELECT c.country, COUNT(t.id) AS rental_count FROM default.Trans t JOIN default.Patron p ON t.customerId = p.id JOIN default.Loc l ON p.addressId = l.id JOIN default.Muni m ON l.cityId = m.id JOIN default.Country c ON m.countryId = c.id WHERE p.active = TRUE GROUP BY c.country ORDER BY rental_count DESC")
+if len(data) == 0:
+  executor.output('No active rentals found')
+else:
+  executor.output(f'Country with the most active movie rentals is: {data[0]["country"]} with {data[0]["rental_count"]} rentals')
+```
+=== EXECUTION RESULT ===
+Country with the most active movie rentals is: India with 1572 rentals

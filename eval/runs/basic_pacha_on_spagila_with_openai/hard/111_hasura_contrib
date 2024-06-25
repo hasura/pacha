@@ -1,0 +1,31 @@
+=== INPUT ===
+Give me top N stores by revenue in a select time period (past 3 months or 12 months)
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide the user with the top N stores by revenue in a selected time period, we would need to retrieve data from the database related to sales by store. Specifically, we would need to query the "sales_by_store" table to get the total sales for each store within the specified time period.
+
+We can retrieve this data by querying the "sales_by_store" table and filtering the results based on the time period specified by the user. The query would involve selecting the total sales, store name, and manager from the "sales_by_store" table.
+
+Here is the Python script to retrieve the top N stores by revenue in the past 12 months:
+
+```
+data = executor.get_from_database("SELECT * FROM sales_by_store WHERE EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM payment_date) <= 12 ORDER BY total_sales DESC LIMIT N")
+for row in data:
+    executor.output(f'Store: {row["store"]}, Manager: {row["manager"]}, Total Sales: {row["total_sales"]}')
+```
+
+In the script above, replace `N` with the desired number of top stores to display. This query will retrieve the top N stores by revenue in the past 12 months and output the store name, manager, and total sales for each store.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 35, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column "payment_date" does not exist
+LINE 1: ...ACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM payment_da...
+                                                             ^
+

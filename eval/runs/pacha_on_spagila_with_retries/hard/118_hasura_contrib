@@ -1,0 +1,85 @@
+=== INPUT ===
+which of my stores is trending downwards in sales over the last 6 months and which ones are trending up
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would like to retrieve the sales data for each store over the last 6 months. 
+
+```
+data = executor.get_from_database("SELECT store_id, SUM(amount) AS total_sales, DATE_TRUNC('month', payment_date) AS month FROM paymant WHERE payment_date > NOW() - INTERVAL '6 months' GROUP BY store_id, month ORDER BY store_id, month")
+if len(data) == 0:
+  executor.output('No sales data found for the last 6 months')
+else:
+  sales_data = {}
+  for row in data:
+    if row['store_id'] not in sales_data:
+      sales_data[row['store_id']] = []
+    sales_data[row['store_id']].append({'month': row['month'], 'total_sales': row['total_sales']})
+  
+  trending_stores = {}
+  for store_id, sales in sales_data.items():
+    sales.sort(key=lambda x: x['month'])
+    total_sales_diff = [sales[i]['total_sales'] - sales[i-1]['total_sales'] for i in range(1, len(sales))]
+    avg_diff = sum(total_sales_diff) / len(total_sales_diff)
+    if avg_diff > 0:
+      trending_stores[store_id] = 'up'
+    elif avg_diff < 0:
+      trending_stores[store_id] = 'down'
+    else:
+      trending_stores[store_id] = 'stable'
+  
+  for store_id, trend in trending_stores.items():
+    executor.output(f'Store {store_id} is trending {trend}')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 40, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 37, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column "store_id" does not exist
+LINE 1: SELECT json_agg(t) FROM (SELECT store_id, SUM(amount) AS tot...
+                                        ^
+
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the `paymant` table does not have a `store_id` column. The `store_id` is actually present in the `franchise_unit` table. 
+
+To fix this, we need to join the `paymant` table with the `franchise_unit` table on the `handled_by` column, which represents the staff member who handled the payment, and the `manager` column, which represents the manager of the store.
+
+Here is the corrected script:
+
+```
+data = executor.get_from_database("SELECT fu.id AS store_id, SUM(p.amount) AS total_sales, DATE_TRUNC('month', p.payment_date) AS month FROM paymant p JOIN trans t ON p.rental_id = t.id JOIN catalog c ON t.inventory_id = c.inventory_id JOIN franchise_unit fu ON c.store_id = fu.id WHERE p.payment_date > NOW() - INTERVAL '6 months' GROUP BY fu.id, month ORDER BY fu.id, month")
+if len(data) == 0:
+  executor.output('No sales data found for the last 6 months')
+else:
+  sales_data = {}
+  for row in data:
+    if row['store_id'] not in sales_data:
+      sales_data[row['store_id']] = []
+    sales_data[row['store_id']].append({'month': row['month'], 'total_sales': row['total_sales']})
+  
+  trending_stores = {}
+  for store_id, sales in sales_data.items():
+    sales.sort(key=lambda x: x['month'])
+    total_sales_diff = [sales[i]['total_sales'] - sales[i-1]['total_sales'] for i in range(1, len(sales))]
+    avg_diff = sum(total_sales_diff) / len(total_sales_diff)
+    if avg_diff > 0:
+      trending_stores[store_id] = 'up'
+    elif avg_diff < 0:
+      trending_stores[store_id] = 'down'
+    else:
+      trending_stores[store_id] = 'stable'
+  
+  for store_id, trend in trending_stores.items():
+    executor.output(f'Store {store_id} is trending {trend}')
+```
+=== EXECUTION RESULT ===
+No sales data found for the last 6 months

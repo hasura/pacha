@@ -1,0 +1,614 @@
+=== INPUT ===
+What's the geography of customers who rent the most number of movies?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve the countries and cities of customers who rent the most number of movies. 
+
+```
+data = executor.get_from_database("SELECT country, city, COUNT(DISTINCT t.inventoryId) AS num_rentals FROM default.Trans t JOIN default.Patron p ON t.customerId = p.id JOIN default.Loc l ON p.addressId = l.id JOIN default.Muni m ON l.cityId = m.id JOIN default.Country c ON m.countryId = c.id GROUP BY country, city ORDER BY num_rentals DESC")
+if len(data) == 0:
+  executor.output('No rental data found')
+else:
+  for row in data:
+    executor.output(f'Country: {row["country"]}, City: {row["city"]}, Number of rentals: {row["num_rentals"]}')
+```
+=== EXECUTION RESULT ===
+Country: United States, City: Aurora, Number of rentals: 50
+Country: United Kingdom, City: London, Number of rentals: 48
+Country: Runion, City: Saint-Denis, Number of rentals: 46
+Country: United States, City: Cape Coral, Number of rentals: 45
+Country: Belarus, City: Molodetno, Number of rentals: 42
+Country: Philippines, City: Tanza, Number of rentals: 42
+Country: Taiwan, City: Changhwa, Number of rentals: 41
+Country: Spain, City: Ourense (Orense), Number of rentals: 40
+Country: China, City: Changzhou, Number of rentals: 40
+Country: India, City: Bijapur, Number of rentals: 39
+Country: Brazil, City: Santa Brbara dOeste, Number of rentals: 39
+Country: Netherlands, City: Apeldoorn, Number of rentals: 39
+Country: Russian Federation, City: Kolpino, Number of rentals: 38
+Country: Iran, City: Qomsheh, Number of rentals: 38
+Country: Taiwan, City: Nantou, Number of rentals: 38
+Country: Canada, City: Richmond Hill, Number of rentals: 38
+Country: Mozambique, City: Beira, Number of rentals: 37
+Country: Algeria, City: Skikda, Number of rentals: 37
+Country: Nigeria, City: Ikerre, Number of rentals: 37
+Country: Turkey, City: Balikesir, Number of rentals: 37
+Country: Taiwan, City: Hsichuh, Number of rentals: 36
+Country: Poland, City: Tychy, Number of rentals: 36
+Country: Japan, City: Shimonoseki, Number of rentals: 36
+Country: China, City: Lengshuijiang, Number of rentals: 36
+Country: Italy, City: Bergamo, Number of rentals: 36
+Country: Brazil, City: Santo Andr, Number of rentals: 36
+Country: Bangladesh, City: Tangail, Number of rentals: 35
+Country: Iran, City: Najafabad, Number of rentals: 35
+Country: Anguilla, City: South Hill, Number of rentals: 35
+Country: Philippines, City: Tanauan, Number of rentals: 35
+Country: Indonesia, City: Pontianak, Number of rentals: 35
+Country: Philippines, City: Cabuyao, Number of rentals: 35
+Country: Mexico, City: Salamanca, Number of rentals: 35
+Country: Sudan, City: Omdurman, Number of rentals: 35
+Country: Brunei, City: Bandar Seri Begawan, Number of rentals: 35
+Country: India, City: Karnal, Number of rentals: 35
+Country: India, City: Valparai, Number of rentals: 35
+Country: Turkey, City: Usak, Number of rentals: 35
+Country: Germany, City: Mannheim, Number of rentals: 35
+Country: Russian Federation, City: Moscow, Number of rentals: 34
+Country: Moldova, City: Chisinau, Number of rentals: 34
+Country: United States, City: Memphis, Number of rentals: 34
+Country: Taiwan, City: Lungtan, Number of rentals: 34
+Country: Puerto Rico, City: Arecibo, Number of rentals: 34
+Country: Taiwan, City: Fengshan, Number of rentals: 34
+Country: Japan, City: Urawa, Number of rentals: 34
+Country: Sweden, City: Malm, Number of rentals: 34
+Country: Egypt, City: Shubra al-Khayma, Number of rentals: 34
+Country: India, City: Siliguri (Shiliguri), Number of rentals: 34
+Country: Turkey, City: Tokat, Number of rentals: 34
+Country: China, City: Liaocheng, Number of rentals: 34
+Country: China, City: Hohhot, Number of rentals: 34
+Country: China, City: Jinchang, Number of rentals: 34
+Country: Indonesia, City: Probolinggo, Number of rentals: 34
+Country: Greenland, City: Nuuk, Number of rentals: 34
+Country: Indonesia, City: Ciomas, Number of rentals: 34
+Country: China, City: Fuyu, Number of rentals: 34
+Country: Holy See (Vatican City State), City: Citt del Vaticano, Number of rentals: 34
+Country: Indonesia, City: Lhokseumawe, Number of rentals: 34
+Country: China, City: Xiangfan, Number of rentals: 34
+Country: Mexico, City: Atlixco, Number of rentals: 33
+Country: Thailand, City: Songkhla, Number of rentals: 33
+Country: Zambia, City: Kitwe, Number of rentals: 33
+Country: Philippines, City: Santa Rosa, Number of rentals: 33
+Country: United States, City: Fontana, Number of rentals: 33
+Country: South Korea, City: Naju, Number of rentals: 33
+Country: Israel, City: Ashdod, Number of rentals: 33
+Country: Yugoslavia, City: Kragujevac, Number of rentals: 33
+Country: Germany, City: Duisburg, Number of rentals: 33
+Country: Romania, City: Botosani, Number of rentals: 33
+Country: Mexico, City: Uruapan, Number of rentals: 33
+Country: Mexico, City: El Fuerte, Number of rentals: 33
+Country: Russian Federation, City: Usolje-Sibirskoje, Number of rentals: 33
+Country: India, City: Ahmadnagar, Number of rentals: 33
+Country: Turkey, City: Batman, Number of rentals: 33
+Country: Brazil, City: Sorocaba, Number of rentals: 33
+Country: China, City: Binzhou, Number of rentals: 33
+Country: China, City: Daxian, Number of rentals: 33
+Country: Thailand, City: Nakhon Sawan, Number of rentals: 33
+Country: India, City: Bhilwara, Number of rentals: 32
+Country: Yemen, City: Hodeida, Number of rentals: 32
+Country: Japan, City: Ueda, Number of rentals: 32
+Country: India, City: Halisahar, Number of rentals: 32
+Country: India, City: Chandrapur, Number of rentals: 32
+Country: Russian Federation, City: Maikop, Number of rentals: 32
+Country: Vietnam, City: Nha Trang, Number of rentals: 32
+Country: India, City: Bhopal, Number of rentals: 32
+Country: Virgin Islands, U.S., City: Charlotte Amalie, Number of rentals: 32
+Country: Peru, City: Lima, Number of rentals: 32
+Country: Malaysia, City: Sungai Petani, Number of rentals: 32
+Country: Japan, City: Sasebo, Number of rentals: 32
+Country: United States, City: Greensboro, Number of rentals: 32
+Country: Bangladesh, City: Jamalpur, Number of rentals: 32
+Country: China, City: Tongliao, Number of rentals: 32
+Country: Brazil, City: Belm, Number of rentals: 32
+Country: India, City: Munger (Monghyr), Number of rentals: 32
+Country: Chad, City: NDjamna, Number of rentals: 32
+Country: Brazil, City: Boa Vista, Number of rentals: 32
+Country: South Africa, City: Boksburg, Number of rentals: 32
+Country: Argentina, City: Tandil, Number of rentals: 32
+Country: France, City: Toulouse, Number of rentals: 32
+Country: Argentina, City: La Plata, Number of rentals: 32
+Country: Japan, City: Fukuyama, Number of rentals: 32
+Country: China, City: Leshan, Number of rentals: 32
+Country: Poland, City: Jastrzebie-Zdrj, Number of rentals: 32
+Country: United Arab Emirates, City: Abu Dhabi, Number of rentals: 32
+Country: Nigeria, City: Ogbomosho, Number of rentals: 32
+Country: Vietnam, City: Cam Ranh, Number of rentals: 32
+Country: China, City: Qinhuangdao, Number of rentals: 32
+Country: Colombia, City: Dos Quebradas, Number of rentals: 32
+Country: China, City: Zhoushan, Number of rentals: 32
+Country: South Korea, City: Uijongbu, Number of rentals: 32
+Country: Philippines, City: Lapu-Lapu, Number of rentals: 32
+Country: Brazil, City: Poos de Caldas, Number of rentals: 32
+Country: India, City: Haldia, Number of rentals: 31
+Country: Russian Federation, City: Korolev, Number of rentals: 31
+Country: India, City: Parbhani, Number of rentals: 31
+Country: Philippines, City: Davao, Number of rentals: 31
+Country: India, City: Uluberia, Number of rentals: 31
+Country: Spain, City: Donostia-San Sebastin, Number of rentals: 31
+Country: Cameroon, City: Yaound, Number of rentals: 31
+Country: India, City: Rae Bareli, Number of rentals: 31
+Country: United States, City: Sunnyvale, Number of rentals: 31
+Country: Iran, City: Tabriz, Number of rentals: 31
+Country: China, City: Datong, Number of rentals: 31
+Country: Italy, City: Brescia, Number of rentals: 31
+Country: Vietnam, City: Hanoi, Number of rentals: 31
+Country: Germany, City: Halle/Saale, Number of rentals: 31
+Country: Ecuador, City: Robamba, Number of rentals: 31
+Country: United States, City: Akron, Number of rentals: 31
+Country: Mexico, City: Cuautla, Number of rentals: 31
+Country: Pakistan, City: Dadu, Number of rentals: 31
+Country: Nauru, City: Yangor, Number of rentals: 31
+Country: North Korea, City: Pyongyang, Number of rentals: 31
+Country: Yemen, City: Aden, Number of rentals: 31
+Country: Nigeria, City: Ilorin, Number of rentals: 31
+Country: Latvia, City: Daugavpils, Number of rentals: 30
+Country: Thailand, City: Pak Kret, Number of rentals: 30
+Country: Pakistan, City: Mardan, Number of rentals: 30
+Country: Philippines, City: Taguig, Number of rentals: 30
+Country: Argentina, City: Avellaneda, Number of rentals: 30
+Country: Colombia, City: Sincelejo, Number of rentals: 30
+Country: Nigeria, City: Ife, Number of rentals: 30
+Country: Argentina, City: Merlo, Number of rentals: 30
+Country: Philippines, City: Cavite, Number of rentals: 30
+Country: Myanmar, City: Monywa, Number of rentals: 30
+Country: Dominican Republic, City: San Felipe de Puerto Plata, Number of rentals: 30
+Country: Sri Lanka, City: Jaffna, Number of rentals: 30
+Country: Canada, City: Vancouver, Number of rentals: 30
+Country: India, City: Satna, Number of rentals: 30
+Country: Mexico, City: San Felipe del Progreso, Number of rentals: 30
+Country: Azerbaijan, City: Sumqayit, Number of rentals: 30
+Country: Mexico, City: Nezahualcyotl, Number of rentals: 30
+Country: Philippines, City: Baybay, Number of rentals: 30
+Country: Mexico, City: Huixquilucan, Number of rentals: 30
+Country: Estonia, City: Tartu, Number of rentals: 30
+Country: India, City: Rampur, Number of rentals: 30
+Country: India, City: Pune, Number of rentals: 30
+Country: Ukraine, City: Mukateve, Number of rentals: 30
+Country: United States, City: Salinas, Number of rentals: 30
+Country: India, City: Patiala, Number of rentals: 30
+Country: Brazil, City: Angra dos Reis, Number of rentals: 30
+Country: Latvia, City: Liepaja, Number of rentals: 30
+Country: French Polynesia, City: Papeete, Number of rentals: 30
+Country: Gambia, City: Banjul, Number of rentals: 30
+Country: United States, City: Peoria, Number of rentals: 30
+Country: China, City: Xinxiang, Number of rentals: 30
+Country: China, City: Yinchuan, Number of rentals: 30
+Country: Israel, City: Tel Aviv-Jaffa, Number of rentals: 30
+Country: China, City: Jinzhou, Number of rentals: 30
+Country: United States, City: Lancaster, Number of rentals: 30
+Country: Vietnam, City: Nam Dinh, Number of rentals: 30
+Country: Italy, City: Brindisi, Number of rentals: 30
+Country: China, City: Yuncheng, Number of rentals: 30
+Country: China, City: Shanwei, Number of rentals: 30
+Country: Japan, City: Omiya, Number of rentals: 30
+Country: Hong Kong, City: Kowloon and New Kowloon, Number of rentals: 30
+Country: Japan, City: Hiroshima, Number of rentals: 30
+Country: Japan, City: Nagareyama, Number of rentals: 30
+Country: Japan, City: Izumisano, Number of rentals: 30
+Country: Mexico, City: Coatzacoalcos, Number of rentals: 29
+Country: Japan, City: Miyakonojo, Number of rentals: 29
+Country: Japan, City: Iwakuni, Number of rentals: 29
+Country: Hungary, City: Szkesfehrvr, Number of rentals: 29
+Country: Japan, City: Onomichi, Number of rentals: 29
+Country: Russian Federation, City: Nabereznyje Telny, Number of rentals: 29
+Country: Kazakstan, City: Zhezqazghan, Number of rentals: 29
+Country: India, City: Bhimavaram, Number of rentals: 29
+Country: Philippines, City: Mandaluyong, Number of rentals: 29
+Country: Venezuela, City: Cuman, Number of rentals: 29
+Country: Kenya, City: Nyeri, Number of rentals: 29
+Country: China, City: Shaoguan, Number of rentals: 29
+Country: Philippines, City: Imus, Number of rentals: 29
+Country: Germany, City: Erlangen, Number of rentals: 29
+Country: United States, City: Sterling Heights, Number of rentals: 29
+Country: Pakistan, City: Shikarpur, Number of rentals: 29
+Country: Spain, City: A Corua (La Corua), Number of rentals: 29
+Country: China, City: Baicheng, Number of rentals: 29
+Country: Russian Federation, City: Kirovo-Tepetsk, Number of rentals: 29
+Country: Ukraine, City: Kamjanets-Podilskyi, Number of rentals: 29
+Country: Mexico, City: Cuauhtmoc, Number of rentals: 29
+Country: Tanzania, City: Mwanza, Number of rentals: 29
+Country: India, City: Tambaram, Number of rentals: 29
+Country: India, City: Jhansi, Number of rentals: 29
+Country: Peru, City: Hunuco, Number of rentals: 29
+Country: China, City: Weifang, Number of rentals: 29
+Country: Mexico, City: Cuernavaca, Number of rentals: 29
+Country: China, City: Tiefa, Number of rentals: 29
+Country: Japan, City: Kakamigahara, Number of rentals: 29
+Country: Russian Federation, City: Atinsk, Number of rentals: 29
+Country: India, City: Miraj, Number of rentals: 29
+Country: Austria, City: Graz, Number of rentals: 29
+Country: Romania, City: Bucuresti, Number of rentals: 29
+Country: Brazil, City: Vila Velha, Number of rentals: 29
+Country: India, City: Palghat (Palakkad), Number of rentals: 29
+Country: Czech Republic, City: Olomouc, Number of rentals: 29
+Country: United States, City: Joliet, Number of rentals: 28
+Country: Brazil, City: Goinia, Number of rentals: 28
+Country: Philippines, City: Gingoog, Number of rentals: 28
+Country: Brazil, City: Araatuba, Number of rentals: 28
+Country: United States, City: Citrus Heights, Number of rentals: 28
+Country: Greece, City: Patras, Number of rentals: 28
+Country: China, City: Korla, Number of rentals: 28
+Country: Liechtenstein, City: Vaduz, Number of rentals: 28
+Country: Chile, City: Coquimbo, Number of rentals: 28
+Country: Malawi, City: Lilongwe, Number of rentals: 28
+Country: Saudi Arabia, City: Jedda, Number of rentals: 28
+Country: Russian Federation, City: Kurgan, Number of rentals: 28
+Country: United Kingdom, City: York, Number of rentals: 28
+Country: Faroe Islands, City: Trshavn, Number of rentals: 28
+Country: Bangladesh, City: Dhaka, Number of rentals: 28
+Country: China, City: Meixian, Number of rentals: 28
+Country: United States, City: Rockford, Number of rentals: 28
+Country: United States, City: Dallas, Number of rentals: 28
+Country: South Africa, City: Botshabelo, Number of rentals: 28
+Country: United Kingdom, City: Southend-on-Sea, Number of rentals: 28
+Country: Ukraine, City: Sumy, Number of rentals: 28
+Country: Argentina, City: Baha Blanca, Number of rentals: 28
+Country: Algeria, City: Batna, Number of rentals: 28
+Country: Nigeria, City: Benin City, Number of rentals: 28
+Country: India, City: Yamuna Nagar, Number of rentals: 28
+Country: Yemen, City: Taizz, Number of rentals: 28
+Country: Brazil, City: Vitria de Santo Anto, Number of rentals: 28
+Country: Japan, City: Akishima, Number of rentals: 28
+Country: Indonesia, City: Madiun, Number of rentals: 28
+Country: Poland, City: Wroclaw, Number of rentals: 28
+Country: Italy, City: Syrakusa, Number of rentals: 28
+Country: Venezuela, City: Valle de la Pascua, Number of rentals: 28
+Country: United States, City: Laredo, Number of rentals: 28
+Country: Brazil, City: Po, Number of rentals: 28
+Country: South Africa, City: Paarl, Number of rentals: 28
+Country: South Africa, City: Soshanguve, Number of rentals: 28
+Country: Egypt, City: Bilbays, Number of rentals: 28
+Country: Austria, City: Salzburg, Number of rentals: 28
+Country: Ecuador, City: Portoviejo, Number of rentals: 28
+Country: Ecuador, City: Loja, Number of rentals: 28
+Country: United States, City: Warren, Number of rentals: 28
+Country: Brazil, City: Juiz de Fora, Number of rentals: 27
+Country: Morocco, City: Nador, Number of rentals: 27
+Country: Puerto Rico, City: Ponce, Number of rentals: 27
+Country: Iraq, City: Mosul, Number of rentals: 27
+Country: Iran, City: Arak, Number of rentals: 27
+Country: Argentina, City: Santa F, Number of rentals: 27
+Country: South Africa, City: Rustenburg, Number of rentals: 27
+Country: Azerbaijan, City: Baku, Number of rentals: 27
+Country: United Arab Emirates, City: Sharja, Number of rentals: 27
+Country: Brazil, City: Rio Claro, Number of rentals: 27
+Country: Mexico, City: Torren, Number of rentals: 27
+Country: Tanzania, City: Zanzibar, Number of rentals: 27
+Country: Egypt, City: Mit Ghamr, Number of rentals: 27
+Country: Indonesia, City: Pemalang, Number of rentals: 27
+Country: South Africa, City: Johannesburg, Number of rentals: 27
+Country: United States, City: San Bernardino, Number of rentals: 27
+Country: Nigeria, City: Effon-Alaiye, Number of rentals: 27
+Country: Nigeria, City: Owo, Number of rentals: 27
+Country: Cambodia, City: Phnom Penh, Number of rentals: 27
+Country: Oman, City: Salala, Number of rentals: 27
+Country: China, City: Jining, Number of rentals: 27
+Country: Mexico, City: Jos Azueta, Number of rentals: 27
+Country: Philippines, City: Ozamis, Number of rentals: 27
+Country: Japan, City: Iwatsuki, Number of rentals: 27
+Country: India, City: Purnea (Purnia), Number of rentals: 27
+Country: India, City: Pudukkottai, Number of rentals: 27
+Country: India, City: Mysore, Number of rentals: 27
+Country: Turkmenistan, City: Ashgabat, Number of rentals: 27
+Country: Malaysia, City: Kuching, Number of rentals: 27
+Country: Chile, City: Antofagasta, Number of rentals: 27
+Country: Angola, City: Namibe, Number of rentals: 27
+Country: Russian Federation, City: Ljubertsy, Number of rentals: 27
+Country: China, City: Laiwu, Number of rentals: 27
+Country: United States, City: Garland, Number of rentals: 27
+Country: Taiwan, City: Tanshui, Number of rentals: 27
+Country: United States, City: Augusta-Richmond County, Number of rentals: 27
+Country: Turkey, City: Osmaniye, Number of rentals: 27
+Country: Philippines, City: Iligan, Number of rentals: 27
+Country: Taiwan, City: Touliu, Number of rentals: 27
+Country: Tanzania, City: Tabora, Number of rentals: 27
+Country: Brazil, City: Blumenau, Number of rentals: 27
+Country: Kuwait, City: Jalib al-Shuyukh, Number of rentals: 26
+Country: China, City: Baiyin, Number of rentals: 26
+Country: Japan, City: Otsu, Number of rentals: 26
+Country: Russian Federation, City: Pjatigorsk, Number of rentals: 26
+Country: Japan, City: Tama, Number of rentals: 26
+Country: Greece, City: Athenai, Number of rentals: 26
+Country: United States, City: Compton, Number of rentals: 26
+Country: India, City: Kamarhati, Number of rentals: 26
+Country: United States, City: Brockton, Number of rentals: 26
+Country: Turkey, City: Sivas, Number of rentals: 26
+Country: Peru, City: Callao, Number of rentals: 26
+Country: United States, City: Garden Grove, Number of rentals: 26
+Country: Cambodia, City: Battambang, Number of rentals: 26
+Country: India, City: Udaipur, Number of rentals: 26
+Country: Turkey, City: Inegl, Number of rentals: 26
+Country: India, City: Uttarpara-Kotrung, Number of rentals: 26
+Country: Malaysia, City: Ipoh, Number of rentals: 26
+Country: Bulgaria, City: Stara Zagora, Number of rentals: 26
+Country: Brazil, City: Alvorada, Number of rentals: 26
+Country: Mexico, City: Acua, Number of rentals: 26
+Country: United States, City: Dayton, Number of rentals: 26
+Country: Saudi Arabia, City: Tabuk, Number of rentals: 26
+Country: Russian Federation, City: Lipetsk, Number of rentals: 26
+Country: Mexico, City: Celaya, Number of rentals: 26
+Country: Argentina, City: Escobar, Number of rentals: 26
+Country: China, City: Laohekou, Number of rentals: 26
+Country: Tuvalu, City: Funafuti, Number of rentals: 26
+Country: Finland, City: Oulu, Number of rentals: 26
+Country: Slovakia, City: Bratislava, Number of rentals: 26
+Country: India, City: Ambattur, Number of rentals: 26
+Country: Ukraine, City: Simferopol, Number of rentals: 26
+Country: Congo, The Democratic Republic of the, City: Lubumbashi, Number of rentals: 26
+Country: Philippines, City: Tuguegarao, Number of rentals: 26
+Country: Indonesia, City: Cianjur, Number of rentals: 26
+Country: India, City: Balurghat, Number of rentals: 26
+Country: United Kingdom, City: Dundee, Number of rentals: 26
+Country: Netherlands, City: Emmen, Number of rentals: 26
+Country: Egypt, City: Sawhaj, Number of rentals: 26
+Country: Yemen, City: Sanaa, Number of rentals: 26
+Country: Mexico, City: Monclova, Number of rentals: 26
+Country: Japan, City: Iwaki, Number of rentals: 26
+Country: Russian Federation, City: Kamyin, Number of rentals: 26
+Country: Indonesia, City: Surakarta, Number of rentals: 26
+Country: South Africa, City: Klerksdorp, Number of rentals: 26
+Country: Mexico, City: San Juan Bautista Tuxtepec, Number of rentals: 26
+Country: China, City: Emeishan, Number of rentals: 26
+Country: India, City: Bhusawal, Number of rentals: 26
+Country: Turkey, City: Adana, Number of rentals: 26
+Country: Venezuela, City: Caracas, Number of rentals: 26
+Country: Iran, City: Kermanshah, Number of rentals: 26
+Country: Argentina, City: Vicente Lpez, Number of rentals: 26
+Country: India, City: Etawah, Number of rentals: 26
+Country: Saint Vincent and the Grenadines, City: Kingstown, Number of rentals: 25
+Country: Poland, City: Kalisz, Number of rentals: 25
+Country: Mozambique, City: Naala-Porto, Number of rentals: 25
+Country: China, City: Huaian, Number of rentals: 25
+Country: United Arab Emirates, City: al-Ayn, Number of rentals: 25
+Country: Iran, City: Esfahan, Number of rentals: 25
+Country: South Korea, City: Tonghae, Number of rentals: 25
+Country: Japan, City: Higashiosaka, Number of rentals: 25
+Country: Mexico, City: Mexicali, Number of rentals: 25
+Country: Armenia, City: Yerevan, Number of rentals: 25
+Country: Saudi Arabia, City: al-Qatif, Number of rentals: 25
+Country: Bahrain, City: al-Manama, Number of rentals: 25
+Country: Mexico, City: Jurez, Number of rentals: 25
+Country: Poland, City: Czestochowa, Number of rentals: 25
+Country: Turkey, City: Eskisehir, Number of rentals: 25
+Country: Mexico, City: Huejutla de Reyes, Number of rentals: 25
+Country: India, City: Vijayawada, Number of rentals: 25
+Country: Mexico, City: Hidalgo, Number of rentals: 25
+Country: Senegal, City: Ziguinchor, Number of rentals: 25
+Country: Mexico, City: Allende, Number of rentals: 25
+Country: Argentina, City: Crdoba, Number of rentals: 25
+Country: Japan, City: Kuwana, Number of rentals: 25
+Country: South Africa, City: Springs, Number of rentals: 25
+Country: Nigeria, City: Ondo, Number of rentals: 25
+Country: United States, City: Kansas City, Number of rentals: 25
+Country: Nigeria, City: Sokoto, Number of rentals: 25
+Country: Nigeria, City: Zaria, Number of rentals: 25
+Country: Colombia, City: Florencia, Number of rentals: 25
+Country: China, City: Sanya, Number of rentals: 25
+Country: Vietnam, City: Haiphong, Number of rentals: 25
+Country: Colombia, City: Buenaventura, Number of rentals: 25
+Country: Argentina, City: Almirante Brown, Number of rentals: 25
+Country: United States, City: Lincoln, Number of rentals: 25
+Country: Switzerland, City: Bern, Number of rentals: 25
+Country: Taiwan, City: Chungho, Number of rentals: 25
+Country: China, City: Yuzhou, Number of rentals: 25
+Country: Canada, City: Halifax, Number of rentals: 25
+Country: United States, City: Arlington, Number of rentals: 25
+Country: China, City: Junan, Number of rentals: 25
+Country: India, City: Katihar, Number of rentals: 25
+Country: Angola, City: Benguela, Number of rentals: 25
+Country: Peru, City: Sullana, Number of rentals: 25
+Country: Kenya, City: Kisumu, Number of rentals: 25
+Country: Philippines, City: Bayugan, Number of rentals: 25
+Country: Algeria, City: Bchar, Number of rentals: 25
+Country: Germany, City: Witten, Number of rentals: 25
+Country: Brazil, City: Anpolis, Number of rentals: 25
+Country: India, City: Jaipur, Number of rentals: 25
+Country: Russian Federation, City: Smolensk, Number of rentals: 24
+Country: Lithuania, City: Vilnius, Number of rentals: 24
+Country: China, City: Suihua, Number of rentals: 24
+Country: China, City: Xintai, Number of rentals: 24
+Country: Colombia, City: Sogamoso, Number of rentals: 24
+Country: Congo, The Democratic Republic of the, City: Mwene-Ditu, Number of rentals: 24
+Country: Dominican Republic, City: Santiago de los Caballeros, Number of rentals: 24
+Country: Ukraine, City: ostka, Number of rentals: 24
+Country: Yugoslavia, City: Novi Sad, Number of rentals: 24
+Country: France, City: Toulon, Number of rentals: 24
+Country: French Polynesia, City: Faaa, Number of rentals: 24
+Country: Argentina, City: Quilmes, Number of rentals: 24
+Country: Argentina, City: San Miguel de Tucumn, Number of rentals: 24
+Country: Germany, City: Saarbrcken, Number of rentals: 24
+Country: India, City: Allappuzha (Alleppey), Number of rentals: 24
+Country: India, City: Amroha, Number of rentals: 24
+Country: New Zealand, City: Hamilton, Number of rentals: 24
+Country: United States, City: Manchester, Number of rentals: 24
+Country: Taiwan, City: Chiayi, Number of rentals: 24
+Country: Poland, City: Plock, Number of rentals: 24
+Country: India, City: Varanasi (Benares), Number of rentals: 24
+Country: Indonesia, City: Jakarta, Number of rentals: 24
+Country: Bulgaria, City: Ruse, Number of rentals: 24
+Country: South Korea, City: Kimchon, Number of rentals: 24
+Country: Belarus, City: Mogiljov, Number of rentals: 24
+Country: Italy, City: Livorno, Number of rentals: 24
+Country: South Africa, City: Kimberley, Number of rentals: 24
+Country: Bolivia, City: El Alto, Number of rentals: 24
+Country: Japan, City: Sagamihara, Number of rentals: 24
+Country: Russian Federation, City: Zeleznogorsk, Number of rentals: 24
+Country: Japan, City: Kurashiki, Number of rentals: 24
+Country: Saudi Arabia, City: Abha, Number of rentals: 24
+Country: Brazil, City: Guaruj, Number of rentals: 24
+Country: Russian Federation, City: Jelets, Number of rentals: 24
+Country: Brazil, City: guas Lindas de Gois, Number of rentals: 24
+Country: Mexico, City: Valle de Santiago, Number of rentals: 24
+Country: Brazil, City: Maring, Number of rentals: 23
+Country: United States, City: Roanoke, Number of rentals: 23
+Country: China, City: Nanyang, Number of rentals: 23
+Country: China, City: Tianjin, Number of rentals: 23
+Country: Paraguay, City: San Lorenzo, Number of rentals: 23
+Country: Russian Federation, City: Ivanovo, Number of rentals: 23
+Country: China, City: Yingkou, Number of rentals: 23
+Country: China, City: Zalantun, Number of rentals: 23
+Country: Bolivia, City: Sucre, Number of rentals: 23
+Country: Mexico, City: Matamoros, Number of rentals: 23
+Country: Argentina, City: Ezeiza, Number of rentals: 23
+Country: Mexico, City: Guadalajara, Number of rentals: 23
+Country: Russian Federation, City: Kursk, Number of rentals: 23
+Country: United Kingdom, City: Southampton, Number of rentals: 23
+Country: Dominican Republic, City: La Romana, Number of rentals: 23
+Country: United Kingdom, City: Bradford, Number of rentals: 23
+Country: Kazakstan, City: Pavlodar, Number of rentals: 23
+Country: Egypt, City: Idfu, Number of rentals: 23
+Country: Brazil, City: Aparecida de Goinia, Number of rentals: 23
+Country: Egypt, City: Qalyub, Number of rentals: 23
+Country: Ethiopia, City: Addis Abeba, Number of rentals: 23
+Country: Russian Federation, City: Teboksary, Number of rentals: 23
+Country: Japan, City: Okinawa, Number of rentals: 23
+Country: Oman, City: Masqat, Number of rentals: 23
+Country: Turkey, City: Sultanbeyli, Number of rentals: 23
+Country: Nigeria, City: Deba Habe, Number of rentals: 23
+Country: Netherlands, City: s-Hertogenbosch, Number of rentals: 23
+Country: Japan, City: Kanazawa, Number of rentals: 23
+Country: India, City: Bhavnagar, Number of rentals: 23
+Country: Japan, City: Isesaki, Number of rentals: 23
+Country: Venezuela, City: Maracabo, Number of rentals: 23
+Country: Tunisia, City: Sousse, Number of rentals: 23
+Country: Brazil, City: Luzinia, Number of rentals: 23
+Country: South Africa, City: Newcastle, Number of rentals: 23
+Country: India, City: Firozabad, Number of rentals: 23
+Country: China, City: Ezhou, Number of rentals: 23
+Country: China, City: Dongying, Number of rentals: 23
+Country: Colombia, City: Pereira, Number of rentals: 23
+Country: India, City: Sambhal, Number of rentals: 23
+Country: Netherlands, City: Ede, Number of rentals: 23
+Country: Indonesia, City: Ciparay, Number of rentals: 23
+Country: Iran, City: Shahr-e Kord, Number of rentals: 23
+Country: United States, City: Saint Louis, Number of rentals: 23
+Country: Netherlands, City: Amersfoort, Number of rentals: 23
+Country: Cameroon, City: Bamenda, Number of rentals: 23
+Country: India, City: Shivapuri, Number of rentals: 22
+Country: Mexico, City: La Paz, Number of rentals: 22
+Country: Brazil, City: So Leopoldo, Number of rentals: 22
+Country: Myanmar, City: Myingyan, Number of rentals: 22
+Country: Spain, City: Gijn, Number of rentals: 22
+Country: Nepal, City: Birgunj, Number of rentals: 22
+Country: Canada, City: Gatineau, Number of rentals: 22
+Country: Canada, City: Oshawa, Number of rentals: 22
+Country: Morocco, City: Beni-Mellal, Number of rentals: 22
+Country: Switzerland, City: Lausanne, Number of rentals: 22
+Country: Russian Federation, City: Dzerzinsk, Number of rentals: 22
+Country: Russian Federation, City: Balaiha, Number of rentals: 22
+Country: Morocco, City: Sal, Number of rentals: 22
+Country: China, City: Pingxiang, Number of rentals: 22
+Country: India, City: Rajkot, Number of rentals: 22
+Country: China, City: Xiangtan, Number of rentals: 22
+Country: Brazil, City: So Bernardo do Campo, Number of rentals: 22
+Country: Nigeria, City: Kaduna, Number of rentals: 22
+Country: China, City: Zaoyang, Number of rentals: 22
+Country: United Kingdom, City: Stockport, Number of rentals: 22
+Country: India, City: Jodhpur, Number of rentals: 22
+Country: Mexico, City: Coacalco de Berriozbal, Number of rentals: 22
+Country: Mexico, City: Carmen, Number of rentals: 22
+Country: Madagascar, City: Mahajanga, Number of rentals: 22
+Country: India, City: Dhule (Dhulia), Number of rentals: 22
+Country: Brazil, City: Juazeiro do Norte, Number of rentals: 22
+Country: Vietnam, City: Vinh, Number of rentals: 22
+Country: Turkey, City: Gaziantep, Number of rentals: 22
+Country: Japan, City: Kamakura, Number of rentals: 22
+Country: Turkey, City: Kilis, Number of rentals: 22
+Country: Brazil, City: Braslia, Number of rentals: 22
+Country: India, City: Adoni, Number of rentals: 22
+Country: Venezuela, City: Valencia, Number of rentals: 22
+Country: French Guiana, City: Cayenne, Number of rentals: 22
+Country: India, City: Nagaon, Number of rentals: 21
+Country: India, City: Shimoga, Number of rentals: 21
+Country: Japan, City: Okayama, Number of rentals: 21
+Country: Ukraine, City: Konotop, Number of rentals: 21
+Country: Philippines, City: Talavera, Number of rentals: 21
+Country: Austria, City: Linz, Number of rentals: 21
+Country: Venezuela, City: Ocumare del Tuy, Number of rentals: 21
+Country: Japan, City: Tsuyama, Number of rentals: 21
+Country: Pakistan, City: Okara, Number of rentals: 21
+Country: Japan, City: Koriyama, Number of rentals: 21
+Country: India, City: Berhampore (Baharampur), Number of rentals: 21
+Country: Paraguay, City: Asuncin, Number of rentals: 21
+Country: Philippines, City: Bislig, Number of rentals: 21
+Country: Venezuela, City: Barcelona, Number of rentals: 21
+Country: United Kingdom, City: Southport, Number of rentals: 21
+Country: India, City: Hoshiarpur, Number of rentals: 21
+Country: China, City: Haining, Number of rentals: 21
+Country: China, City: Hami, Number of rentals: 21
+Country: Russian Federation, City: Kaliningrad, Number of rentals: 21
+Country: Russian Federation, City: Jaroslavl, Number of rentals: 21
+Country: South Korea, City: Cheju, Number of rentals: 21
+Country: Russian Federation, City: Elista, Number of rentals: 21
+Country: Italy, City: Alessandria, Number of rentals: 21
+Country: United States, City: El Monte, Number of rentals: 21
+Country: China, City: Rizhao, Number of rentals: 21
+Country: Poland, City: Lublin, Number of rentals: 21
+Country: India, City: Ranchi, Number of rentals: 21
+Country: United States, City: Grand Prairie, Number of rentals: 21
+Country: Russian Federation, City: Syktyvkar, Number of rentals: 20
+Country: Brazil, City: Ibirit, Number of rentals: 20
+Country: Nigeria, City: Oyo, Number of rentals: 20
+Country: China, City: Yantai, Number of rentals: 20
+Country: United States, City: Bellevue, Number of rentals: 20
+Country: Russian Federation, City: Novoterkassk, Number of rentals: 20
+Country: Russian Federation, City: Serpuhov, Number of rentals: 20
+Country: Japan, City: Matsue, Number of rentals: 20
+Country: Iran, City: Sirjan, Number of rentals: 20
+Country: India, City: Chapra, Number of rentals: 20
+Country: Spain, City: Santiago de Compostela, Number of rentals: 20
+Country: Indonesia, City: Gorontalo, Number of rentals: 20
+Country: American Samoa, City: Tafuna, Number of rentals: 20
+Country: France, City: Le Mans, Number of rentals: 20
+Country: France, City: Brest, Number of rentals: 20
+Country: Sudan, City: al-Qadarif, Number of rentals: 19
+Country: Germany, City: Siegen, Number of rentals: 19
+Country: China, City: Tieli, Number of rentals: 19
+Country: Italy, City: Udine, Number of rentals: 19
+Country: Philippines, City: Tarlac, Number of rentals: 19
+Country: Taiwan, City: Tsaotun, Number of rentals: 19
+Country: Israel, City: Ashqelon, Number of rentals: 19
+Country: Indonesia, City: Tegal, Number of rentals: 19
+Country: Indonesia, City: Purwakarta, Number of rentals: 19
+Country: India, City: Gulbarga, Number of rentals: 19
+Country: China, City: Shenzhen, Number of rentals: 19
+Country: India, City: Gandhinagar, Number of rentals: 19
+Country: Mozambique, City: Tete, Number of rentals: 18
+Country: Tonga, City: Nukualofa, Number of rentals: 18
+Country: Turkey, City: Ktahya, Number of rentals: 18
+Country: Indonesia, City: Pangkal Pinang, Number of rentals: 18
+Country: India, City: Pathankot, Number of rentals: 18
+Country: India, City: Kumbakonam, Number of rentals: 18
+Country: Afghanistan, City: Kabul, Number of rentals: 18
+Country: United States, City: Clarksville, Number of rentals: 18
+Country: Turkey, City: Denizli, Number of rentals: 18
+Country: Mexico, City: Pachuca de Soto, Number of rentals: 18
+Country: Philippines, City: Hagonoy, Number of rentals: 18
+Country: Japan, City: Hino, Number of rentals: 18
+Country: Paraguay, City: Ciudad del Este, Number of rentals: 18
+Country: Saudi Arabia, City: al-Hawiya, Number of rentals: 18
+Country: Israel, City: Bat Yam, Number of rentals: 17
+Country: South Africa, City: Chatsworth, Number of rentals: 17
+Country: Russian Federation, City: Niznekamsk, Number of rentals: 17
+Country: Mexico, City: Zapopan, Number of rentals: 17
+Country: Pakistan, City: Mandi Bahauddin, Number of rentals: 17
+Country: Turkey, City: Tarsus, Number of rentals: 16
+Country: Brazil, City: Bag, Number of rentals: 16
+Country: Chile, City: Rancagua, Number of rentals: 16
+Country: India, City: Kanchrapara, Number of rentals: 16
+Country: India, City: Hubli-Dharwad, Number of rentals: 15
+Country: United States, City: Tallahassee, Number of rentals: 15
+Country: Switzerland, City: Basel, Number of rentals: 14
+Country: China, City: Enshi, Number of rentals: 14
+Country: China, City: Fuzhou, Number of rentals: 14
+Country: Poland, City: Bydgoszcz, Number of rentals: 12

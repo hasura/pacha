@@ -1,0 +1,140 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: MovieCm
+  fields:
+    - name: filmId
+      type: Int4!
+    - name: id
+      type: Int4!
+      description: actor id
+    - name: updated
+      type: Timestamptz!
+  graphql:
+    typeName: Default_MovieCm
+    inputTypeName: Default_MovieCmInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: movie_cm
+      fieldMapping:
+        filmId:
+          column:
+            name: film_id
+        id:
+          column:
+            name: id
+        updated:
+          column:
+            name: updated
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: MovieCm
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - filmId
+          - id
+          - updated
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: MovieCmBoolExp
+  objectType: MovieCm
+  dataConnectorName: spagila
+  dataConnectorObjectType: movie_cm
+  comparableFields:
+    - fieldName: filmId
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_MovieCmBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: MovieCm
+  objectType: MovieCm
+  source:
+    dataConnectorName: spagila
+    collection: movie_cm
+  filterExpressionType: MovieCmBoolExp
+  orderableFields:
+    - fieldName: filmId
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_movieCm
+    selectUniques:
+      - queryRootField: default_movieCmByFilmActorPkey
+        uniqueIdentifier:
+          - filmId
+          - id
+    orderByExpressionType: Default_MovieCmOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: MovieCm
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: castmember
+  sourceType: MovieCm
+  target:
+    model:
+      name: Castmember
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: movie
+  sourceType: MovieCm
+  target:
+    model:
+      name: Movie
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: filmId
+      target:
+        modelField:
+          - fieldName: id
+

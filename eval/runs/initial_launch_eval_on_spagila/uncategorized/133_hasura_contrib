@@ -1,0 +1,49 @@
+=== INPUT ===
+I want to know how many movies I have in stock in each different language for a specific store.
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I need to retrieve the number of movies in stock for each language at the specific store.
+
+```
+data = executor.get_from_database("SELECT l.lang, COUNT(m.id) AS num_movies FROM default.Movie m JOIN default.Lang l ON m.languageId = l.languageId JOIN default.Catalog c ON m.id = c.filmId WHERE c.storeId = <storeId> GROUP BY l.lang")
+if len(data) == 0:
+  executor.output('No movies found in stock at the specified store')
+else:
+  for row in data:
+    executor.output(f'Language: {row["lang"]}, Number of movies: {row["num_movies"]}')
+```
+
+Please replace `<storeId>` with the actual store ID.
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: SQL error: ParserError("Expected an expression:, found: <")
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the `<storeId>` placeholder in the SQL query. We need to replace it with the actual store ID. However, since we don't know the actual store ID, we can't hardcode it. Instead, we can ask for the store ID as input.
+
+Here's the corrected script:
+
+```
+storeId = input("Enter the store ID: ")
+data = executor.get_from_database("SELECT l.lang, COUNT(m.id) AS num_movies FROM default.Movie m JOIN default.Lang l ON m.languageId = l.languageId JOIN default.Catalog c ON m.id = c.filmId WHERE c.storeId = " + storeId + " GROUP BY l.lang")
+if len(data) == 0:
+  executor.output('No movies found in stock at the specified store')
+else:
+  for row in data:
+    executor.output(f'Language: {row["lang"]}, Number of movies: {row["num_movies"]}')
+```
+
+Please enter the store ID when prompted, and the script should execute correctly.
+=== EXECUTION RESULT ===
+No movies found in stock at the specified store

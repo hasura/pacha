@@ -1,0 +1,173 @@
+=== INPUT ===
+show me the titles of all action movies, along with their other tagged categories
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide the titles of all action movies along with their other tagged categories, we would need to retrieve data from the following tables:
+- movie (for movie titles)
+- movie_cat (to link movies with categories)
+- cat (for category names)
+
+We can retrieve this data by querying the database to get the movie titles and their corresponding categories where the category is 'Action'.
+
+```python
+data = executor.get_from_database("SELECT m.title AS movie_title, c.name AS category_name \
+                                    FROM movie m \
+                                    JOIN movie_cat mc ON m.id = mc.film_id \
+                                    JOIN cat c ON mc.category_id = c.id \
+                                    WHERE c.name = 'Action'")
+
+for row in data:
+    executor.output(f'Movie Title: {row["movie_title"]}, Category: {row["category_name"]}')
+```
+=== EXECUTION RESULT ===
+Movie Title: ARIZONA BANG, Category: Action
+Movie Title: ACE GOLDFINGER, Category: Action
+Movie Title: ALASKA PHANTOM, Category: Action
+Movie Title: ANGELS LIFE, Category: Action
+Movie Title: AIRPLANE SIERRA, Category: Action
+Movie Title: BIRDCAGE CASPER, Category: Action
+Movie Title: BIRCH ANTITRUST, Category: Action
+Movie Title: CLERKS ANGELS, Category: Action
+Movie Title: CORE SUIT, Category: Action
+Movie Title: CAT CONEHEADS, Category: Action
+Movie Title: CLUE GRAIL, Category: Action
+Movie Title: CALIFORNIA BIRDS, Category: Action
+Movie Title: CROW GREASE, Category: Action
+Movie Title: DAUGHTER MADIGAN, Category: Action
+Movie Title: DRUMLINE CYCLONE, Category: Action
+Movie Title: DEVIL DESIRE, Category: Action
+Movie Title: FERRIS MOTHER, Category: Action
+Movie Title: DISTURBING SCARFACE, Category: Action
+Movie Title: DRIVING POLISH, Category: Action
+Movie Title: DRUMS DYNAMITE, Category: Action
+Movie Title: DETECTIVE VISION, Category: Action
+Movie Title: GUN BONNIE, Category: Action
+Movie Title: FRISCO FORREST, Category: Action
+Movie Title: FUGITIVE MAGUIRE, Category: Action
+Movie Title: HALF OUTFIELD, Category: Action
+Movie Title: GROOVE FICTION, Category: Action
+Movie Title: GUMP DATE, Category: Action
+Movie Title: INCH JET, Category: Action
+Movie Title: INSIDER ARIZONA, Category: Action
+Movie Title: JINGLE SAGEBRUSH, Category: Action
+Movie Title: KISS GLORY, Category: Action
+Movie Title: JEDI BENEATH, Category: Action
+Movie Title: LOCK REAR, Category: Action
+Movie Title: HUMAN GRAFFITI, Category: Action
+Movie Title: MISSION ZOOLANDER, Category: Action
+Movie Title: LUST LOCK, Category: Action
+Movie Title: MONSOON CAUSE, Category: Action
+Movie Title: MADRE GABLES, Category: Action
+Movie Title: MADNESS ATTACKS, Category: Action
+Movie Title: MIRACLE VIRTUAL, Category: Action
+Movie Title: MOONSHINE CABIN, Category: Action
+Movie Title: OTHERS SOUP, Category: Action
+Movie Title: PREJUDICE OLEANDER, Category: Action
+Movie Title: SHEPHERD MIDSUMMER, Category: Action
+Movie Title: RIGHT CRANES, Category: Action
+Movie Title: POTTER CONNECTICUT, Category: Action
+Movie Title: RANDOM GO, Category: Action
+Movie Title: SOMETHING DUCK, Category: Action
+Movie Title: SPIKING ELEMENT, Category: Action
+Movie Title: RUSHMORE MERMAID, Category: Action
+Movie Title: SHOOTIST SUPERFLY, Category: Action
+Movie Title: SEARCHERS WAIT, Category: Action
+Movie Title: STEPMOM DREAM, Category: Action
+Movie Title: SHAWSHANK BUBBLE, Category: Action
+Movie Title: VACATION BOONDOCK, Category: Action
+Movie Title: WARS PLUTO, Category: Action
+Movie Title: UNDEFEATED DALMATIONS, Category: Action
+Movie Title: TITANIC BOONDOCK, Category: Action
+Movie Title: TENENBAUMS COMMAND, Category: Action
+Movie Title: TIMBERLAND SKY, Category: Action
+Movie Title: THEORY MERMAID, Category: Action
+Movie Title: BAKED CLEOPATRA, Category: Action
+Movie Title: ANYTHING SAVANNAH, Category: Action
+Movie Title: ADAPTATION HOLES, Category: Action
+Movie Title: WHISPERER GIANT, Category: Action
+Movie Title: WATERSHIP FRONTIER, Category: Action
+Movie Title: ZHIVAGO CORE, Category: Action
+Movie Title: WOMEN DORADO, Category: Action
+Movie Title: BONNIE HOLOCAUST, Category: Action
+Movie Title: BORN SPINAL, Category: Action
+Movie Title: BRIDE INTRIGUE, Category: Action
+Movie Title: CANYON STOCK, Category: Action
+Movie Title: CAMPUS REMEMBER, Category: Action
+Movie Title: BULWORTH COMMANDMENTS, Category: Action
+Movie Title: DECEIVER BETRAYED, Category: Action
+Movie Title: ENCOUNTERS CURTAIN, Category: Action
+Movie Title: DINOSAUR SECRETARY, Category: Action
+Movie Title: CRYSTAL BREAKING, Category: Action
+Movie Title: DYING MAKER, Category: Action
+Movie Title: DRIVER ANNIE, Category: Action
+Movie Title: DIVORCE SHINING, Category: Action
+Movie Title: FACTORY DRAGON, Category: Action
+Movie Title: ENTRAPMENT SATISFACTION, Category: Action
+Movie Title: FIRE WOLVES, Category: Action
+Movie Title: GOODFELLAS SALUTE, Category: Action
+Movie Title: FOOL MOCKINGBIRD, Category: Action
+Movie Title: GAMES BOWFINGER, Category: Action
+Movie Title: IGBY MAKER, Category: Action
+Movie Title: JET NEIGHBORS, Category: Action
+Movie Title: HOOK CHARIOTS, Category: Action
+Movie Title: HARDLY ROBBERS, Category: Action
+Movie Title: INSTINCT AIRPORT, Category: Action
+Movie Title: JUMPING WRATH, Category: Action
+Movie Title: HUSTLER PARTY, Category: Action
+Movie Title: MIXED DOORS, Category: Action
+Movie Title: LABYRINTH LEAGUE, Category: Action
+Movie Title: MONEY HAROLD, Category: Action
+Movie Title: LIBERTY MAGNIFICENT, Category: Action
+Movie Title: LEBOWSKI SOLDIERS, Category: Action
+Movie Title: LIFE TWISTED, Category: Action
+Movie Title: MONSTER SPARTACUS, Category: Action
+Movie Title: ORDER BETRAYED, Category: Action
+Movie Title: NEIGHBORS CHARADE, Category: Action
+Movie Title: PITY BOUND, Category: Action
+Movie Title: OKLAHOMA JUMANJI, Category: Action
+Movie Title: NASH CHOCOLAT, Category: Action
+Movie Title: PARK CITIZEN, Category: Action
+Movie Title: ROBBERY BRIGHT, Category: Action
+Movie Title: RAINBOW SHOCK, Category: Action
+Movie Title: SLUMS DUCK, Category: Action
+Movie Title: SKY MIRACLE, Category: Action
+Movie Title: SHANE DARKNESS, Category: Action
+Movie Title: TROOPERS METAL, Category: Action
+Movie Title: SEABISCUIT PUNK, Category: Action
+Movie Title: TRAP GUYS, Category: Action
+Movie Title: STOCK GLASS, Category: Action
+Movie Title: THIN SAGEBRUSH, Category: Action
+Movie Title: TEQUILA PAST, Category: Action
+Movie Title: STEERS ARMAGEDDON, Category: Action
+Movie Title: WONDERLAND CHRISTMAS, Category: Action
+Movie Title: VANISHING ROCKY, Category: Action
+Movie Title: WEEKEND PERSONAL, Category: Action
+Movie Title: CATCH AMISTAD, Category: Action
+Movie Title: BEDAZZLED MARRIED, Category: Action
+Movie Title: BENEATH RUSH, Category: Action
+Movie Title: BEHAVIOR RUNAWAY, Category: Action
+Movie Title: BANGER PINOCCHIO, Category: Action
+Movie Title: DARKO DORADO, Category: Action
+Movie Title: CLUELESS BUCKET, Category: Action
+Movie Title: CHILL LUCK, Category: Action
+Movie Title: DETAILS PACKER, Category: Action
+Movie Title: DISCIPLE MOTHER, Category: Action
+Movie Title: CLOSER BANG, Category: Action
+Movie Title: CONQUERER NUTS, Category: Action
+Movie Title: FREEDOM CLEOPATRA, Category: Action
+Movie Title: FRONTIER CABIN, Category: Action
+Movie Title: FIREHOUSE VIETNAM, Category: Action
+Movie Title: ELEPHANT TROJAN, Category: Action
+Movie Title: GALAXY SWEETHEARTS, Category: Action
+Movie Title: EARRING INSTINCT, Category: Action
+Movie Title: GATHERING CALENDAR, Category: Action
+Movie Title: HONEY TIES, Category: Action
+Movie Title: IDOLS SNATCHERS, Category: Action
+Movie Title: HARRY IDAHO, Category: Action
+Movie Title: HEAD STRANGER, Category: Action
+Movie Title: HOLOCAUST HIGHBALL, Category: Action
+Movie Title: IDENTITY LOVER, Category: Action
+Movie Title: JERICHO MULAN, Category: Action
+Movie Title: IRON MOON, Category: Action

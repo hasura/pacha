@@ -1,0 +1,22 @@
+=== INPUT ===
+what's the average number of video rentals per customer across all stores
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve the total number of video rentals and the total number of customers across all stores. 
+
+Here is the Python script to retrieve the required data:
+```
+rental_count = executor.get_from_database("SELECT COUNT(*) AS total_rentals FROM trans")
+customer_count = executor.get_from_database("SELECT COUNT(DISTINCT customer_id) AS total_customers FROM trans")
+
+executor.output(f'Total Rentals: {rental_count[0]["total_rentals"]}')
+executor.output(f'Total Customers: {customer_count[0]["total_customers"]}')
+executor.output(f'Average Rentals per Customer: {rental_count[0]["total_rentals"] / customer_count[0]["total_customers"]:.2f}')
+```
+This script retrieves the total number of rentals and the total number of unique customers from the `trans` table, and then calculates and outputs the average number of rentals per customer.
+=== EXECUTION RESULT ===
+Total Rentals: 16044
+Total Customers: 599
+Average Rentals per Customer: 26.78

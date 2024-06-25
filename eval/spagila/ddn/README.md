@@ -1,0 +1,1 @@
+DDN project for Spagila. You need a Hasura v3 engine docker image with SQL enabled and use it in `engine/Dockerfile`.

@@ -1,0 +1,341 @@
+=== INPUT ===
+How many stores are in each city in each country?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the number of stores in each city in each country from the database.
+
+```
+data = executor.get_from_database("SELECT c.country, m.city, COUNT(fu.id) AS num_stores FROM default.Country c JOIN default.Muni m ON c.id = m.countryId JOIN default.FranchiseUnit fu ON m.id = fu.addressId GROUP BY c.country, m.city")
+if len(data) == 0:
+  executor.output('No store locations found')
+else:
+  for row in data:
+    executor.output(f'In {row["city"]}, {row["country"]}, there are {row["num_stores"]} stores.')
+```
+=== EXECUTION RESULT ===
+In Bhavnagar, India, there are 4 stores.
+In Cuauhtmoc, Mexico, there are 1 stores.
+In al-Ayn, United Arab Emirates, there are 2 stores.
+In Berhampore (Baharampur), India, there are 3 stores.
+In Allappuzha (Alleppey), India, there are 1 stores.
+In Avellaneda, Argentina, there are 2 stores.
+In Benguela, Angola, there are 2 stores.
+In Asuncin, Paraguay, there are 2 stores.
+In Aparecida de Goinia, Brazil, there are 4 stores.
+In Cabuyao, Philippines, there are 2 stores.
+In Changhwa, Taiwan, there are 3 stores.
+In Buenaventura, Colombia, there are 2 stores.
+In Cayenne, French Guiana, there are 1 stores.
+In Ashqelon, Israel, there are 6 stores.
+In Baha Blanca, Argentina, there are 1 stores.
+In Amroha, India, there are 3 stores.
+In Araatuba, Brazil, there are 4 stores.
+In Anpolis, Brazil, there are 4 stores.
+In Bchar, Algeria, there are 3 stores.
+In Celaya, Mexico, there are 3 stores.
+In Bat Yam, Israel, there are 2 stores.
+In al-Qatif, Saudi Arabia, there are 2 stores.
+In Chandrapur, India, there are 1 stores.
+In Abha, Saudi Arabia, there are 2 stores.
+In Boa Vista, Brazil, there are 1 stores.
+In Addis Abeba, Ethiopia, there are 2 stores.
+In Cuernavaca, Mexico, there are 2 stores.
+In Czestochowa, Poland, there are 2 stores.
+In Brest, France, there are 1 stores.
+In Botosani, Romania, there are 1 stores.
+In Batna, Algeria, there are 2 stores.
+In Ambattur, India, there are 2 stores.
+In Augusta-Richmond County, United States, there are 2 stores.
+In Bradford, United Kingdom, there are 1 stores.
+In Bern, Switzerland, there are 1 stores.
+In Cianjur, Indonesia, there are 1 stores.
+In Coquimbo, Chile, there are 1 stores.
+In Cheju, South Korea, there are 1 stores.
+In Dallas, United States, there are 2 stores.
+In Bhopal, India, there are 1 stores.
+In Ashdod, Israel, there are 6 stores.
+In Brockton, United States, there are 1 stores.
+In Balurghat, India, there are 2 stores.
+In Charlotte Amalie, Virgin Islands, U.S., there are 1 stores.
+In Bislig, Philippines, there are 1 stores.
+In Cavite, Philippines, there are 2 stores.
+In Bellevue, United States, there are 2 stores.
+In Balaiha, Russian Federation, there are 2 stores.
+In Acua, Mexico, there are 1 stores.
+In Ashgabat, Turkmenistan, there are 2 stores.
+In Baybay, Philippines, there are 4 stores.
+In Binzhou, China, there are 1 stores.
+In Barcelona, Venezuela, there are 2 stores.
+In Bhilwara, India, there are 1 stores.
+In Cam Ranh, Vietnam, there are 2 stores.
+In Clarksville, United States, there are 1 stores.
+In Arecibo, Puerto Rico, there are 3 stores.
+In Benin City, Nigeria, there are 2 stores.
+In Bijapur, India, there are 1 stores.
+In Atinsk, Russian Federation, there are 2 stores.
+In Changzhou, China, there are 1 stores.
+In Almirante Brown, Argentina, there are 2 stores.
+In Chisinau, Moldova, there are 1 stores.
+In Arlington, United States, there are 1 stores.
+In Bratislava, Slovakia, there are 1 stores.
+In Caracas, Venezuela, there are 2 stores.
+In Bandar Seri Begawan, Brunei, there are 1 stores.
+In Bergamo, Italy, there are 1 stores.
+In al-Manama, Bahrain, there are 2 stores.
+In Akishima, Japan, there are 2 stores.
+In Baiyin, China, there are 1 stores.
+In Coatzacoalcos, Mexico, there are 1 stores.
+In Citt del Vaticano, Holy See (Vatican City State), there are 1 stores.
+In Adoni, India, there are 1 stores.
+In Ciparay, Indonesia, there are 1 stores.
+In Florencia, Colombia, there are 2 stores.
+In Effon-Alaiye, Nigeria, there are 1 stores.
+In Ibirit, Brazil, there are 3 stores.
+In Jakarta, Indonesia, there are 1 stores.
+In Goinia, Brazil, there are 1 stores.
+In Ife, Nigeria, there are 4 stores.
+In Dhule (Dhulia), India, there are 1 stores.
+In Haldia, India, there are 1 stores.
+In Idfu, Egypt, there are 1 stores.
+In Garland, United States, there are 3 stores.
+In Hsichuh, Taiwan, there are 2 stores.
+In Fukuyama, Japan, there are 2 stores.
+In Hiroshima, Japan, there are 2 stores.
+In Haining, China, there are 1 stores.
+In Kaduna, Nigeria, there are 3 stores.
+In Dzerzinsk, Russian Federation, there are 1 stores.
+In Jinzhou, China, there are 2 stores.
+In Emmen, Netherlands, there are 1 stores.
+In Duisburg, Germany, there are 1 stores.
+In Dongying, China, there are 4 stores.
+In Isesaki, Japan, there are 1 stores.
+In Daxian, China, there are 2 stores.
+In Daugavpils, Latvia, there are 2 stores.
+In Gaziantep, Turkey, there are 3 stores.
+In Gandhinagar, India, there are 2 stores.
+In Jinchang, China, there are 2 stores.
+In Jaffna, Sri Lanka, there are 1 stores.
+In Hubli-Dharwad, India, there are 2 stores.
+In Jurez, Mexico, there are 3 stores.
+In Johannesburg, South Africa, there are 2 stores.
+In Donostia-San Sebastin, Spain, there are 1 stores.
+In Jamalpur, Bangladesh, there are 1 stores.
+In Denizli, Turkey, there are 1 stores.
+In Higashiosaka, Japan, there are 2 stores.
+In Ilorin, Nigeria, there are 1 stores.
+In Gulbarga, India, there are 1 stores.
+In Iwaki, Japan, there are 1 stores.
+In Deba Habe, Nigeria, there are 2 stores.
+In Esfahan, Iran, there are 1 stores.
+In Iwatsuki, Japan, there are 1 stores.
+In Hohhot, China, there are 2 stores.
+In Huixquilucan, Mexico, there are 2 stores.
+In El Fuerte, Mexico, there are 1 stores.
+In Hunuco, Peru, there are 1 stores.
+In Jos Azueta, Mexico, there are 2 stores.
+In Etawah, India, there are 1 stores.
+In Junan, China, there are 1 stores.
+In Ezhou, China, there are 1 stores.
+In Dhaka, Bangladesh, there are 3 stores.
+In Elista, Russian Federation, there are 1 stores.
+In Jastrzebie-Zdrj, Poland, there are 1 stores.
+In Gatineau, Canada, there are 1 stores.
+In Hami, China, there are 1 stores.
+In Gijn, Spain, there are 1 stores.
+In Kalisz, Poland, there are 1 stores.
+In Guaruj, Brazil, there are 1 stores.
+In Ikerre, Nigeria, there are 1 stores.
+In Fuyu, China, there are 2 stores.
+In Juiz de Fora, Brazil, there are 2 stores.
+In Grand Prairie, United States, there are 1 stores.
+In Garden Grove, United States, there are 1 stores.
+In Greensboro, United States, there are 1 stores.
+In Jelets, Russian Federation, there are 1 stores.
+In Kakamigahara, Japan, there are 1 stores.
+In Inegl, Turkey, there are 1 stores.
+In Fengshan, Taiwan, there are 2 stores.
+In Hanoi, Vietnam, there are 1 stores.
+In Kabul, Afghanistan, there are 1 stores.
+In Erlangen, Germany, there are 1 stores.
+In Halisahar, India, there are 1 stores.
+In Ocumare del Tuy, Venezuela, there are 1 stores.
+In Leshan, China, there are 1 stores.
+In Manchester, United States, there are 1 stores.
+In La Paz, Mexico, there are 3 stores.
+In Owo, Nigeria, there are 2 stores.
+In Niznekamsk, Russian Federation, there are 1 stores.
+In Mandaluyong, Philippines, there are 3 stores.
+In Luzinia, Brazil, there are 2 stores.
+In Monywa, Myanmar, there are 1 stores.
+In Mannheim, Germany, there are 3 stores.
+In Namibe, Angola, there are 3 stores.
+In Nabereznyje Telny, Russian Federation, there are 2 stores.
+In Kolpino, Russian Federation, there are 1 stores.
+In Korolev, Russian Federation, there are 2 stores.
+In Matamoros, Mexico, there are 1 stores.
+In Mandi Bahauddin, Pakistan, there are 1 stores.
+In Miyakonojo, Japan, there are 1 stores.
+In Omdurman, Sudan, there are 1 stores.
+In Laohekou, China, there are 1 stores.
+In Munger (Monghyr), India, there are 1 stores.
+In Kilis, Turkey, there are 1 stores.
+In Nagaon, India, there are 2 stores.
+In Kirovo-Tepetsk, Russian Federation, there are 1 stores.
+In Kimchon, South Korea, there are 1 stores.
+In London, Canada, there are 2 stores.
+In Novoterkassk, Russian Federation, there are 1 stores.
+In La Romana, Dominican Republic, there are 4 stores.
+In Oshawa, Canada, there are 1 stores.
+In ostka, Ukraine, there are 2 stores.
+In Malm, Sweden, there are 2 stores.
+In Najafabad, Iran, there are 2 stores.
+In Nanyang, China, there are 4 stores.
+In Oulu, Finland, there are 2 stores.
+In Kanazawa, Japan, there are 1 stores.
+In Katihar, India, there are 1 stores.
+In Livorno, Italy, there are 1 stores.
+In Mwene-Ditu, Congo, The Democratic Republic of the, there are 1 stores.
+In Lhokseumawe, Indonesia, there are 1 stores.
+In Le Mans, France, there are 1 stores.
+In Koriyama, Japan, there are 2 stores.
+In Liepaja, Latvia, there are 1 stores.
+In Nakhon Sawan, Thailand, there are 2 stores.
+In Mosul, Iraq, there are 1 stores.
+In Kurashiki, Japan, there are 2 stores.
+In Kuwana, Japan, there are 1 stores.
+In Ondo, Nigeria, there are 1 stores.
+In Mahajanga, Madagascar, there are 2 stores.
+In Okara, Pakistan, there are 1 stores.
+In Kamjanets-Podilskyi, Ukraine, there are 1 stores.
+In Kragujevac, Yugoslavia, there are 2 stores.
+In Linz, Austria, there are 1 stores.
+In Merlo, Argentina, there are 1 stores.
+In Molodetno, Belarus, there are 1 stores.
+In Kuching, Malaysia, there are 2 stores.
+In Laiwu, China, there are 1 stores.
+In Laredo, United States, there are 1 stores.
+In Mysore, India, there are 2 stores.
+In Meixian, China, there are 1 stores.
+In Kursk, Russian Federation, there are 2 stores.
+In Nezahualcyotl, Mexico, there are 1 stores.
+In Miraj, India, there are 1 stores.
+In Lima, Peru, there are 1 stores.
+In NDjamna, Chad, there are 1 stores.
+In Kitwe, Zambia, there are 1 stores.
+In Nantou, Taiwan, there are 1 stores.
+In Okinawa, Japan, there are 1 stores.
+In La Plata, Argentina, there are 1 stores.
+In Kansas City, United States, there are 1 stores.
+In Nuuk, Greenland, there are 1 stores.
+In Maring, Brazil, there are 1 stores.
+In Lubumbashi, Congo, The Democratic Republic of the, there are 2 stores.
+In Nam Dinh, Vietnam, there are 1 stores.
+In Maracabo, Venezuela, there are 1 stores.
+In Loja, Ecuador, there are 1 stores.
+In Sumqayit, Azerbaijan, there are 1 stores.
+In Pyongyang, North Korea, there are 1 stores.
+In Santiago de Compostela, Spain, there are 2 stores.
+In Rustenburg, South Africa, there are 1 stores.
+In Sultanbeyli, Turkey, there are 3 stores.
+In Sullana, Peru, there are 1 stores.
+In Shanwei, China, there are 1 stores.
+In Sasebo, Japan, there are 2 stores.
+In Sawhaj, Egypt, there are 2 stores.
+In So Leopoldo, Brazil, there are 1 stores.
+In Phnom Penh, Cambodia, there are 1 stores.
+In Rajkot, India, there are 2 stores.
+In Pudukkottai, India, there are 1 stores.
+In Smolensk, Russian Federation, there are 1 stores.
+In Papeete, French Polynesia, there are 3 stores.
+In Ozamis, Philippines, there are 2 stores.
+In Southampton, United Kingdom, there are 2 stores.
+In Sumy, Ukraine, there are 3 stores.
+In Rizhao, China, there are 3 stores.
+In Stara Zagora, Bulgaria, there are 2 stores.
+In Santo Andr, Brazil, there are 2 stores.
+In San Lorenzo, Paraguay, there are 1 stores.
+In Pjatigorsk, Russian Federation, there are 1 stores.
+In Tambaram, India, there are 1 stores.
+In Patiala, India, there are 1 stores.
+In Shaoguan, China, there are 3 stores.
+In Syrakusa, Italy, there are 1 stores.
+In Sharja, United Arab Emirates, there are 1 stores.
+In Quilmes, Argentina, there are 2 stores.
+In Robamba, Ecuador, there are 3 stores.
+In Saarbrcken, Germany, there are 1 stores.
+In Sousse, Tunisia, there are 1 stores.
+In Rio Claro, Brazil, there are 1 stores.
+In Suihua, China, there are 2 stores.
+In Siliguri (Shiliguri), India, there are 1 stores.
+In Sincelejo, Colombia, there are 1 stores.
+In Palghat (Palakkad), India, there are 3 stores.
+In Taguig, Philippines, there are 1 stores.
+In Sivas, Turkey, there are 1 stores.
+In Southport, United Kingdom, there are 2 stores.
+In Shubra al-Khayma, Egypt, there are 1 stores.
+In Sokoto, Nigeria, there are 1 stores.
+In Portoviejo, Ecuador, there are 1 stores.
+In Richmond Hill, Canada, there are 2 stores.
+In Stockport, United Kingdom, there are 2 stores.
+In Surakarta, Indonesia, there are 1 stores.
+In Po, Brazil, there are 1 stores.
+In Tallahassee, United States, there are 1 stores.
+In Sungai Petani, Malaysia, there are 1 stores.
+In Shikarpur, Pakistan, there are 1 stores.
+In Sal, Morocco, there are 1 stores.
+In Santa F, Argentina, there are 2 stores.
+In Shahr-e Kord, Iran, there are 2 stores.
+In Tabora, Tanzania, there are 1 stores.
+In Pangkal Pinang, Indonesia, there are 1 stores.
+In Shimonoseki, Japan, there are 1 stores.
+In Rancagua, Chile, there are 2 stores.
+In Qinhuangdao, China, there are 2 stores.
+In Pontianak, Indonesia, there are 1 stores.
+In Pachuca de Soto, Mexico, there are 2 stores.
+In Tabuk, Saudi Arabia, there are 1 stores.
+In San Bernardino, United States, there are 1 stores.
+In Sorocaba, Brazil, there are 1 stores.
+In Salamanca, Mexico, there are 1 stores.
+In Pavlodar, Kazakstan, there are 1 stores.
+In Tandil, Argentina, there are 1 stores.
+In Rockford, United States, there are 1 stores.
+In San Felipe del Progreso, Mexico, there are 1 stores.
+In Salzburg, Austria, there are 1 stores.
+In Parbhani, India, there are 1 stores.
+In Saint Louis, United States, there are 1 stores.
+In Peoria, United States, there are 1 stores.
+In Purnea (Purnia), India, there are 1 stores.
+In Roanoke, United States, there are 1 stores.
+In Sanaa, Yemen, there are 1 stores.
+In Touliu, Taiwan, there are 2 stores.
+In Xiangtan, China, there are 2 stores.
+In Vinh, Vietnam, there are 2 stores.
+In Vicente Lpez, Argentina, there are 1 stores.
+In Tsuyama, Japan, there are 1 stores.
+In Usak, Turkey, there are 1 stores.
+In Vancouver, Canada, there are 1 stores.
+In Toulon, France, there are 1 stores.
+In Xintai, China, there are 1 stores.
+In Tartu, Estonia, there are 2 stores.
+In Yamuna Nagar, India, there are 1 stores.
+In Tegal, Indonesia, there are 1 stores.
+In Witten, Germany, there are 1 stores.
+In Uijongbu, South Korea, there are 1 stores.
+In Woodridge, Australia, there are 1 stores.
+In Xiangfan, China, there are 1 stores.
+In Tete, Mozambique, there are 2 stores.
+In Tongliao, China, there are 1 stores.
+In Tiefa, China, there are 2 stores.
+In Udine, Italy, there are 1 stores.
+In Vila Velha, Brazil, there are 1 stores.
+In Warren, United States, there are 1 stores.
+In Wroclaw, Poland, there are 1 stores.
+In Zaoyang, China, there are 1 stores.
+In Tokat, Turkey, there are 1 stores.
+In Torren, Mexico, there are 1 stores.
+In Zhezqazghan, Kazakstan, there are 1 stores.
+In Urawa, Japan, there are 1 stores.
+In Yuncheng, China, there are 1 stores.
+In Zalantun, China, there are 1 stores.

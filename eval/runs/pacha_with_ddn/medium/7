@@ -1,0 +1,48 @@
+=== INPUT ===
+show me city/state/phone number for all the stores that have Core Suit in stock
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the store locations that have "Core Suit" in stock. 
+
+```
+data = executor.get_from_database("SELECT L.addr1, L.city, L.stateDistr, L.phoneNum FROM default.Catalog C JOIN default.Loc L ON C.storeId = L.id WHERE C.filmId IN (SELECT id FROM default.Movie WHERE title = 'CORE SUIT')")
+if len(data) == 0:
+  executor.output('No stores have Core Suit in stock')
+else:
+  for row in data:
+    executor.output(f'Store at {row["addr1"]}, {row["city"]}, {row["stateDistr"]} with phone number {row["phoneNum"]} has Core Suit in stock')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 91, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Schema error: No field named "L".city. Valid fields are "C"."filmId", "C"."inventoryId", "C"."storeId", "C".updated, "L".addr1, "L".addr2, "L"."cityId", "L".id, "L"."phoneNum", "L"."stateDistr", "L".updated, "L".zip.
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that I'm trying to access the "city" field from the "Loc" table as "L.city", but the actual field name is "cityId". Here's the corrected script:
+
+```
+data = executor.get_from_database("SELECT L.addr1, M.city, L.stateDistr, L.phoneNum FROM default.Catalog C JOIN default.Loc L ON C.storeId = L.id JOIN default.Muni M ON L.cityId = M.id WHERE C.filmId IN (SELECT id FROM default.Movie WHERE title = 'CORE SUIT')")
+if len(data) == 0:
+  executor.output('No stores have Core Suit in stock')
+else:
+  for row in data:
+    executor.output(f'Store at {row["addr1"]}, {row["city"]}, {row["stateDistr"]} with phone number {row["phoneNum"]} has Core Suit in stock')
+```
+
+In this corrected script, I'm joining the "Muni" table to get the city name from the "cityId" in the "Loc" table.
+=== EXECUTION RESULT ===
+Store at 47 MySakila Drive, Lethbridge, Alberta with phone number  has Core Suit in stock
+Store at 47 MySakila Drive, Lethbridge, Alberta with phone number  has Core Suit in stock
+Store at 28 MySQL Boulevard, Woodridge, QLD with phone number  has Core Suit in stock
+Store at 28 MySQL Boulevard, Woodridge, QLD with phone number  has Core Suit in stock
+Store at 28 MySQL Boulevard, Woodridge, QLD with phone number  has Core Suit in stock

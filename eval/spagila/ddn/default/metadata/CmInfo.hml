@@ -1,0 +1,111 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: CmInfo
+  fields:
+    - name: filmInfo
+      type: Text
+    - name: givenName
+      type: Text
+    - name: id
+      type: Int4
+    - name: surname
+      type: Text
+  graphql:
+    typeName: Default_CmInfo
+    inputTypeName: Default_CmInfoInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: cm_info
+      fieldMapping:
+        filmInfo:
+          column:
+            name: film_info
+        givenName:
+          column:
+            name: given_name
+        id:
+          column:
+            name: id
+        surname:
+          column:
+            name: surname
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: CmInfo
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - filmInfo
+          - givenName
+          - id
+          - surname
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: CmInfoBoolExp
+  objectType: CmInfo
+  dataConnectorName: spagila
+  dataConnectorObjectType: cm_info
+  comparableFields:
+    - fieldName: filmInfo
+      operators:
+        enableAll: true
+    - fieldName: givenName
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: surname
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_CmInfoBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: CmInfo
+  objectType: CmInfo
+  source:
+    dataConnectorName: spagila
+    collection: cm_info
+  filterExpressionType: CmInfoBoolExp
+  orderableFields:
+    - fieldName: filmInfo
+      orderByDirections:
+        enableAll: true
+    - fieldName: givenName
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: surname
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_cmInfo
+    selectUniques: []
+    orderByExpressionType: Default_CmInfoOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: CmInfo
+  permissions:
+    - role: admin
+      select:
+        filter: null
+

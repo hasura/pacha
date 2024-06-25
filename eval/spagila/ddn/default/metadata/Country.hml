@@ -1,0 +1,112 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Country
+  fields:
+    - name: country
+      type: Text!
+      description: country name
+    - name: id
+      type: Int4!
+    - name: updated
+      type: Timestamptz!
+      description: When the row was most recently created/updated
+  graphql:
+    typeName: Default_Country
+    inputTypeName: Default_CountryInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: country
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Country
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - country
+          - id
+          - updated
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: CountryBoolExp
+  objectType: Country
+  dataConnectorName: spagila
+  dataConnectorObjectType: country
+  comparableFields:
+    - fieldName: country
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_CountryBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Country
+  objectType: Country
+  source:
+    dataConnectorName: spagila
+    collection: country
+  filterExpressionType: CountryBoolExp
+  orderableFields:
+    - fieldName: country
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_country
+    selectUniques:
+      - queryRootField: default_countryById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_CountryOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Country
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: munis
+  sourceType: Country
+  target:
+    model:
+      name: Muni
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: countryId
+

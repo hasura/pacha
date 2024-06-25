@@ -1,0 +1,24 @@
+=== INPUT ===
+give me the list of customers who made the most number of rentals in the last 6 months
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the customers who made the most number of rentals in the last 6 months from the database.
+
+Here is the Python script to retrieve the required data:
+```
+data = executor.get_from_database("SELECT p.id, p.givenName, p.surname, COUNT(t.id) AS num_rentals "
+                                 "FROM default.Trans t "
+                                 "JOIN default.Patron p ON t.customerId = p.id "
+                                 "WHERE t.rentalDate > NOW() - INTERVAL '6 months' "
+                                 "GROUP BY p.id, p.givenName, p.surname "
+                                 "ORDER BY num_rentals DESC")
+if len(data) == 0:
+  executor.output('No customers made rentals in the last 6 months')
+else:
+  for row in data:
+    executor.output(f'Customer {row["givenName"]} {row["surname"]} with ID {row["id"]} made {row["num_rentals"]} rentals in the last 6 months')
+```
+=== EXECUTION RESULT ===
+No customers made rentals in the last 6 months

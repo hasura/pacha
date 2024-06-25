@@ -1,0 +1,1141 @@
+{
+    "tables": [
+        {
+            "name": "castmember",
+            "description": null,
+            "columns": [
+                {
+                    "name": "surname",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "given_name",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "cat",
+            "description": "film category",
+            "columns": [
+                {
+                    "name": "name",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "catalog",
+            "description": "inventory of copies",
+            "columns": [
+                {
+                    "name": "store_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "film_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "inventory_id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "cm_info",
+            "description": null,
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "surname",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "film_info",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "given_name",
+                    "type": "text",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "country",
+            "description": null,
+            "columns": [
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": "When the row was most recently created/updated"
+                },
+                {
+                    "name": "country",
+                    "type": "text",
+                    "description": "country name"
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "franchise_unit",
+            "description": "All store locations. staff and customers may have a home store",
+            "columns": [
+                {
+                    "name": "address_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "manager",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "geography_columns",
+            "description": null,
+            "columns": [
+                {
+                    "name": "f_geography_column",
+                    "type": "name",
+                    "description": null
+                },
+                {
+                    "name": "f_table_schema",
+                    "type": "name",
+                    "description": null
+                },
+                {
+                    "name": "f_table_catalog",
+                    "type": "name",
+                    "description": null
+                },
+                {
+                    "name": "f_table_name",
+                    "type": "name",
+                    "description": null
+                },
+                {
+                    "name": "type",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "coord_dimension",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "srid",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "geometry_columns",
+            "description": null,
+            "columns": [
+                {
+                    "name": "f_table_name",
+                    "type": "name",
+                    "description": null
+                },
+                {
+                    "name": "type",
+                    "type": "character varying",
+                    "description": null
+                },
+                {
+                    "name": "f_table_catalog",
+                    "type": "character varying",
+                    "description": null
+                },
+                {
+                    "name": "srid",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "coord_dimension",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "f_table_schema",
+                    "type": "name",
+                    "description": null
+                },
+                {
+                    "name": "f_geometry_column",
+                    "type": "name",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "lang",
+            "description": "language, capitalized like 'French', 'English', etc",
+            "columns": [
+                {
+                    "name": "lang",
+                    "type": "character varying",
+                    "description": null
+                },
+                {
+                    "name": "language_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "loc",
+            "description": "address information (TODO: better model name?)",
+            "columns": [
+                {
+                    "name": "phone_num",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "zip",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "city_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "addr2",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "addr1",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "state_distr",
+                    "type": "text",
+                    "description": "The region of an address; e.g. province, state, prefecture"
+                }
+            ]
+        },
+        {
+            "name": "movie",
+            "description": "movies in the catalog, not necessarily in stock",
+            "columns": [
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "logline",
+                    "type": "text",
+                    "description": "log line / blurb"
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "description": "stored all caps"
+                },
+                {
+                    "name": "special_features",
+                    "type": "ARRAY",
+                    "description": "Can be: Trailers, Commentaries, Deleted Scenes, Behind the Scenes."
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "release_year",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "language_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "language_orig",
+                    "type": "integer",
+                    "description": "original language of the film, if dubbed"
+                },
+                {
+                    "name": "due_back_duration",
+                    "type": "smallint",
+                    "description": "length of the rental period (days)"
+                },
+                {
+                    "name": "rate",
+                    "type": "numeric",
+                    "description": "cost to rent for a rental duration"
+                },
+                {
+                    "name": "length",
+                    "type": "smallint",
+                    "description": "(in minutes)"
+                },
+                {
+                    "name": "replacement",
+                    "type": "numeric",
+                    "description": "charge to cust if lost/damaged"
+                },
+                {
+                    "name": "rated",
+                    "type": "USER-DEFINED",
+                    "description": "possible values are: 'NC-17', 'R', 'PG-13', 'G', 'PG'"
+                },
+                {
+                    "name": "fulltext",
+                    "type": "tsvector",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "movie_cat",
+            "description": null,
+            "columns": [
+                {
+                    "name": "category_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "film_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "movie_cm",
+            "description": null,
+            "columns": [
+                {
+                    "name": "film_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": "actor id"
+                }
+            ]
+        },
+        {
+            "name": "movie_list",
+            "description": null,
+            "columns": [
+                {
+                    "name": "rating",
+                    "type": "USER-DEFINED",
+                    "description": null
+                },
+                {
+                    "name": "length",
+                    "type": "smallint",
+                    "description": null
+                },
+                {
+                    "name": "price",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "actors",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "logline",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "category",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "fid",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "muni",
+            "description": "city/municipality",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "country_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "city",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "nicer_but_slower_film_list",
+            "description": null,
+            "columns": [
+                {
+                    "name": "title",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "actors",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "category",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "logline",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "rating",
+                    "type": "USER-DEFINED",
+                    "description": null
+                },
+                {
+                    "name": "length",
+                    "type": "smallint",
+                    "description": null
+                },
+                {
+                    "name": "price",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "fid",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "patron",
+            "description": "all customers",
+            "columns": [
+                {
+                    "name": "create_date",
+                    "type": "date",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "active",
+                    "type": "boolean",
+                    "description": "false is equivalent to deleting a customer"
+                },
+                {
+                    "name": "address_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "store_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "surname",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "given_name",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "email_addr",
+                    "type": "text",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "patron_list",
+            "description": null,
+            "columns": [
+                {
+                    "name": "city",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "sid",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "name",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "address",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "zip code",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "phone",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "country",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "notes",
+                    "type": "text",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "paymant",
+            "description": "Each payment made by a customer",
+            "columns": [
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "payment_date",
+                    "type": "timestamp with time zone",
+                    "description": "a postgres 'timestamptz'"
+                },
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "handled_by",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "rental_id",
+                    "type": "integer",
+                    "description": "optional if e.g. for an outstanding fee"
+                }
+            ]
+        },
+        {
+            "name": "payment_p2022_01",
+            "description": null,
+            "columns": [
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "payment_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "rental_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "handled_by",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "payment_p2022_02",
+            "description": null,
+            "columns": [
+                {
+                    "name": "payment_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "handled_by",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "rental_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "payment_p2022_03",
+            "description": null,
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "payment_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "rental_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "handled_by",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "payment_p2022_04",
+            "description": null,
+            "columns": [
+                {
+                    "name": "payment_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "rental_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "handled_by",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "payment_p2022_05",
+            "description": null,
+            "columns": [
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "payment_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "rental_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "handled_by",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "payment_p2022_06",
+            "description": null,
+            "columns": [
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "payment_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "rental_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "handled_by",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "payment_p2022_07",
+            "description": null,
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "handled_by",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "rental_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "payment_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "sales_by_cat",
+            "description": null,
+            "columns": [
+                {
+                    "name": "total_sales",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "category",
+                    "type": "text",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "sales_by_store",
+            "description": null,
+            "columns": [
+                {
+                    "name": "total_sales",
+                    "type": "numeric",
+                    "description": null
+                },
+                {
+                    "name": "store",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "manager",
+                    "type": "text",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "spatial_ref_sys",
+            "description": null,
+            "columns": [
+                {
+                    "name": "auth_name",
+                    "type": "character varying",
+                    "description": null
+                },
+                {
+                    "name": "proj4text",
+                    "type": "character varying",
+                    "description": null
+                },
+                {
+                    "name": "srtext",
+                    "type": "character varying",
+                    "description": null
+                },
+                {
+                    "name": "auth_srid",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "srid",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "team",
+            "description": "staff members",
+            "columns": [
+                {
+                    "name": "username",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "email",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "last_name",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "first_name",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "picture",
+                    "type": "bytea",
+                    "description": "jpg"
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "active",
+                    "type": "boolean",
+                    "description": null
+                },
+                {
+                    "name": "store_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "address_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "pass_md5_no_salt",
+                    "type": "text",
+                    "description": "password, stored with MD5()"
+                }
+            ]
+        },
+        {
+            "name": "team_list",
+            "description": null,
+            "columns": [
+                {
+                    "name": "name",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "zip code",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "phone",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "address",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "city",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "country",
+                    "type": "text",
+                    "description": null
+                },
+                {
+                    "name": "sid",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        },
+        {
+            "name": "trans",
+            "description": "a customer transaction (B.M.S.: these are now only rentals. this table name should probably change)",
+            "columns": [
+                {
+                    "name": "customer_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "updated",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "return_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "staff_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "rental_date",
+                    "type": "timestamp with time zone",
+                    "description": null
+                },
+                {
+                    "name": "inventory_id",
+                    "type": "integer",
+                    "description": null
+                },
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "description": null
+                }
+            ]
+        }
+    ]
+}

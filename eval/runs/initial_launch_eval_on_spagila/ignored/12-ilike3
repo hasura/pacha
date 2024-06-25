@@ -1,0 +1,19 @@
+=== INPUT ===
+last names of five actors and cast that start with 'Mc', like 'McQueen', etc. Doesn't matter who
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve a list of last names of actors and cast members that start with 'Mc' from the database.
+
+```
+data = executor.get_from_database("SELECT surname FROM default.Castmember WHERE surname LIKE 'Mc%'")
+if len(data) == 0:
+  executor.output('No cast members with last name starting with "Mc" found')
+else:
+  executor.output('Last names of cast members starting with "Mc":')
+  for row in data:
+    executor.output(f'- {row["surname"]}')
+```
+=== EXECUTION RESULT ===
+No cast members with last name starting with "Mc" found

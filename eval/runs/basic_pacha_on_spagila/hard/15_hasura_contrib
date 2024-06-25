@@ -1,0 +1,26 @@
+=== INPUT ===
+Suggest a children's' movie by popularity
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To suggest a popular children's movie, I would like to retrieve data from the database about the most rented or popular movies in the "movie" table, specifically those that are suitable for children.
+
+Here is the Python script to retrieve the data:
+```
+data = executor.get_from_database("SELECT title, rated FROM movie WHERE rated IN ('G', 'PG') ORDER BY rental_duration DESC LIMIT 1")
+executor.output(f"Popular children's movie: {data[0]['title']} (Rated {data[0]['rated']})")
+```
+This script retrieves the title and rating of the most rented movie (based on the "rental_duration" column) that has a rating of either 'G' or 'PG', which are suitable for children. The result is then output as a suggested popular children's movie.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 26, in get_from_database
+    return self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column "rental_duration" does not exist
+LINE 1: ...ed FROM movie WHERE rated IN ('G', 'PG') ORDER BY rental_dur...
+                                                             ^
+

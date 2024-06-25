@@ -1,0 +1,99 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: SalesByStore
+  fields:
+    - name: manager
+      type: Text
+    - name: store
+      type: Text
+    - name: totalSales
+      type: Numeric
+  graphql:
+    typeName: Default_SalesByStore
+    inputTypeName: Default_SalesByStoreInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: sales_by_store
+      fieldMapping:
+        manager:
+          column:
+            name: manager
+        store:
+          column:
+            name: store
+        totalSales:
+          column:
+            name: total_sales
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: SalesByStore
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - manager
+          - store
+          - totalSales
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: SalesByStoreBoolExp
+  objectType: SalesByStore
+  dataConnectorName: spagila
+  dataConnectorObjectType: sales_by_store
+  comparableFields:
+    - fieldName: manager
+      operators:
+        enableAll: true
+    - fieldName: store
+      operators:
+        enableAll: true
+    - fieldName: totalSales
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_SalesByStoreBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: SalesByStore
+  objectType: SalesByStore
+  source:
+    dataConnectorName: spagila
+    collection: sales_by_store
+  filterExpressionType: SalesByStoreBoolExp
+  orderableFields:
+    - fieldName: manager
+      orderByDirections:
+        enableAll: true
+    - fieldName: store
+      orderByDirections:
+        enableAll: true
+    - fieldName: totalSales
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_salesByStore
+    selectUniques: []
+    orderByExpressionType: Default_SalesByStoreOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: SalesByStore
+  permissions:
+    - role: admin
+      select:
+        filter: null
+

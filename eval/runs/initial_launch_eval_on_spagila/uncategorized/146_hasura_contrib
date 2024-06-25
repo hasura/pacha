@@ -1,0 +1,42 @@
+=== INPUT ===
+What kind of films do our highest-spending customers like to watch?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to know the film preferences of our highest-spending customers. 
+
+```
+top_spending_customers = executor.get_from_database("SELECT id FROM default.Patron ORDER BY (SELECT SUM(amount) FROM default.Paymant WHERE customerId = default.Patron.id) DESC LIMIT 10")
+if len(top_spending_customers) == 0:
+  executor.output('No customers found')
+else:
+  top_customers_ids = [customer['id'] for customer in top_spending_customers]
+  rentals = executor.get_from_database("SELECT filmId FROM default.Trans WHERE customerId IN ({seq})".format(seq=','.join(['?']*len(top_customers_ids))), top_customers_ids)
+  if len(rentals) == 0:
+    executor.output('No rentals found for top spending customers')
+  else:
+    film_ids = [rental['filmId'] for rental in rentals]
+    film_categories = executor.get_from_database("SELECT filmId, categoryId FROM default.MovieCat WHERE filmId IN ({seq})".format(seq=','.join(['?']*len(film_ids))), film_ids)
+    if len(film_categories) == 0:
+      executor.output('No film categories found for top spending customers')
+    else:
+      category_ids = [film_category['categoryId'] for film_category in film_categories]
+      categories = executor.get_from_database("SELECT id, name FROM default.Cat WHERE id IN ({seq})".format(seq=','.join(['?']*len(category_ids))), category_ids)
+      if len(categories) == 0:
+        executor.output('No categories found')
+      else:
+        category_counts = {}
+        for film_category in film_categories:
+          category_id = film_category['categoryId']
+          for category in categories:
+            if category['id'] == category_id:
+              category_name = category['name']
+              if category_name in category_counts:
+                category_counts[category_name] += 1
+              else:
+                category_counts[category_name] = 1
+        executor.output('Film categories preferred by top spending customers:')
+        for category, count in category_counts.items():
+          executor.output(f'{category}: {count}')
+=== EXECUTION RESULT ===

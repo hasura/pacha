@@ -1,0 +1,156 @@
+=== INPUT ===
+which of my stores is trending downwards in sales over the last 6 months and which ones are trending up
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I need to retrieve the sales data for each store over the last 6 months. 
+
+```
+data = executor.get_from_database("SELECT storeId, SUM(amount) AS totalSales FROM default.PaymentP202201 UNION ALL SELECT storeId, SUM(amount) FROM default.PaymentP202202 UNION ALL SELECT storeId, SUM(amount) FROM default.PaymentP202203 UNION ALL SELECT storeId, SUM(amount) FROM default.PaymentP202204 UNION ALL SELECT storeId, SUM(amount) FROM default.PaymentP202205 UNION ALL SELECT storeId, SUM(amount) FROM default.PaymentP202206 UNION ALL SELECT storeId, SUM(amount) FROM default.PaymentP202207 GROUP BY storeId ORDER BY totalSales DESC")
+if len(data) == 0:
+  executor.output('No sales data found for the last 6 months')
+else:
+  trending_up = []
+  trending_down = []
+  for i in range(len(data) - 1):
+    if data[i]['totalSales'] > data[i+1]['totalSales']:
+      trending_down.append(data[i+1]['storeId'])
+    else:
+      trending_up.append(data[i+1]['storeId'])
+  executor.output(f'Stores trending downwards in sales: {trending_down}')
+  executor.output(f'Stores trending upwards in sales: {trending_up}')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 91, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Schema error: No field named "storeId". Valid fields are default."PaymentP202201".amount, default."PaymentP202201"."customerId", default."PaymentP202201"."handledBy", default."PaymentP202201".id, default."PaymentP202201"."paymentDate", default."PaymentP202201"."rentalId".
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the `storeId` field does not exist in the `PaymentP202201` table. It seems that the `storeId` is actually in the `Patron` table. 
+
+To fix this, we need to join the `PaymentP202201` table with the `Patron` table on the `customerId` field. Here's the corrected script:
+
+```
+data = executor.get_from_database("""
+    SELECT p.storeId, SUM(pa.amount) AS totalSales 
+    FROM default.PaymentP202201 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202202 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202203 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202204 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202205 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202206 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202207 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    GROUP BY p.storeId 
+    ORDER BY totalSales DESC
+""")
+if len(data) == 0:
+  executor.output('No sales data found for the last 6 months')
+else:
+  trending_up = []
+  trending_down = []
+  for i in range(len(data) - 1):
+    if data[i]['totalSales'] > data[i+1]['totalSales']:
+      trending_down.append(data[i+1]['storeId'])
+    else:
+      trending_up.append(data[i+1]['storeId'])
+  executor.output(f'Stores trending downwards in sales: {trending_down}')
+  executor.output(f'Stores trending upwards in sales: {trending_up}')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 91, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Error during planning: Projection references non-aggregate values: Expression p.storeId could not be resolved from available columns: SUM(pa.amount)
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that we are trying to select `p.storeId` which is not an aggregate value, but we are using `GROUP BY` clause. To fix this, we need to include `p.storeId` in the `GROUP BY` clause. Here's the corrected script:
+
+```
+data = executor.get_from_database("""
+    SELECT p.storeId, SUM(pa.amount) AS totalSales 
+    FROM default.PaymentP202201 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    GROUP BY p.storeId 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202202 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    GROUP BY p.storeId 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202203 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    GROUP BY p.storeId 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202204 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    GROUP BY p.storeId 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202205 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    GROUP BY p.storeId 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202206 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    GROUP BY p.storeId 
+    UNION ALL 
+    SELECT p.storeId, SUM(pa.amount) 
+    FROM default.PaymentP202207 pa 
+    JOIN default.Patron p ON pa.customerId = p.id 
+    GROUP BY p.storeId 
+    ORDER BY totalSales DESC
+""")
+if len(data) == 0:
+  executor.output('No sales data found for the last 6 months')
+else:
+  trending_up = []
+  trending_down = []
+  for i in range(len(data) - 1):
+    if data[i]['totalSales'] > data[i+1]['totalSales']:
+      trending_down.append(data[i+1]['storeId'])
+    else:
+      trending_up.append(data[i+1]['storeId'])
+  executor.output(f'Stores trending downwards in sales: {trending_down}')
+  executor.output(f'Stores trending upwards in sales: {trending_up}')
+```
+=== EXECUTION RESULT ===
+Stores trending downwards in sales: [1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2, 1, 2]
+Stores trending upwards in sales: []

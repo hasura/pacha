@@ -1,0 +1,17 @@
+=== INPUT ===
+What is the longest Tom Cruise film?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question about the longest Tom Cruise film, we would need to retrieve data from the database to find the film with Tom Cruise that has the longest duration. We would need to query the `movie` table to get the duration of each film starring Tom Cruise.
+
+```python
+data = executor.get_from_database("SELECT title, length FROM movie WHERE id IN (SELECT film_id FROM movie_cm WHERE id IN (SELECT id FROM castmember WHERE given_name = 'Tom' AND surname = 'Cruise')) ORDER BY length DESC LIMIT 1")
+if data:
+    executor.output(f'The longest Tom Cruise film is "{data[0]["title"]}" with a duration of {data[0]["length"]} minutes.')
+else:
+    executor.output("No data found for Tom Cruise films.")
+```
+=== EXECUTION RESULT ===
+No data found for Tom Cruise films.

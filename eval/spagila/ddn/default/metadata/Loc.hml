@@ -1,0 +1,237 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Loc
+  description: "address information (TODO: better model name?)"
+  fields:
+    - name: addr1
+      type: Text!
+    - name: addr2
+      type: Text
+    - name: cityId
+      type: Int4!
+    - name: id
+      type: Int4!
+    - name: phoneNum
+      type: Text!
+    - name: stateDistr
+      type: Text!
+      description: The region of an address; e.g. province, state, prefecture
+    - name: updated
+      type: Timestamptz!
+    - name: zip
+      type: Text
+  graphql:
+    typeName: Default_Loc
+    inputTypeName: Default_LocInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: loc
+      fieldMapping:
+        addr1:
+          column:
+            name: addr1
+        addr2:
+          column:
+            name: addr2
+        cityId:
+          column:
+            name: city_id
+        id:
+          column:
+            name: id
+        phoneNum:
+          column:
+            name: phone_num
+        stateDistr:
+          column:
+            name: state_distr
+        updated:
+          column:
+            name: updated
+        zip:
+          column:
+            name: zip
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Loc
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - addr1
+          - addr2
+          - cityId
+          - id
+          - phoneNum
+          - stateDistr
+          - updated
+          - zip
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: LocBoolExp
+  objectType: Loc
+  dataConnectorName: spagila
+  dataConnectorObjectType: loc
+  comparableFields:
+    - fieldName: addr1
+      operators:
+        enableAll: true
+    - fieldName: addr2
+      operators:
+        enableAll: true
+    - fieldName: cityId
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: phoneNum
+      operators:
+        enableAll: true
+    - fieldName: stateDistr
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+    - fieldName: zip
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_LocBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Loc
+  objectType: Loc
+  source:
+    dataConnectorName: spagila
+    collection: loc
+  filterExpressionType: LocBoolExp
+  orderableFields:
+    - fieldName: addr1
+      orderByDirections:
+        enableAll: true
+    - fieldName: addr2
+      orderByDirections:
+        enableAll: true
+    - fieldName: cityId
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: phoneNum
+      orderByDirections:
+        enableAll: true
+    - fieldName: stateDistr
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+    - fieldName: zip
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_loc
+    selectUniques:
+      - queryRootField: default_locById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_LocOrderBy
+  description: "address information (TODO: better model name?)"
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Loc
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: franchiseUnits
+  sourceType: Loc
+  target:
+    model:
+      name: FranchiseUnit
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: addressId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: muni
+  sourceType: Loc
+  target:
+    model:
+      name: Muni
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: cityId
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: patrons
+  sourceType: Loc
+  target:
+    model:
+      name: Patron
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: addressId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: teams
+  sourceType: Loc
+  target:
+    model:
+      name: Team
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: addressId
+

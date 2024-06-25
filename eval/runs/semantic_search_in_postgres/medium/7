@@ -1,0 +1,35 @@
+=== INPUT ===
+show me city/state/phone number for all the stores that have Core Suit in stock
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the city, state, and phone number of stores that have "Core Suit" in stock.
+
+Here is the Python script to retrieve the required data:
+```
+query = """
+  SELECT 
+    l.addr1 AS address,
+    l.state_distr AS state,
+    l.phone_num AS phone,
+    c.inventory_id
+  FROM public.catalog c
+  JOIN public.loc l ON c.store_id = l.id
+  WHERE c.film_id IN (
+    SELECT m.id
+    FROM public.movie m
+    WHERE m.title = 'Core Suit'
+  )
+"""
+
+stores = executor.get_from_database(query)
+if len(stores) == 0:
+  executor.output('No stores have "Core Suit" in stock')
+else:
+  executor.output(f'{len(stores)} stores have "Core Suit" in stock:')
+  for store in stores:
+    executor.output(f'Address: {store["address"]}, State: {store["state"]}, Phone: {store["phone"]}')
+```
+=== EXECUTION RESULT ===
+No stores have "Core Suit" in stock

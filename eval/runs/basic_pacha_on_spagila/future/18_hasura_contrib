@@ -1,0 +1,28 @@
+=== INPUT ===
+Which is the closest video shop to my parent's house at postcode <blah>?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I would need to retrieve the location of the user's parent's house based on the provided postcode and then find the closest video shop (franchise_unit) to that location.
+
+Here is the Python script to retrieve the required data:
+```
+postcode = "<blah>"  # Replace with the actual postcode
+data = executor.get_from_database(f"SELECT * FROM loc WHERE zip = '{postcode}'")
+executor.output(f"Location of parent's house: {data[0]['addr1']}, {data[0]['city']}, {data[0]['state_distr']}, {data[0]['zip']}")
+
+closest_video_shop_query = f"""
+    SELECT fu.address_id, l.addr1, l.city, l.state_distr, l.zip
+    FROM franchise_unit fu
+    JOIN loc l ON fu.address_id = l.id
+    ORDER BY (l.zip = '{postcode}') DESC, ABS(l.zip - '{postcode}') LIMIT 1
+"""
+data = executor.get_from_database(closest_video_shop_query)
+executor.output(f"Closest video shop: {data[0]['addr1']}, {data[0]['city']}, {data[0]['state_distr']}, {data[0]['zip']}")
+```
+This script first retrieves the location of the user's parent's house based on the provided postcode. Then, it finds the closest video shop by joining the `franchise_unit` and `loc` tables, ordering by the postcode match and the absolute difference in postcodes, and limiting the result to the top 1 closest video shop.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+TypeError: 'NoneType' object is not subscriptable

@@ -1,0 +1,152 @@
+=== INPUT ===
+What's the average rating of movies in the Action genre? What is the average rating by Genre?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the average rating of movies in the Action genre and the average rating by Genre from the database.
+
+```
+# Retrieve the average rating of movies in the Action genre
+data = executor.get_from_database("SELECT AVG(rated) AS avg_rating FROM default.Movie m JOIN default.MovieCat mc ON m.id = mc.filmId JOIN default.Cat c ON mc.categoryId = c.id WHERE c.name = 'Action'")
+if len(data) > 0 and data[0]['avg_rating'] is not None:
+  executor.output(f'Average rating of movies in the Action genre: {data[0]["avg_rating"]}')
+else:
+  executor.output('No movies found in the Action genre')
+
+# Retrieve the average rating by Genre
+data = executor.get_from_database("SELECT c.name AS genre, AVG(m.rated) AS avg_rating FROM default.Movie m JOIN default.MovieCat mc ON m.id = mc.filmId JOIN default.Cat c ON mc.categoryId = c.id GROUP BY c.name")
+if len(data) > 0:
+  for row in data:
+    if row['avg_rating'] is not None:
+      executor.output(f'Average rating of movies in the {row["genre"]} genre: {row["avg_rating"]}')
+    else:
+      executor.output(f'No movies found in the {row["genre"]} genre')
+else:
+  executor.output('No movies found in any genre')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Error during planning: No function matches the given name and argument types 'AVG(Utf8)'. You might need to add explicit type casts.
+	Candidate functions:
+	AVG(Int8/Int16/Int32/Int64/UInt8/UInt16/UInt32/UInt64/Float32/Float64)
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the `AVG` function not being able to handle the `rated` column which is of type `TEXT`. The `AVG` function can only be used with numeric types. 
+
+Since the `rated` column contains ratings like 'G', 'PG', 'PG-13', 'R', 'NC-17', we can't calculate the average rating directly. Instead, we can count the number of movies for each rating and output the distribution of ratings.
+
+Here's the corrected script:
+
+```
+# Retrieve the distribution of ratings for movies in the Action genre
+data = executor.get_from_database("SELECT rated, COUNT(*) AS count FROM default.Movie m JOIN default.MovieCat mc ON m.id = mc.filmId JOIN default.Cat c ON mc.categoryId = c.id WHERE c.name = 'Action' GROUP BY rated")
+if len(data) > 0:
+  for row in data:
+    executor.output(f'Number of movies in the Action genre with rating {row["rated"]}: {row["count"]}')
+else:
+  executor.output('No movies found in the Action genre')
+
+# Retrieve the distribution of ratings by Genre
+data = executor.get_from_database("SELECT c.name AS genre, m.rated, COUNT(*) AS count FROM default.Movie m JOIN default.MovieCat mc ON m.id = mc.filmId JOIN default.Cat c ON mc.categoryId = c.id GROUP BY c.name, m.rated")
+if len(data) > 0:
+  for row in data:
+    executor.output(f'Number of movies in the {row["genre"]} genre with rating {row["rated"]}: {row["count"]}')
+else:
+  executor.output('No movies found in any genre')
+```
+=== EXECUTION RESULT ===
+Number of movies in the Action genre with rating PG: 33
+Number of movies in the Action genre with rating G: 22
+Number of movies in the Action genre with rating PG-13: 36
+Number of movies in the Action genre with rating NC-17: 29
+Number of movies in the Action genre with rating R: 29
+Number of movies in the Action genre with rating PG: 33
+Number of movies in the Action genre with rating G: 22
+Number of movies in the Action genre with rating PG-13: 36
+Number of movies in the Action genre with rating NC-17: 29
+Number of movies in the Action genre with rating R: 29
+Number of movies in the Animation genre with rating G: 28
+Number of movies in the Animation genre with rating R: 23
+Number of movies in the Animation genre with rating PG-13: 31
+Number of movies in the Animation genre with rating NC-17: 30
+Number of movies in the Animation genre with rating PG: 36
+Number of movies in the Children genre with rating G: 32
+Number of movies in the Children genre with rating R: 33
+Number of movies in the Children genre with rating NC-17: 32
+Number of movies in the Children genre with rating PG-13: 29
+Number of movies in the Children genre with rating PG: 24
+Number of movies in the Classics genre with rating PG-13: 24
+Number of movies in the Classics genre with rating PG: 25
+Number of movies in the Classics genre with rating NC-17: 29
+Number of movies in the Classics genre with rating R: 35
+Number of movies in the Classics genre with rating G: 34
+Number of movies in the Comedy genre with rating NC-17: 32
+Number of movies in the Comedy genre with rating R: 29
+Number of movies in the Comedy genre with rating PG: 23
+Number of movies in the Comedy genre with rating G: 24
+Number of movies in the Comedy genre with rating PG-13: 35
+Number of movies in the Documentary genre with rating G: 24
+Number of movies in the Documentary genre with rating NC-17: 30
+Number of movies in the Documentary genre with rating R: 24
+Number of movies in the Documentary genre with rating PG: 24
+Number of movies in the Documentary genre with rating PG-13: 43
+Number of movies in the Drama genre with rating G: 28
+Number of movies in the Drama genre with rating PG-13: 33
+Number of movies in the Drama genre with rating NC-17: 31
+Number of movies in the Drama genre with rating PG: 29
+Number of movies in the Drama genre with rating R: 31
+Number of movies in the Family genre with rating G: 31
+Number of movies in the Family genre with rating PG: 25
+Number of movies in the Family genre with rating R: 24
+Number of movies in the Family genre with rating NC-17: 36
+Number of movies in the Family genre with rating PG-13: 31
+Number of movies in the Foreign genre with rating G: 30
+Number of movies in the Foreign genre with rating PG: 32
+Number of movies in the Foreign genre with rating PG-13: 27
+Number of movies in the Foreign genre with rating R: 29
+Number of movies in the Foreign genre with rating NC-17: 32
+Number of movies in the Games genre with rating PG-13: 27
+Number of movies in the Games genre with rating PG: 26
+Number of movies in the Games genre with rating NC-17: 28
+Number of movies in the Games genre with rating G: 38
+Number of movies in the Games genre with rating R: 31
+Number of movies in the Horror genre with rating G: 25
+Number of movies in the Horror genre with rating PG-13: 28
+Number of movies in the Horror genre with rating NC-17: 28
+Number of movies in the Horror genre with rating R: 29
+Number of movies in the Horror genre with rating PG: 32
+Number of movies in the Music genre with rating NC-17: 35
+Number of movies in the Music genre with rating PG: 20
+Number of movies in the Music genre with rating R: 36
+Number of movies in the Music genre with rating G: 24
+Number of movies in the Music genre with rating PG-13: 37
+Number of movies in the New genre with rating NC-17: 42
+Number of movies in the New genre with rating G: 19
+Number of movies in the New genre with rating PG-13: 34
+Number of movies in the New genre with rating PG: 27
+Number of movies in the New genre with rating R: 25
+Number of movies in the Sci-Fi genre with rating G: 23
+Number of movies in the Sci-Fi genre with rating R: 32
+Number of movies in the Sci-Fi genre with rating NC-17: 33
+Number of movies in the Sci-Fi genre with rating PG-13: 29
+Number of movies in the Sci-Fi genre with rating PG: 32
+Number of movies in the Sports genre with rating G: 22
+Number of movies in the Sports genre with rating PG-13: 31
+Number of movies in the Sports genre with rating R: 29
+Number of movies in the Sports genre with rating NC-17: 34
+Number of movies in the Sports genre with rating PG: 29
+Number of movies in the Travel genre with rating PG: 21
+Number of movies in the Travel genre with rating PG-13: 35
+Number of movies in the Travel genre with rating NC-17: 38
+Number of movies in the Travel genre with rating R: 30
+Number of movies in the Travel genre with rating G: 27

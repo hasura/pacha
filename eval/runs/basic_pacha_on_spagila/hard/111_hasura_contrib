@@ -1,0 +1,38 @@
+=== INPUT ===
+Give me top N stores by revenue in a select time period (past 3 months or 12 months)
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide the top N stores by revenue in a select time period, I would need to retrieve data from the `payment` tables and the `franchise_unit` table. 
+
+Here is the Python script to retrieve the required data:
+```
+data = executor.get_from_database("""
+    SELECT fu.id, fu.address_id, SUM(p.amount) AS total_revenue
+    FROM payment_p2022_03 p
+    JOIN franchise_unit fu ON p.handled_by = fu.id
+    WHERE p.payment_date >= NOW() - INTERVAL '3 months'
+    GROUP BY fu.id, fu.address_id
+    ORDER BY total_revenue DESC
+    LIMIT N;
+""")
+executor.output(f'Top {N} stores by revenue in the past 3 months:\n{data}')
+```
+This script retrieves the total revenue for each store in the past 3 months, groups the results by store, and orders them by revenue in descending order. The `LIMIT N` clause is used to retrieve only the top N stores.
+
+To retrieve data for the past 12 months, you can modify the `WHERE` clause to `WHERE p.payment_date >= NOW() - INTERVAL '12 months'`.
+
+Note: You need to replace `N` with the desired number of top stores you want to retrieve.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 26, in get_from_database
+    return self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.SyntaxError: syntax error at or near ";"
+LINE 8:     LIMIT N;
+                   ^
+

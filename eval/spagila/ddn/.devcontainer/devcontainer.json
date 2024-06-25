@@ -1,0 +1,17 @@
+{
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "HasuraHQ.hasura"
+      ],
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "terminal.integrated.shellArgs.linux": [
+          "-l"
+        ]
+      }
+    }
+  },
+  "name": "Hasura DDN Codespace",
+  "postCreateCommand": "curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v1/get.sh | bash"
+}

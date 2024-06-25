@@ -1,0 +1,57 @@
+=== INPUT ===
+What is the average duration of movies by Genre?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would like to retrieve the average duration of movies by genre from the database.
+
+```
+data = executor.get_from_database("SELECT mc.name, AVG(m.length) AS avg_length FROM default.Movie m JOIN default.MovieCat mc ON m.id = mc.filmId GROUP BY mc.name")
+if len(data) > 0:
+    for row in data:
+        executor.output(f'Average duration of movies in {row["name"]} genre is {row["avg_length"]} minutes')
+else:
+    executor.output('No movie data found')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Schema error: No field named mc.name. Valid fields are m."dueBackDuration", m.id, m."languageId", m."languageOrig", m.length, m.logline, m.rate, m.rated, m."releaseYear", m.replacement, m.title, m.updated, mc."categoryId", mc."filmId", mc.updated.
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the column name in the `MovieCat` table is `categoryId`, not `name`. We need to join the `MovieCat` table with the `Cat` table to get the category name. Here's the corrected script:
+
+```
+data = executor.get_from_database("SELECT c.name, AVG(m.length) AS avg_length FROM default.Movie m JOIN default.MovieCat mc ON m.id = mc.filmId JOIN default.Cat c ON mc.categoryId = c.id GROUP BY c.name")
+if len(data) > 0:
+    for row in data:
+        executor.output(f'Average duration of movies in {row["name"]} genre is {row["avg_length"]} minutes')
+else:
+    executor.output('No movie data found')
+```
+=== EXECUTION RESULT ===
+Average duration of movies in Action genre is 113.09395973154362 minutes
+Average duration of movies in Animation genre is 113.22297297297297 minutes
+Average duration of movies in Children genre is 111.83333333333333 minutes
+Average duration of movies in Classics genre is 114.9047619047619 minutes
+Average duration of movies in Comedy genre is 115.37762237762237 minutes
+Average duration of movies in Documentary genre is 113.30344827586207 minutes
+Average duration of movies in Drama genre is 116.375 minutes
+Average duration of movies in Family genre is 115.92517006802721 minutes
+Average duration of movies in Foreign genre is 114.89333333333333 minutes
+Average duration of movies in Games genre is 116.28666666666666 minutes
+Average duration of movies in Horror genre is 117.20422535211267 minutes
+Average duration of movies in Music genre is 120.49342105263158 minutes
+Average duration of movies in New genre is 114.49659863945578 minutes
+Average duration of movies in Sci-Fi genre is 113.79194630872483 minutes
+Average duration of movies in Sports genre is 111.24137931034483 minutes
+Average duration of movies in Travel genre is 116.6092715231788 minutes

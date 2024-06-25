@@ -1,0 +1,19 @@
+=== INPUT ===
+which staff members are the most productive (transactions processed/customer touch points)?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve the staff members with the most transactions processed. 
+
+```
+data = executor.get_from_database("SELECT t.id, t.firstName, t.lastName, COUNT(tr.staffId) AS transactions_processed FROM default.Team t JOIN default.Trans tr ON t.id = tr.staffId GROUP BY t.id, t.firstName, t.lastName ORDER BY transactions_processed DESC")
+if len(data) == 0:
+  executor.output('No staff members found')
+else:
+  for row in data:
+    executor.output(f'Staff member {row["firstName"]} {row["lastName"]} with ID {row["id"]} has processed {row["transactions_processed"]} transactions.')
+```
+=== EXECUTION RESULT ===
+Staff member Warner Hudson with ID 1 has processed 8040 transactions.
+Staff member Lavone O'Reilly with ID 2 has processed 8004 transactions.

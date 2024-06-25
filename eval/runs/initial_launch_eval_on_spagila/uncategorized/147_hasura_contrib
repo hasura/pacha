@@ -1,0 +1,26 @@
+=== INPUT ===
+How does staff retention correlate with customer retention?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would like to retrieve data on staff retention rates and customer retention rates from the database.
+
+```
+staff_retention_data = executor.get_from_database("SELECT COUNT(DISTINCT t.id) AS staff_count, COUNT(CASE WHEN t.active THEN 1 ELSE NULL END) AS active_staff_count FROM default.Team t")
+if len(staff_retention_data) == 0:
+  executor.output('No staff data found')
+else:
+  staff_retention_rate = staff_retention_data[0]["active_staff_count"] / staff_retention_data[0]["staff_count"]
+  executor.output(f'Staff retention rate: {staff_retention_rate:.2f}')
+
+customer_retention_data = executor.get_from_database("SELECT COUNT(DISTINCT p.id) AS customer_count, COUNT(CASE WHEN p.active THEN 1 ELSE NULL END) AS active_customer_count FROM default.Patron p")
+if len(customer_retention_data) == 0:
+  executor.output('No customer data found')
+else:
+  customer_retention_rate = customer_retention_data[0]["active_customer_count"] / customer_retention_data[0]["customer_count"]
+  executor.output(f'Customer retention rate: {customer_retention_rate:.2f}')
+```
+=== EXECUTION RESULT ===
+Staff retention rate: 1.00
+Customer retention rate: 1.00

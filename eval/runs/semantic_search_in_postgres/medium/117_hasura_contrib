@@ -1,0 +1,67 @@
+=== INPUT ===
+who are my top 5 renters for each of my stores
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve the top 5 renters for each store. We can do this by joining the `trans` table (which contains rental information) with the `patron` table (which contains customer information) and the `franchise_unit` table (which contains store information).
+
+Here is the Python script to retrieve the required data:
+```
+query = """
+  SELECT 
+    fu.id AS store_id,
+    fu.address_id,
+    p.id AS customer_id,
+    p.surname,
+    p.given_name,
+    COUNT(t.id) AS num_rentals
+  FROM 
+    public.trans t
+  JOIN 
+    public.patron p ON t.customer_id = p.id
+  JOIN 
+    public.franchise_unit fu ON p.store_id = fu.id
+  GROUP BY 
+    fu.id, fu.address_id, p.id, p.surname, p.given_name
+  ORDER BY 
+    fu.id, num_rentals DESC
+"""
+
+data = executor.get_from_database(query)
+
+if len(data) == 0:
+  executor.output('No rental data found')
+else:
+  store_renters = {}
+  for row in data:
+    store_id = row['store_id']
+    if store_id not in store_renters:
+      store_renters[store_id] = []
+    store_renters[store_id].append({
+      'customer_id': row['customer_id'],
+      'customer_name': f"{row['given_name']} {row['surname']}",
+      'num_rentals': row['num_rentals']
+    })
+
+  for store_id, renters in store_renters.items():
+    executor.output(f"Top 5 renters for store {store_id}:")
+    for i, renter in enumerate(renters[:5], 1):
+      executor.output(f"{i}. {renter['customer_name']} - {renter['num_rentals']} rentals")
+    executor.output("")  # empty line for readability
+```
+=== EXECUTION RESULT ===
+Top 5 renters for store 1:
+1. ELEANOR HUNT - 46 rentals
+2. CLARA SHAW - 42 rentals
+3. MARCIA DEAN - 42 rentals
+4. TIM CARY - 39 rentals
+5. ELIZABETH BROWN - 38 rentals
+
+Top 5 renters for store 2:
+1. KARL SEAL - 45 rentals
+2. TAMMY SANDERS - 41 rentals
+3. WESLEY BULL - 40 rentals
+4. SUE PETERS - 40 rentals
+5. MARION SNYDER - 39 rentals
+

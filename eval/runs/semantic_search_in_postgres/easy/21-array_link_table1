@@ -1,0 +1,124 @@
+=== INPUT ===
+Last names of actors in films from 2009
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the last names of actors in films from 2009.
+
+```
+query = """
+  SELECT DISTINCT cm.surname
+  FROM public.movie_cm mc
+  JOIN public.castmember cm ON mc.id = cm.id
+  JOIN public.movie m ON mc.film_id = m.id
+  WHERE m.release_year = 2009
+"""
+
+data = executor.get_from_database(query)
+if len(data) == 0:
+  executor.output('No actors found in films from 2009')
+else:
+  executor.output('Last names of actors in films from 2009:')
+  for row in data:
+    executor.output(f'{row["surname"]}')
+```
+=== EXECUTION RESULT ===
+Last names of actors in films from 2009:
+AKROYD
+BRIDGES
+HUNT
+GIBSON
+ALLEN
+SUVARI
+WILLIAMS
+HESTON
+MONROE
+HOFFMAN
+SILVERSTONE
+ASTAIRE
+BULLOCK
+MOSTEL
+JOVOVICH
+MCQUEEN
+MALDEN
+HARRIS
+WOOD
+GOODING
+TEMPLE
+OLIVIER
+DEPP
+MANSFIELD
+GARLAND
+BALL
+WEST
+BENING
+DENCH
+STREEP
+GUINESS
+RYDER
+NOLTE
+TORN
+WINSLET
+WALKEN
+BERGMAN
+CHASE
+ZELLWEGER
+TANDY
+PECK
+CRAWFORD
+FAWCETT
+CRUZ
+BERGEN
+JACKMAN
+DUKAKIS
+NICHOLSON
+PHOENIX
+DEGENERES
+SWANK
+STALLONE
+BERRY
+KEITEL
+SOBIESKI
+CRUISE
+BARRYMORE
+BALE
+CAGE
+DAY-LEWIS
+KILMER
+BRODY
+WAYNE
+LOLLOBRIGIDA
+HAWKE
+MARX
+DUNST
+HOPKINS
+PENN
+MCCONAUGHEY
+VOIGHT
+BAILEY
+PALTROW
+WILLIS
+MIRANDA
+GOLDBERG
+HUDSON
+DREYFUSS
+CRONYN
+WRAY
+HOPPER
+TRACY
+JOLIE
+BACALL
+MCKELLEN
+DAVIS
+WAHLBERG
+PESCI
+TAUTOU
+COSTNER
+DEAN
+BOLGER
+WITHERSPOON
+HACKMAN
+PITT
+JOHANSSON
+WILSON

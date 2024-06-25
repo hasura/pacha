@@ -1,0 +1,5 @@
+# tags
+# understanding of...
+# - "home store id" from another part of schema
+# - delete by SET active=false
+home store id for every deleted customer

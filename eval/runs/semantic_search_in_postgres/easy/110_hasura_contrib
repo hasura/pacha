@@ -1,0 +1,17 @@
+=== INPUT ===
+What is the longest Tom Cruise film?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the longest Tom Cruise film from the database. 
+
+```
+data = executor.get_from_database("SELECT m.title, m.length FROM public.movie m JOIN public.movie_cm mc ON m.id = mc.film_id JOIN public.castmember c ON mc.id = c.id WHERE c.given_name = 'Tom' AND c.surname = 'Cruise' ORDER BY m.length DESC LIMIT 1")
+if len(data) == 0:
+  executor.output('No Tom Cruise films found')
+else:
+  executor.output(f'Longest Tom Cruise film is: {data[0]["title"]} with a length of {data[0]["length"]} minutes')
+```
+=== EXECUTION RESULT ===
+No Tom Cruise films found

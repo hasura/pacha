@@ -1,0 +1,57 @@
+=== INPUT ===
+Top films by number of rentals over the past 6 months
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would like to retrieve the top films by number of rentals over the past 6 months from the user's database.
+
+```
+data = executor.get_from_database("SELECT m.title, COUNT(t.inventoryId) AS num_rentals "
+                                 "FROM default.Trans t "
+                                 "JOIN default.Movie m ON t.inventoryId IN (SELECT c.inventoryId FROM default.Catalog c WHERE c.filmId = m.id) "
+                                 "WHERE t.rentalDate > NOW() - INTERVAL '6 months' "
+                                 "GROUP BY m.title "
+                                 "ORDER BY num_rentals DESC "
+                                 "LIMIT 10")
+if len(data) == 0:
+  executor.output('No rental data found for the past 6 months')
+else:
+  executor.output('Top 10 films by number of rentals over the past 6 months:')
+  for i, film in enumerate(data):
+    executor.output(f'{i+1}. {film["title"]} - {film["num_rentals"]} rentals')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Schema error: No field named __correlated_sq_1.filmid.
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the subquery in the `IN` clause. The database is not able to correlate the subquery with the outer query. We can rewrite the query to use a `JOIN` instead of a subquery. Here's the corrected script:
+
+```
+data = executor.get_from_database("SELECT m.title, COUNT(t.inventoryId) AS num_rentals "
+                                 "FROM default.Trans t "
+                                 "JOIN default.Catalog c ON t.inventoryId = c.inventoryId "
+                                 "JOIN default.Movie m ON c.filmId = m.id "
+                                 "WHERE t.rentalDate > NOW() - INTERVAL '6 months' "
+                                 "GROUP BY m.title "
+                                 "ORDER BY num_rentals DESC "
+                                 "LIMIT 10")
+if len(data) == 0:
+  executor.output('No rental data found for the past 6 months')
+else:
+  executor.output('Top 10 films by number of rentals over the past 6 months:')
+  for i, film in enumerate(data):
+    executor.output(f'{i+1}. {film["title"]} - {film["num_rentals"]} rentals')
+```
+=== EXECUTION RESULT ===
+No rental data found for the past 6 months

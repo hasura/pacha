@@ -1,0 +1,45 @@
+=== INPUT ===
+Give me a trend of stores by their efficiency over last 12 months (calculate the efficiency weekly for each store and then plot for me to get an idea which stores are improving efficiency)
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide a trend of stores by their efficiency over the last 12 months, I would need to retrieve data on the weekly efficiency of each store. 
+
+Here is the Python script to retrieve the required data:
+```
+query = """
+  WITH weekly_efficiency AS (
+    SELECT 
+      DATE_TRUNC('week', t.rental_date) AS week,
+      f.id AS store_id,
+      COUNT(t.id) AS num_rentals,
+      SUM(p.amount) AS total_revenue
+    FROM public.trans t
+    JOIN public.franchise_unit f ON t.staff_id = f.id
+    JOIN public.paymant p ON t.id = p.rental_id
+    WHERE t.rental_date > NOW() - INTERVAL '12 months'
+    GROUP BY week, store_id
+  )
+  SELECT 
+    store_id,
+    week,
+    num_rentals,
+    total_revenue,
+    total_revenue / num_rentals AS efficiency
+  FROM weekly_efficiency
+  ORDER BY store_id, week
+"""
+
+data = executor.get_from_database(query)
+
+if len(data) == 0:
+  executor.output('No data found for the last 12 months')
+else:
+  executor.output('Weekly efficiency of stores over the last 12 months:')
+  for row in data:
+    executor.output(f'Store ID: {row["store_id"]}, Week: {row["week"]}, Efficiency: {row["efficiency"]}')
+```
+This script will retrieve the weekly efficiency of each store over the last 12 months, calculated as the total revenue divided by the number of rentals. The data will be ordered by store ID and week, allowing for a trend analysis of each store's efficiency over time.
+=== EXECUTION RESULT ===
+No data found for the last 12 months

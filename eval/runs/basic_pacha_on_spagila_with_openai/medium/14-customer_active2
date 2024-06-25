@@ -1,0 +1,15 @@
+=== INPUT ===
+home store id for every deleted customer
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question, we need to retrieve the "store_id" for every deleted customer from the "patron" table in the database.
+
+```python
+data = executor.get_from_database("SELECT store_id FROM patron WHERE active = false")
+for row in data:
+    executor.output(f'Home Store ID for Deleted Customer: {row["store_id"]}')
+```
+
+=== EXECUTION RESULT ===

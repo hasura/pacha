@@ -1,0 +1,78 @@
+=== INPUT ===
+which of my stores is trending downwards in sales over the last 6 months and which ones are trending up
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve sales data for each store over the last 6 months and analyze the trend.
+
+Here is the Python script to retrieve the required data:
+```
+query = """
+  SELECT 
+    s.store, 
+    SUM(p.amount) AS total_sales, 
+    DATE_TRUNC('month', p.payment_date) AS month
+  FROM public.paymant p
+  JOIN public.franchise_unit s ON p.handled_by = s.id
+  WHERE p.payment_date > NOW() - INTERVAL '6 months'
+  GROUP BY s.store, month
+  ORDER BY month
+"""
+
+data = executor.get_from_database(query)
+
+if len(data) == 0:
+  executor.output('No sales data found for the last 6 months')
+else:
+  executor.output('Sales data for each store over the last 6 months:')
+  for row in data:
+    executor.output(f'Store: {row["store"]}, Month: {row["month"]}, Total Sales: {row["total_sales"]}')
+```
+This script retrieves the total sales for each store, grouped by month, over the last 6 months. The output will show the sales trend for each store, allowing us to identify which ones are trending upwards or downwards.
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 13, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/python_executor.py", line 34, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/postgres.py", line 119, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({
+psycopg2.errors.UndefinedColumn: column s.store does not exist
+LINE 2:     s.store, 
+            ^
+
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error message indicates that the column `store` does not exist in the `franchise_unit` table. Upon reviewing the database schema, I see that the `franchise_unit` table does not have a `store` column. Instead, it has an `id` column and an `address_id` column.
+
+To fix the script, we need to join the `franchise_unit` table with the `loc` table to get the store address, and then group the sales by store address. Here is the corrected script:
+```
+query = """
+  SELECT 
+    l.addr1 AS store, 
+    SUM(p.amount) AS total_sales, 
+    DATE_TRUNC('month', p.payment_date) AS month
+  FROM public.paymant p
+  JOIN public.franchise_unit fu ON p.handled_by = fu.id
+  JOIN public.loc l ON fu.address_id = l.id
+  WHERE p.payment_date > NOW() - INTERVAL '6 months'
+  GROUP BY l.addr1, month
+  ORDER BY month
+"""
+
+data = executor.get_from_database(query)
+
+if len(data) == 0:
+  executor.output('No sales data found for the last 6 months')
+else:
+  executor.output('Sales data for each store over the last 6 months:')
+  for row in data:
+    executor.output(f'Store: {row["store"]}, Month: {row["month"]}, Total Sales: {row["total_sales"]}')
+```
+This script should now correctly retrieve the sales data for each store over the last 6 months.
+=== EXECUTION RESULT ===
+No sales data found for the last 6 months

@@ -1,0 +1,19 @@
+=== INPUT ===
+Who has spent the most money on rentals?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the customer who has spent the most money on rentals from the database.
+
+```
+data = executor.get_from_database("SELECT customerId, SUM(amount) AS total_spent FROM default.Paymant GROUP BY customerId ORDER BY total_spent DESC LIMIT 1")
+if len(data) == 0:
+  executor.output('No customers found')
+else:
+  customer_id = data[0]["customerId"]
+  total_spent = data[0]["total_spent"]
+  executor.output(f'Customer with ID {customer_id} has spent the most money on rentals: ${total_spent}')
+```
+=== EXECUTION RESULT ===
+Customer with ID 526 has spent the most money on rentals: $221.55000000000013

@@ -1,0 +1,21 @@
+=== INPUT ===
+how many days can Cat Coneheads be checked out for?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the due_back_duration for the movie "Cat Coneheads" from the database.
+
+```
+data = executor.get_from_database("SELECT due_back_duration FROM movie WHERE title = 'Cat Coneheads'")
+if len(data) == 0:
+  executor.output('Movie "Cat Coneheads" not found')
+else:
+  due_back_duration = data[0].get("due_back_duration")
+  if due_back_duration:
+    executor.output(f'Cat Coneheads can be checked out for {due_back_duration} days')
+  else:
+    executor.output('Due back duration for Cat Coneheads is not specified')
+```
+=== EXECUTION RESULT ===
+Movie "Cat Coneheads" not found

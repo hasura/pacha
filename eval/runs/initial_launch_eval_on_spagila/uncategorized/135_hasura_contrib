@@ -1,0 +1,34 @@
+=== INPUT ===
+"I like 5 actors
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+Based on the conversation, it seems like the user is interested in actors. To add context to the conversation, I would like to retrieve a list of the 5 actors the user likes.
+
+Here is the Python script to retrieve the data:
+```
+data = executor.get_from_database("SELECT * FROM CmInfo WHERE givenName IN (SELECT givenName FROM CmInfo LIMIT 5)")
+if len(data) == 0:
+  executor.output('No actors found')
+else:
+  executor.output('Top 5 actors:')
+  for actor in data:
+    executor.output(f'Name: {actor["givenName"]} {actor["surname"]}, ID: {actor["id"]}')
+```
+This script retrieves the top 5 actors from the CmInfo table, along with their names and IDs.
+=== EXECUTION RESULT ===
+Top 5 actors:
+Name: PENELOPE GUINESS, ID: 1
+Name: NICK WAHLBERG, ID: 2
+Name: ED CHASE, ID: 3
+Name: JENNIFER DAVIS, ID: 4
+Name: JOHNNY LOLLOBRIGIDA, ID: 5
+Name: JOHNNY CAGE, ID: 40
+Name: NICK STALLONE, ID: 44
+Name: PENELOPE PINKETT, ID: 54
+Name: PENELOPE CRONYN, ID: 104
+Name: PENELOPE MONROE, ID: 120
+Name: ED MANSFIELD, ID: 136
+Name: NICK DEGENERES, ID: 166
+Name: ED GUINESS, ID: 179

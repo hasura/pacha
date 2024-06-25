@@ -1,0 +1,125 @@
+=== INPUT ===
+What is each staff members most frequently sold genre?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve data on each staff member's sales by genre. 
+
+```
+data = executor.get_from_database("""
+    SELECT t.username, mc.name, COUNT(mc.name) as count
+    FROM default.Trans t
+    JOIN default.Catalog c ON t.inventoryId = c.inventoryId
+    JOIN default.Movie m ON c.filmId = m.id
+    JOIN default.MovieCat mc ON m.id = mc.filmId
+    JOIN default.Team te ON t.staffId = te.id
+    GROUP BY t.staffId, mc.name, te.username
+    ORDER BY count DESC
+""")
+if len(data) == 0:
+  executor.output('No sales data found')
+else:
+  for row in data:
+    executor.output(f'Staff member {row["username"]} most frequently sold genre is {row["name"]} with {row["count"]} sales')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Schema error: No field named t.username. Valid fields are t."customerId", t.id, t."inventoryId", t."rentalDate", t."returnDate", t."staffId", t.updated, c."filmId", c."inventoryId", c."storeId", c.updated, m."dueBackDuration", m.id, m."languageId", m."languageOrig", m.length, m.logline, m.rate, m.rated, m."releaseYear", m.replacement, m.title, m.updated, mc."categoryId", mc."filmId", mc.updated, te.active, te."addressId", te.email, te."firstName", te.id, te."lastName", te."passMd5NoSalt", te."storeId", te.updated, te.username.
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the table alias `t` is used to refer to the `Trans` table, but the column `username` is actually in the `Team` table, which is aliased as `te`. Here is the corrected script:
+
+```
+data = executor.get_from_database("""
+    SELECT te.username, mc.name, COUNT(mc.name) as count
+    FROM default.Trans t
+    JOIN default.Catalog c ON t.inventoryId = c.inventoryId
+    JOIN default.Movie m ON c.filmId = m.id
+    JOIN default.MovieCat mc ON m.id = mc.filmId
+    JOIN default.Team te ON t.staffId = te.id
+    GROUP BY te.username, mc.name
+    ORDER BY count DESC
+""")
+if len(data) == 0:
+  executor.output('No sales data found')
+else:
+  for row in data:
+    executor.output(f'Staff member {row["username"]} most frequently sold genre is {row["name"]} with {row["count"]} sales')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Schema error: No field named mc.name. Valid fields are t."customerId", t.id, t."inventoryId", t."rentalDate", t."returnDate", t."staffId", t.updated, c."filmId", c."inventoryId", c."storeId", c.updated, m."dueBackDuration", m.id, m."languageId", m."languageOrig", m.length, m.logline, m.rate, m.rated, m."releaseYear", m.replacement, m.title, m.updated, mc."categoryId", mc."filmId", mc.updated, te.active, te."addressId", te.email, te."firstName", te.id, te."lastName", te."passMd5NoSalt", te."storeId", te.updated, te.username.
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the column `name` is not in the `MovieCat` table, it's in the `Cat` table. Here is the corrected script:
+
+```
+data = executor.get_from_database("""
+    SELECT te.username, cat.name, COUNT(cat.name) as count
+    FROM default.Trans t
+    JOIN default.Catalog c ON t.inventoryId = c.inventoryId
+    JOIN default.Movie m ON c.filmId = m.id
+    JOIN default.MovieCat mc ON m.id = mc.filmId
+    JOIN default.Cat cat ON mc.categoryId = cat.id
+    JOIN default.Team te ON t.staffId = te.id
+    GROUP BY te.username, cat.name
+    ORDER BY count DESC
+""")
+if len(data) == 0:
+  executor.output('No sales data found')
+else:
+  for row in data:
+    executor.output(f'Staff member {row["username"]} most frequently sold genre is {row["name"]} with {row["count"]} sales')
+```
+=== EXECUTION RESULT ===
+Staff member fay.kub most frequently sold genre is Sci-Fi with 1284 sales
+Staff member fay.kub most frequently sold genre is New with 1265 sales
+Staff member fay.kub most frequently sold genre is Documentary with 1252 sales
+Staff member gaston.wuckert most frequently sold genre is Foreign with 1237 sales
+Staff member gaston.wuckert most frequently sold genre is Family with 1227 sales
+Staff member gaston.wuckert most frequently sold genre is Documentary with 1221 sales
+Staff member gaston.wuckert most frequently sold genre is Children with 1217 sales
+Staff member fay.kub most frequently sold genre is Music with 1210 sales
+Staff member gaston.wuckert most frequently sold genre is New with 1209 sales
+Staff member gaston.wuckert most frequently sold genre is Music with 1209 sales
+Staff member gaston.wuckert most frequently sold genre is Sci-Fi with 1206 sales
+Staff member gaston.wuckert most frequently sold genre is Animation with 1201 sales
+Staff member fay.kub most frequently sold genre is Travel with 1200 sales
+Staff member gaston.wuckert most frequently sold genre is Travel with 1197 sales
+Staff member fay.kub most frequently sold genre is Foreign with 1196 sales
+Staff member fay.kub most frequently sold genre is Games with 1195 sales
+Staff member fay.kub most frequently sold genre is Family with 1190 sales
+Staff member fay.kub most frequently sold genre is Drama with 1187 sales
+Staff member gaston.wuckert most frequently sold genre is Action with 1180 sales
+Staff member fay.kub most frequently sold genre is Children with 1179 sales
+Staff member gaston.wuckert most frequently sold genre is Games with 1178 sales
+Staff member gaston.wuckert most frequently sold genre is Classics with 1170 sales
+Staff member gaston.wuckert most frequently sold genre is Sports with 1167 sales
+Staff member gaston.wuckert most frequently sold genre is Drama with 1160 sales
+Staff member fay.kub most frequently sold genre is Action with 1158 sales
+Staff member fay.kub most frequently sold genre is Classics with 1153 sales
+Staff member fay.kub most frequently sold genre is Sports with 1148 sales
+Staff member fay.kub most frequently sold genre is Animation with 1137 sales
+Staff member fay.kub most frequently sold genre is Horror with 1131 sales
+Staff member fay.kub most frequently sold genre is Comedy with 1125 sales
+Staff member gaston.wuckert most frequently sold genre is Horror with 1100 sales
+Staff member gaston.wuckert most frequently sold genre is Comedy with 1083 sales

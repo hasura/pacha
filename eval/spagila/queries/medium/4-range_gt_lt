@@ -1,0 +1,7 @@
+# tags
+# - understanding timestamptz
+# - reasoning to construct conditional expr
+# - knowledge of leap years
+# TODO lots of valid variations here
+# TODO ambiguous tz?
+Can I see customer ids for folks who made a payment in Feb 2022?

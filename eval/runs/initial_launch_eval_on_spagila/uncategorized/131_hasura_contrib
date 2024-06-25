@@ -1,0 +1,64 @@
+=== INPUT ===
+what % of customers watch movies that are over a couple of hours long?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve data on the movie lengths and the corresponding customer transactions. 
+
+```
+movie_lengths = executor.get_from_database("SELECT id, length FROM default.Movie")
+if len(movie_lengths) == 0:
+  executor.output('No movies found')
+else:
+  long_movies = [movie for movie in movie_lengths if movie["length"] > 120]
+  if len(long_movies) == 0:
+    executor.output('No long movies found')
+  else:
+    trans_data = executor.get_from_database("SELECT filmId FROM default.Trans")
+    if len(trans_data) == 0:
+      executor.output('No transactions found')
+    else:
+      long_movie_trans = [trans for trans in trans_data if trans["filmId"] in [movie["id"] for movie in long_movies]]
+      total_trans = len(trans_data)
+      long_movie_trans_count = len(long_movie_trans)
+      percentage = (long_movie_trans_count / total_trans) * 100
+      executor.output(f'Percentage of customers who watch movies over 2 hours long: {percentage}%')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 47, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/ddn.py", line 92, in execute_sql
+    raise DdnDataEngineException(error)
+pacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Schema error: No field named "filmId". Valid fields are default."Trans"."customerId", default."Trans".id, default."Trans"."inventoryId", default."Trans"."rentalDate", default."Trans"."returnDate", default."Trans"."staffId", default."Trans".updated.
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the "filmId" field does not exist in the "Trans" table. Instead, we need to join the "Trans" table with the "Catalog" table to get the "filmId". Here's the corrected script:
+
+```
+movie_lengths = executor.get_from_database("SELECT id, length FROM default.Movie")
+if len(movie_lengths) == 0:
+  executor.output('No movies found')
+else:
+  long_movies = [movie for movie in movie_lengths if movie["length"] > 120]
+  if len(long_movies) == 0:
+    executor.output('No long movies found')
+  else:
+    trans_data = executor.get_from_database("SELECT c.filmId FROM default.Trans t JOIN default.Catalog c ON t.inventoryId = c.inventoryId")
+    if len(trans_data) == 0:
+      executor.output('No transactions found')
+    else:
+      long_movie_trans = [trans for trans in trans_data if trans["filmId"] in [movie["id"] for movie in long_movies]]
+      total_trans = len(trans_data)
+      long_movie_trans_count = len(long_movie_trans)
+      percentage = (long_movie_trans_count / total_trans) * 100
+      executor.output(f'Percentage of customers who watch movies over 2 hours long: {percentage}%')
+```
+=== EXECUTION RESULT ===
+Percentage of customers who watch movies over 2 hours long: 45.49987534280728%

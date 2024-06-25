@@ -1,0 +1,112 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Cat
+  description: film category
+  fields:
+    - name: id
+      type: Int4!
+    - name: name
+      type: Text!
+    - name: updated
+      type: Timestamptz!
+  graphql:
+    typeName: Default_Cat
+    inputTypeName: Default_CatInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: cat
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Cat
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - id
+          - name
+          - updated
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: CatBoolExp
+  objectType: Cat
+  dataConnectorName: spagila
+  dataConnectorObjectType: cat
+  comparableFields:
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: name
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_CatBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Cat
+  objectType: Cat
+  source:
+    dataConnectorName: spagila
+    collection: cat
+  filterExpressionType: CatBoolExp
+  orderableFields:
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: name
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_cat
+    selectUniques:
+      - queryRootField: default_catById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_CatOrderBy
+  description: film category
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Cat
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: movieCats
+  sourceType: Cat
+  target:
+    model:
+      name: MovieCat
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: categoryId
+

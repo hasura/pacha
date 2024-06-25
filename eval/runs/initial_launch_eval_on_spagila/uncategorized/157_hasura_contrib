@@ -1,0 +1,27 @@
+=== INPUT ===
+Find customers who have made the most number of purchases in the last month
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the top customers who have made the most number of purchases in the last month.
+
+```
+data = executor.get_from_database("SELECT p.customerId, COUNT(p.id) AS num_purchases FROM default.PaymentP202207 p GROUP BY p.customerId ORDER BY num_purchases DESC LIMIT 10")
+if len(data) == 0:
+  executor.output('No customers found with purchases in the last month')
+else:
+  for row in data:
+    executor.output(f'Customer ID {row["customerId"]} made {row["num_purchases"]} purchases in the last month')
+```
+=== EXECUTION RESULT ===
+Customer ID 221 made 11 purchases in the last month
+Customer ID 526 made 10 purchases in the last month
+Customer ID 505 made 10 purchases in the last month
+Customer ID 220 made 10 purchases in the last month
+Customer ID 424 made 10 purchases in the last month
+Customer ID 390 made 10 purchases in the last month
+Customer ID 44 made 9 purchases in the last month
+Customer ID 470 made 9 purchases in the last month
+Customer ID 346 made 9 purchases in the last month
+Customer ID 340 made 9 purchases in the last month

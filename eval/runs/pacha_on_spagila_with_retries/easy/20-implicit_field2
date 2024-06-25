@@ -1,0 +1,21 @@
+=== INPUT ===
+What is Titanic rated?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the rating of the movie "Titanic" from the database.
+
+```
+data = executor.get_from_database("SELECT rated FROM movie WHERE title = 'Titanic'")
+if len(data) == 0:
+  executor.output('Movie "Titanic" not found')
+else:
+  rated = data[0].get("rated")
+  if rated:
+    executor.output(f'The movie "Titanic" is rated: {rated}')
+  else:
+    executor.output('Rating for "Titanic" not found')
+```
+=== EXECUTION RESULT ===
+Movie "Titanic" not found

@@ -1,0 +1,68 @@
+=== INPUT ===
+Give me a trend of stores by their efficiency over last 12 months (calculate the efficiency weekly for each store and then plot for me to get an idea which stores are improving efficiency)
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide a trend of stores by their efficiency over the last 12 months, I would need to retrieve data from the database that can help calculate the efficiency of each store on a weekly basis. 
+
+Based on the provided database schema, I would need to retrieve the following data:
+
+1. Rental transactions: This can be obtained from the `trans` table, which contains information about customer transactions (rentals).
+2. Store information: This can be obtained from the `franchise_unit` table, which contains information about each store location.
+3. Inventory information: This can be obtained from the `catalog` table, which contains information about the inventory of copies.
+
+Here is a Python script to retrieve the necessary data:
+```
+# Retrieve rental transactions for the last 12 months
+rental_transactions = executor.get_from_database("""
+    SELECT 
+        fu.id AS store_id, 
+        DATE_TRUNC('week', t.rental_date) AS rental_week, 
+        COUNT(t.id) AS num_rentals
+    FROM 
+        trans t 
+    JOIN 
+        franchise_unit fu ON t.staff_id = fu.id 
+    WHERE 
+        t.rental_date >= NOW() - INTERVAL '12 months'
+    GROUP BY 
+        fu.id, 
+        DATE_TRUNC('week', t.rental_date)
+    ORDER BY 
+        fu.id, 
+        rental_week
+""")
+
+# Retrieve store information
+stores = executor.get_from_database("SELECT id, address_id FROM franchise_unit")
+
+# Retrieve inventory information
+inventory = executor.get_from_database("SELECT store_id, COUNT(id) AS num_copies FROM catalog GROUP BY store_id")
+
+# Output the data
+executor.output("Rental Transactions:")
+for row in rental_transactions:
+    executor.output(f"Store ID: {row['store_id']}, Rental Week: {row['rental_week']}, Number of Rentals: {row['num_rentals']}")
+
+executor.output("\nStores:")
+for row in stores:
+    executor.output(f"Store ID: {row['id']}, Address ID: {row['address_id']}")
+
+executor.output("\nInventory:")
+for row in inventory:
+    executor.output(f"Store ID: {row['store_id']}, Number of Copies: {row['num_copies']}")
+```
+This script retrieves the necessary data to calculate the efficiency of each store on a weekly basis. The efficiency can be calculated by dividing the number of rentals by the number of copies available in the inventory. The output will provide a trend of stores by their efficiency
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 25, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 26, in get_from_database
+    return self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column "id" does not exist
+LINE 1: SELECT json_agg(t) FROM (SELECT store_id, COUNT(id) AS num_c...
+                                                        ^
+

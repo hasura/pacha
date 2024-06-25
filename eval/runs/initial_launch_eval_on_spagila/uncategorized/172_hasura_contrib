@@ -1,0 +1,19 @@
+=== INPUT ===
+Get all app_movies where movieCms.castmember.givenName is Emily and movieCms.castmember.surname is Blunt
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the list of movies that feature Emily Blunt as a cast member.
+
+```
+data = executor.get_from_database("SELECT m.title FROM default.Movie m JOIN default.MovieCm mc ON m.id = mc.filmId JOIN default.Castmember cm ON mc.id = cm.id WHERE cm.givenName = 'Emily' AND cm.surname = 'Blunt'")
+if len(data) == 0:
+  executor.output('No movies found with Emily Blunt as a cast member')
+else:
+  executor.output('Movies featuring Emily Blunt:')
+  for movie in data:
+    executor.output(f'- {movie["title"]}')
+```
+=== EXECUTION RESULT ===
+No movies found with Emily Blunt as a cast member

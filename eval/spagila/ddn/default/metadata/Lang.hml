@@ -1,0 +1,140 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Lang
+  description: language, capitalized like 'French', 'English', etc
+  fields:
+    - name: lang
+      type: Varchar!
+    - name: languageId
+      type: Int4!
+    - name: updated
+      type: Timestamptz!
+  graphql:
+    typeName: Default_Lang
+    inputTypeName: Default_LangInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: lang
+      fieldMapping:
+        lang:
+          column:
+            name: lang
+        languageId:
+          column:
+            name: language_id
+        updated:
+          column:
+            name: updated
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Lang
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - lang
+          - languageId
+          - updated
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: LangBoolExp
+  objectType: Lang
+  dataConnectorName: spagila
+  dataConnectorObjectType: lang
+  comparableFields:
+    - fieldName: lang
+      operators:
+        enableAll: true
+    - fieldName: languageId
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_LangBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Lang
+  objectType: Lang
+  source:
+    dataConnectorName: spagila
+    collection: lang
+  filterExpressionType: LangBoolExp
+  orderableFields:
+    - fieldName: lang
+      orderByDirections:
+        enableAll: true
+    - fieldName: languageId
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_lang
+    selectUniques:
+      - queryRootField: default_langByLanguageId
+        uniqueIdentifier:
+          - languageId
+    orderByExpressionType: Default_LangOrderBy
+  description: language, capitalized like 'French', 'English', etc
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Lang
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: movies
+  sourceType: Lang
+  target:
+    model:
+      name: Movie
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: languageId
+      target:
+        modelField:
+          - fieldName: languageId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: moviesByLanguageOrig
+  sourceType: Lang
+  target:
+    model:
+      name: Movie
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: languageId
+      target:
+        modelField:
+          - fieldName: languageOrig
+

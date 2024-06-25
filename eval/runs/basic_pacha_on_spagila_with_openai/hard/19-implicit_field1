@@ -1,0 +1,19 @@
+=== INPUT ===
+how many days can Cat Coneheads be checked out for?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question about how many days the movie "Cat Coneheads" can be checked out for, we need to retrieve the rental duration information from the database. We can do this by querying the `movie` table to find the rental duration (`due_back_duration`) for the movie with the title "Cat Coneheads".
+
+Here is the Python script to retrieve the rental duration for the movie "Cat Coneheads":
+
+```
+data = executor.get_from_database("SELECT due_back_duration FROM movie WHERE title = 'Cat Coneheads'")
+if data:
+    executor.output(f'The movie "Cat Coneheads" can be checked out for {data[0]["due_back_duration"]} days.')
+else:
+    executor.output("Sorry, the rental duration for the movie 'Cat Coneheads' is not available.")
+```
+=== EXECUTION RESULT ===
+Sorry, the rental duration for the movie 'Cat Coneheads' is not available.

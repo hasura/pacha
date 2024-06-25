@@ -1,0 +1,73 @@
+=== INPUT ===
+Show me titles of all the french PG13 movies (dubbed into french is fine)
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question, we would need to retrieve data from the following tables:
+1. movie: To get the titles of movies.
+2. lang: To filter movies that are in French.
+3. movie_list: To filter movies that are rated as PG-13.
+
+We can retrieve the movie titles meeting the user's criteria by querying the database with a SQL query that joins these tables based on the required conditions.
+
+```python
+data = executor.get_from_database("SELECT m.title \
+                                    FROM movie m \
+                                    JOIN lang l ON m.language_id = l.language_id \
+                                    JOIN movie_list ml ON m.id = ml.fid \
+                                    WHERE l.lang = 'French' AND m.rated = 'PG-13'")
+for row in data:
+    executor.output(f'Title: {row["title"]}')
+```
+
+=== EXECUTION RESULT ===
+Title: DYNAMITE TARZAN
+Title: LOST BIRD
+Title: DIVIDE MONSTER
+Title: POSEIDON FOREVER
+Title: TELEMARK HEARTBREAKERS
+Title: SADDLE ANTITRUST
+Title: POSEIDON FOREVER
+Title: SPEED SUIT
+Title: FRONTIER CABIN
+Title: RUGRATS SHAKESPEARE
+Title: LUCKY FLYING
+Title: HALF OUTFIELD
+Title: LUCKY FLYING
+Title: SLIPPER FIDELITY
+Title: HOLIDAY GAMES
+Title: LEBOWSKI SOLDIERS
+Title: SADDLE ANTITRUST
+Title: SLIPPER FIDELITY
+Title: BLADE POLISH
+Title: HALF OUTFIELD
+Title: LEBOWSKI SOLDIERS
+Title: MADRE GABLES
+Title: WANDA CHAMBER
+Title: RUGRATS SHAKESPEARE
+Title: HALF OUTFIELD
+Title: DIVIDE MONSTER
+Title: MILLION ACE
+Title: LOST BIRD
+Title: HOLIDAY GAMES
+Title: HOLIDAY GAMES
+Title: MILLION ACE
+Title: KWAI HOMEWARD
+Title: KWAI HOMEWARD
+Title: TELEMARK HEARTBREAKERS
+Title: MADRE GABLES
+Title: KICK SAVANNAH
+Title: FRONTIER CABIN
+Title: OCTOBER SUBMARINE
+Title: DYNAMITE TARZAN
+Title: BLADE POLISH
+Title: KWAI HOMEWARD
+Title: DIVIDE MONSTER
+Title: FRONTIER CABIN
+Title: DYNAMITE TARZAN
+Title: WANDA CHAMBER
+Title: BLADE POLISH
+Title: OCTOBER SUBMARINE
+Title: SPEED SUIT
+Title: LOST BIRD

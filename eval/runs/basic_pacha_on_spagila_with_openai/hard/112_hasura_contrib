@@ -1,0 +1,30 @@
+=== INPUT ===
+"Give me top N stores by revenue by DVD category (Comedy
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide the user with the top N stores by revenue by DVD category (Comedy), we would need to retrieve data from the database tables "sales_by_cat" and "sales_by_store". Specifically, we would need to query the total sales for the Comedy category from the "sales_by_cat" table and then join this data with the store information from the "sales_by_store" table to get the revenue by store for the Comedy category.
+
+Here is the Python script to retrieve this data:
+
+```
+data = executor.get_from_database("SELECT sbs.total_sales, sbsc.category, sbs.store FROM sales_by_store sbs JOIN sales_by_cat sbsc ON sbsc.category = 'Comedy' AND sbsc.category = sbs.category ORDER BY sbs.total_sales DESC LIMIT N")
+for row in data:
+    executor.output(f'Store: {row["store"]}, Total Sales: {row["total_sales"]}, Category: {row["category"]}')
+```
+
+Please replace N in the SQL query with the desired number of top stores you want to retrieve by revenue for the Comedy category.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 35, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column sbs.category does not exist
+LINE 1: ...c ON sbsc.category = 'Comedy' AND sbsc.category = sbs.catego...
+                                                             ^
+HINT:  Perhaps you meant to reference the column "sbsc.category".
+

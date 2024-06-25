@@ -1,0 +1,81 @@
+=== INPUT ===
+name and log lines for movies where the latter contains 'girl'
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve data from the database that contains movie titles and log lines where the log line contains the word 'girl'.
+
+```
+data = executor.get_from_database("SELECT title, logline FROM default.Movie WHERE logline ILIKE '%girl%'")
+if len(data) == 0:
+  executor.output('No movies found with log lines containing the word "girl"')
+else:
+  for movie in data:
+    executor.output(f'Title: {movie["title"]}, Log line: {movie["logline"]}')
+```
+=== EXECUTION RESULT ===
+Title: AIRPORT POLLOCK, Log line: A Epic Tale of a Moose And a Girl who must Confront a Monkey in Ancient India
+Title: AMERICAN CIRCUS, Log line: A Insightful Drama of a Girl And a Astronaut who must Face a Database Administrator in A Shark Tank
+Title: ANACONDA CONFESSIONS, Log line: A Lacklusture Display of a Dentist And a Dentist who must Fight a Girl in Australia
+Title: BABY HALL, Log line: A Boring Character Study of a A Shark And a Girl who must Outrace a Feminist in An Abandoned Mine Shaft
+Title: BAREFOOT MANCHURIAN, Log line: A Intrepid Story of a Cat And a Student who must Vanquish a Girl in An Abandoned Amusement Park
+Title: BINGO TALENTED, Log line: A Touching Tale of a Girl And a Crocodile who must Discover a Waitress in Nigeria
+Title: BLANKET BEVERLY, Log line: A Emotional Documentary of a Student And a Girl who must Build a Boat in Nigeria
+Title: BRAVEHEART HUMAN, Log line: A Insightful Story of a Dog And a Pastry Chef who must Battle a Girl in Berlin
+Title: BUBBLE GROSSE, Log line: A Awe-Inspiring Panorama of a Crocodile And a Moose who must Confront a Girl in A Baloon
+Title: BUCKET BROTHERHOOD, Log line: A Amazing Display of a Girl And a Womanizer who must Succumb a Lumberjack in A Baloon Factory
+Title: BUTTERFLY CHOCOLAT, Log line: A Fateful Story of a Girl And a Composer who must Conquer a Husband in A Shark Tank
+Title: CAT CONEHEADS, Log line: A Fast-Paced Panorama of a Girl And a A Shark who must Confront a Boy in Ancient India
+Title: CLUB GRAFFITI, Log line: A Epic Tale of a Pioneer And a Hunter who must Escape a Girl in A U-Boat
+Title: CHEAPER CLYDE, Log line: A Emotional Character Study of a Pioneer And a Girl who must Discover a Dog in Ancient Japan
+Title: CIRCUS YOUTH, Log line: A Thoughtful Drama of a Pastry Chef And a Dentist who must Pursue a Girl in A Baloon
+Title: CLERKS ANGELS, Log line: A Thrilling Display of a Sumo Wrestler And a Girl who must Confront a Man in A Baloon
+Title: DINOSAUR SECRETARY, Log line: A Action-Packed Drama of a Feminist And a Girl who must Reach a Robot in The Canadian Rockies
+Title: DIRTY ACE, Log line: A Action-Packed Character Study of a Forensic Psychologist And a Girl who must Build a Dentist in The Outback
+Title: DOZEN LION, Log line: A Taut Drama of a Cat And a Girl who must Defeat a Frisbee in The Canadian Rockies
+Title: DURHAM PANKY, Log line: A Brilliant Panorama of a Girl And a Boy who must Face a Mad Scientist in An Abandoned Mine Shaft
+Title: DWARFS ALTER, Log line: A Emotional Yarn of a Girl And a Dog who must Challenge a Composer in Ancient Japan
+Title: EASY GLADIATOR, Log line: A Fateful Story of a Monkey And a Girl who must Overcome a Pastry Chef in Ancient India
+Title: ELF MURDER, Log line: A Action-Packed Story of a Frisbee And a Woman who must Reach a Girl in An Abandoned Mine Shaft
+Title: FERRIS MOTHER, Log line: A Touching Display of a Frisbee And a Frisbee who must Kill a Girl in The Gulf of Mexico
+Title: FIGHT JAWBREAKER, Log line: A Intrepid Panorama of a Womanizer And a Girl who must Escape a Girl in A Manhattan Penthouse
+Title: FINDING ANACONDA, Log line: A Fateful Tale of a Database Administrator And a Girl who must Battle a Squirrel in New Orleans
+Title: FISH OPUS, Log line: A Touching Display of a Feminist And a Girl who must Confront a Astronaut in Australia
+Title: FORWARD TEMPLE, Log line: A Astounding Display of a Forensic Psychologist And a Mad Scientist who must Challenge a Girl in New Orleans
+Title: GRACELAND DYNAMITE, Log line: A Taut Display of a Cat And a Girl who must Overcome a Database Administrator in New Orleans
+Title: GRADUATE LORD, Log line: A Lacklusture Epistle of a Girl And a A Shark who must Meet a Mad Scientist in Ancient China
+Title: GRAIL FRANKENSTEIN, Log line: A Unbelieveable Saga of a Teacher And a Monkey who must Fight a Girl in An Abandoned Mine Shaft
+Title: HANOVER GALAXY, Log line: A Stunning Reflection of a Girl And a Secret Agent who must Succumb a Boy in A MySQL Convention
+Title: HOBBIT ALIEN, Log line: A Emotional Drama of a Husband And a Girl who must Outgun a Composer in The First Manned Space Station
+Title: HOCUS FRIDA, Log line: A Awe-Inspiring Tale of a Girl And a Madman who must Outgun a Student in A Shark Tank
+Title: JAPANESE RUN, Log line: A Awe-Inspiring Epistle of a Feminist And a Girl who must Sink a Girl in The Outback
+Title: KISS GLORY, Log line: A Lacklusture Reflection of a Girl And a Husband who must Find a Robot in The Canadian Rockies
+Title: LOLITA WORLD, Log line: A Thrilling Drama of a Girl And a Robot who must Redeem a Waitress in An Abandoned Mine Shaft
+Title: LOUISIANA HARRY, Log line: A Lacklusture Drama of a Girl And a Technical Writer who must Redeem a Monkey in A Shark Tank
+Title: LOVERBOY ATTACKS, Log line: A Boring Story of a Car And a Butler who must Build a Girl in Soviet Georgia
+Title: MONSTER SPARTACUS, Log line: A Fast-Paced Story of a Waitress And a Cat who must Fight a Girl in Australia
+Title: NATIONAL STORY, Log line: A Taut Epistle of a Mad Scientist And a Girl who must Escape a Monkey in California
+Title: NATURAL STOCK, Log line: A Fast-Paced Story of a Sumo Wrestler And a Girl who must Defeat a Car in A Baloon Factory
+Title: PANIC CLUB, Log line: A Fanciful Display of a Teacher And a Crocodile who must Succumb a Girl in A Baloon
+Title: PARK CITIZEN, Log line: A Taut Epistle of a Sumo Wrestler And a Girl who must Face a Husband in Ancient Japan
+Title: QUEEN LUKE, Log line: A Astounding Story of a Girl And a Boy who must Challenge a Composer in New Orleans
+Title: RESURRECTION SILVERADO, Log line: A Epic Yarn of a Robot And a Explorer who must Challenge a Girl in A MySQL Convention
+Title: SCARFACE BANG, Log line: A Emotional Yarn of a Teacher And a Girl who must Find a Teacher in A Baloon Factory
+Title: SCISSORHANDS SLUMS, Log line: A Awe-Inspiring Drama of a Girl And a Technical Writer who must Meet a Feminist in The Canadian Rockies
+Title: SECRETS PARADISE, Log line: A Fateful Saga of a Cat And a Frisbee who must Kill a Girl in A Manhattan Penthouse
+Title: SHOW LORD, Log line: A Fanciful Saga of a Student And a Girl who must Find a Butler in Ancient Japan
+Title: SNOWMAN ROLLERCOASTER, Log line: A Fateful Display of a Lumberjack And a Girl who must Succumb a Mad Cow in A Manhattan Penthouse
+Title: STAR OPERATION, Log line: A Insightful Character Study of a Girl And a Car who must Pursue a Mad Cow in A Shark Tank
+Title: STEERS ARMAGEDDON, Log line: A Stunning Character Study of a Car And a Girl who must Succumb a Car in A MySQL Convention
+Title: STRAIGHT HOURS, Log line: A Boring Panorama of a Secret Agent And a Girl who must Sink a Waitress in The Outback
+Title: SUICIDES SILENCE, Log line: A Emotional Character Study of a Car And a Girl who must Face a Composer in A U-Boat
+Title: SUMMER SCARFACE, Log line: A Emotional Panorama of a Lumberjack And a Hunter who must Meet a Girl in A Shark Tank
+Title: TAXI KICK, Log line: A Amazing Epistle of a Girl And a Woman who must Outrace a Waitress in Soviet Georgia
+Title: TENENBAUMS COMMAND, Log line: A Taut Display of a Pioneer And a Man who must Reach a Girl in The Gulf of Mexico
+Title: TERMINATOR CLUB, Log line: A Touching Story of a Crocodile And a Girl who must Sink a Man in The Gulf of Mexico
+Title: TIMBERLAND SKY, Log line: A Boring Display of a Man And a Dog who must Redeem a Girl in A U-Boat
+Title: TWISTED PIRATES, Log line: A Touching Display of a Frisbee And a Boat who must Kill a Girl in A MySQL Convention
+Title: VANILLA DAY, Log line: A Fast-Paced Saga of a Girl And a Forensic Psychologist who must Redeem a Girl in Nigeria
+Title: VIDEOTAPE ARSENIC, Log line: A Lacklusture Display of a Girl And a Astronaut who must Succumb a Student in Australia
+Title: WIZARD COLDBLOODED, Log line: A Lacklusture Display of a Robot And a Girl who must Defeat a Sumo Wrestler in A MySQL Convention

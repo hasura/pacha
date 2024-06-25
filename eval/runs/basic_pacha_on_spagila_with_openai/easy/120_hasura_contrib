@@ -1,0 +1,25 @@
+=== INPUT ===
+which of my customers have birthdays this month
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question about which customers have birthdays this month, we would need to retrieve data from the `patron` table which contains information about all customers. Specifically, we would need to retrieve the `given_name`, `surname`, and `email_addr` columns from the `patron` table to identify the customers.
+
+Here is the Python script to retrieve the relevant data:
+
+```
+import datetime
+
+# Get the current month and year
+current_month = datetime.datetime.now().month
+current_year = datetime.datetime.now().year
+
+# Retrieve data from the database
+data = executor.get_from_database(f"SELECT given_name, surname, email_addr FROM patron WHERE EXTRACT(MONTH FROM create_date) = {current_month} AND EXTRACT(YEAR FROM create_date) = {current_year}")
+
+# Output the retrieved data
+for row in data:
+    executor.output(f'Customer: {row["given_name"]} {row["surname"]} - Email: {row["email_addr"]}')
+```
+=== EXECUTION RESULT ===

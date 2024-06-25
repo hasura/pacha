@@ -1,0 +1,40 @@
+=== INPUT ===
+show me city/state/phone number for all the stores that have Core Suit in stock
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question, we would need to retrieve data from the following tables:
+1. `catalog` table to find the stores that have the movie "Core Suit" in stock.
+2. `franchise_unit` table to get the address information (city, state, phone number) for each store.
+
+Here is the Python script to retrieve the necessary data:
+
+```
+# First, we need to find the film_id for the movie "Core Suit"
+film_data = executor.get_from_database("SELECT id FROM movie WHERE title = 'Core Suit'")
+
+if film_data:
+    film_id = film_data[0]["id"]
+    
+    # Next, we find the store_ids that have the movie "Core Suit" in stock
+    store_data = executor.get_from_database(f"SELECT store_id FROM catalog WHERE film_id = {film_id}")
+    
+    if store_data:
+        store_ids = [store["store_id"] for store in store_data]
+        
+        # Finally, we retrieve the address information for each store
+        store_info_data = executor.get_from_database(f"SELECT city, state_distr, phone_num FROM franchise_unit WHERE id IN ({','.join(map(str, store_ids)})")
+        
+        for store_info in store_info_data:
+            executor.output(f'City: {store_info["city"]}, State: {store_info["state_distr"]}, Phone Number: {store_info["phone_num"]}')
+    else:
+        executor.output("No stores have the movie 'Core Suit' in stock.")
+else:
+    executor.output("The movie 'Core Suit' is not found in the database.")
+```
+=== EXECUTION RESULT ===
+  File "<string>", line 14
+    store_info_data = executor.get_from_database(f"SELECT city, state_distr, phone_num FROM franchise_unit WHERE id IN ({','.join(map(str, store_ids)})")
+                                                                                                                                                     ^
+SyntaxError: closing parenthesis '}' does not match opening parenthesis '('

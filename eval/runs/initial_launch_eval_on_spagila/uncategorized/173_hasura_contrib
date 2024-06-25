@@ -1,0 +1,44 @@
+=== INPUT ===
+What is the most rented movie that Emily Blunt has been in?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve data from the database. Specifically, I need to find the movie that Emily Blunt has been in and has the highest number of rentals.
+
+```
+# Get the ID of Emily Blunt from the Castmember table
+emily_blunt_id = executor.get_from_database("SELECT id FROM default.Castmember WHERE givenName = 'Emily' AND surname = 'Blunt'")
+
+if len(emily_blunt_id) == 0:
+  executor.output('Emily Blunt not found in the database')
+else:
+  emily_blunt_id = emily_blunt_id[0]['id']
+
+  # Get the movie IDs that Emily Blunt has been in from the MovieCm table
+  movie_ids = executor.get_from_database("SELECT filmId FROM default.MovieCm WHERE id = " + str(emily_blunt_id))
+
+  if len(movie_ids) == 0:
+    executor.output('Emily Blunt has not been in any movies in the database')
+  else:
+    movie_ids = [movie['filmId'] for movie in movie_ids]
+
+    # Get the rental count for each movie from the Trans table
+    rental_counts = []
+    for movie_id in movie_ids:
+      rental_count = executor.get_from_database("SELECT COUNT(*) AS rental_count FROM default.Trans WHERE inventoryId IN (SELECT inventoryId FROM default.Catalog WHERE filmId = " + str(movie_id) + ")")
+      rental_counts.append({'movie_id': movie_id, 'rental_count': rental_count[0]['rental_count']})
+
+    # Find the movie with the highest rental count
+    most_rented_movie = max(rental_counts, key=lambda x: x['rental_count'])
+
+    # Get the title of the most rented movie from the Movie table
+    most_rented_movie_title = executor.get_from_database("SELECT title FROM default.Movie WHERE id = " + str(most_rented_movie['movie_id']))
+
+    if len(most_rented_movie_title) == 0:
+      executor.output('Most rented movie not found in the database')
+    else:
+      executor.output(f'The most rented movie that Emily Blunt has been in is: {most_rented_movie_title[0]["title"]} with {most_rented_movie["rental_count"]} rentals')
+```
+=== EXECUTION RESULT ===
+Emily Blunt not found in the database

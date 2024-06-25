@@ -1,0 +1,364 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Team
+  description: staff members
+  fields:
+    - name: active
+      type: Bool!
+    - name: addressId
+      type: Int4!
+    - name: email
+      type: Text
+    - name: firstName
+      type: Text!
+    - name: id
+      type: Int4!
+    - name: lastName
+      type: Text!
+    - name: passMd5NoSalt
+      type: Text
+      description: password, stored with MD5()
+    - name: picture
+      type: Bytea
+      description: jpg
+    - name: storeId
+      type: Int4!
+    - name: updated
+      type: Timestamptz!
+    - name: username
+      type: Text!
+  graphql:
+    typeName: Default_Team
+    inputTypeName: Default_TeamInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: spagila
+      dataConnectorObjectType: team
+      fieldMapping:
+        active:
+          column:
+            name: active
+        addressId:
+          column:
+            name: address_id
+        email:
+          column:
+            name: email
+        firstName:
+          column:
+            name: first_name
+        id:
+          column:
+            name: id
+        lastName:
+          column:
+            name: last_name
+        passMd5NoSalt:
+          column:
+            name: pass_md5_no_salt
+        picture:
+          column:
+            name: picture
+        storeId:
+          column:
+            name: store_id
+        updated:
+          column:
+            name: updated
+        username:
+          column:
+            name: username
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Team
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - active
+          - addressId
+          - email
+          - firstName
+          - id
+          - lastName
+          - passMd5NoSalt
+          - picture
+          - storeId
+          - updated
+          - username
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: TeamBoolExp
+  objectType: Team
+  dataConnectorName: spagila
+  dataConnectorObjectType: team
+  comparableFields:
+    - fieldName: active
+      operators:
+        enableAll: true
+    - fieldName: addressId
+      operators:
+        enableAll: true
+    - fieldName: email
+      operators:
+        enableAll: true
+    - fieldName: firstName
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: lastName
+      operators:
+        enableAll: true
+    - fieldName: passMd5NoSalt
+      operators:
+        enableAll: true
+    - fieldName: picture
+      operators:
+        enableAll: true
+    - fieldName: storeId
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+    - fieldName: username
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_TeamBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Team
+  objectType: Team
+  source:
+    dataConnectorName: spagila
+    collection: team
+  filterExpressionType: TeamBoolExp
+  orderableFields:
+    - fieldName: active
+      orderByDirections:
+        enableAll: true
+    - fieldName: addressId
+      orderByDirections:
+        enableAll: true
+    - fieldName: email
+      orderByDirections:
+        enableAll: true
+    - fieldName: firstName
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: lastName
+      orderByDirections:
+        enableAll: true
+    - fieldName: passMd5NoSalt
+      orderByDirections:
+        enableAll: true
+    - fieldName: picture
+      orderByDirections:
+        enableAll: true
+    - fieldName: storeId
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+    - fieldName: username
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_team
+    selectUniques:
+      - queryRootField: default_teamById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_TeamOrderBy
+  description: staff members
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Team
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202201S
+  sourceType: Team
+  target:
+    model:
+      name: PaymentP202201
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: handledBy
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202202S
+  sourceType: Team
+  target:
+    model:
+      name: PaymentP202202
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: handledBy
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202203S
+  sourceType: Team
+  target:
+    model:
+      name: PaymentP202203
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: handledBy
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202204S
+  sourceType: Team
+  target:
+    model:
+      name: PaymentP202204
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: handledBy
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202205S
+  sourceType: Team
+  target:
+    model:
+      name: PaymentP202205
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: handledBy
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: paymentP202206S
+  sourceType: Team
+  target:
+    model:
+      name: PaymentP202206
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: handledBy
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: loc
+  sourceType: Team
+  target:
+    model:
+      name: Loc
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: addressId
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: franchiseUnit
+  sourceType: Team
+  target:
+    model:
+      name: FranchiseUnit
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: storeId
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: trans
+  sourceType: Team
+  target:
+    model:
+      name: Trans
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: staffId
+

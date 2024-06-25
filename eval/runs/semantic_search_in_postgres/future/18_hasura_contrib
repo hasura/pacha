@@ -1,0 +1,45 @@
+=== INPUT ===
+Which is the closest video shop to my parent's house at postcode <blah>?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the closest franchise unit (video shop) to the user's parent's house based on the provided postcode.
+
+```
+data = executor.get_from_database("SELECT fu.id, fu.address_id, l.addr1, l.city, l.zip FROM public.franchise_unit fu JOIN public.loc l ON fu.address_id = l.id WHERE l.zip = '<blah>' ORDER BY l.addr1 LIMIT 1")
+if len(data) == 0:
+  executor.output('No video shop found near the provided postcode')
+else:
+  executor.output(f'Closest video shop to postcode <blah> is at {data[0]["addr1"]}, {data[0]["city"]}, {data[0]["zip"]} with ID {data[0]["id"]}')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/python_executor.py", line 34, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/postgres.py", line 119, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({
+psycopg2.errors.UndefinedColumn: column l.city does not exist
+LINE 1: ...gg(t) FROM (SELECT fu.id, fu.address_id, l.addr1, l.city, l....
+                                                             ^
+
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the column "city" not existing in the "loc" table. The correct column name is "city_id". However, we need the city name, not the city ID. We need to join the "loc" table with the "muni" table to get the city name.
+
+Here is the corrected script:
+
+```
+data = executor.get_from_database("SELECT fu.id, fu.address_id, l.addr1, m.city, l.zip FROM public.franchise_unit fu JOIN public.loc l ON fu.address_id = l.id JOIN public.muni m ON l.city_id = m.id WHERE l.zip = '<blah>' ORDER BY l.addr1 LIMIT 1")
+if len(data) == 0:
+  executor.output('No video shop found near the provided postcode')
+else:
+  executor.output(f'Closest video shop to postcode <blah> is at {data[0]["addr1"]}, {data[0]["city"]}, {data[0]["zip"]} with ID {data[0]["id"]}')
+```
+=== EXECUTION RESULT ===
+No video shop found near the provided postcode

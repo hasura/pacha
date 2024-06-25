@@ -1,0 +1,19 @@
+=== INPUT ===
+movies starring Nicolas cage and Keanu reeves
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I would like to retrieve the list of movies that star both Nicolas Cage and Keanu Reeves.
+
+```
+data = executor.get_from_database("SELECT m.title FROM default.Movie m JOIN default.MovieCm mc ON m.id = mc.filmId JOIN default.Castmember c ON mc.id = c.id WHERE c.givenName = 'Nicolas' AND c.surname = 'Cage' AND m.id IN (SELECT mc.filmId FROM default.MovieCm mc JOIN default.Castmember c ON mc.id = c.id WHERE c.givenName = 'Keanu' AND c.surname = 'Reeves')")
+if len(data) == 0:
+  executor.output('No movies found starring both Nicolas Cage and Keanu Reeves')
+else:
+  executor.output('Movies starring both Nicolas Cage and Keanu Reeves:')
+  for movie in data:
+    executor.output(f'- {movie["title"]}')
+```
+=== EXECUTION RESULT ===
+No movies found starring both Nicolas Cage and Keanu Reeves

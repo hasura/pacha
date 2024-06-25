@@ -1,0 +1,58 @@
+=== INPUT ===
+Movies liked by people who liked similar movies as me
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide movie recommendations based on movies liked by people who liked similar movies as the user, we would need to retrieve data on movie preferences of users who have similar movie tastes as the user. This data can be obtained from the database tables related to movie preferences and user interactions.
+
+We would specifically need to retrieve data from the following tables:
+1. `movie_list`: To get information about movies liked by users.
+2. `patron`: To identify users who liked similar movies as the user.
+3. `trans`: To track user interactions and movie preferences.
+
+We can retrieve the relevant data by querying the database to find users who have similar movie preferences as the user and then identify the movies they liked. This information can then be used to recommend movies to the user based on the preferences of similar users.
+
+Here is the Python script to retrieve the relevant data from the database:
+
+```
+# Query to retrieve movies liked by users who have similar movie preferences as the user
+data = executor.get_from_database("SELECT ml.title, ml.actors, ml.category, ml.logline, ml.rating, ml.length, ml.price, ml.fid \
+                                    FROM movie_list ml \
+                                    JOIN trans t ON ml.fid = t.inventory_id \
+                                    JOIN patron p ON t.customer_id = p.id \
+                                    WHERE p.id IN ( \
+                                        SELECT DISTINCT p.id \
+                                        FROM movie_list ml \
+                                        JOIN trans t ON ml.fid = t.inventory_id \
+                                        JOIN patron p ON t.customer_id = p.id \
+                                        WHERE ml.title IN ( \
+                                            SELECT title \
+                                            FROM movie_list \
+                                            WHERE fid IN ( \
+                                                SELECT inventory_id \
+                                                FROM trans \
+                                                WHERE customer_id = <user_id> \
+                                            ) \
+                                        ) \
+                                        AND p.id != <user_id> \
+                                    )")
+
+# Output the retrieved data
+for row in data:
+    executor.output(f'Title: {row["title"]}, Actors: {row["actors"]}, Category: {row["category"]}, Logline: {row["logline"]}, Rating: {row["rating"]}, Length: {row["length"]}, Price: {row["price"]}, Film ID: {row["fid"]}')
+```
+
+Please replace `<user_id>` in the query with the actual user ID for whom you want to find similar movie preferences.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 35, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.SyntaxError: syntax error at or near "<"
+LINE 1: ...                              WHERE customer_id = <user_id> ...
+                                                             ^
+

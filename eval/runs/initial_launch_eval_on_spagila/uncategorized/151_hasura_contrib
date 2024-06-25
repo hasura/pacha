@@ -1,0 +1,20 @@
+=== INPUT ===
+"Apart from english
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+It seems like the user is asking about languages apart from English. 
+
+To add context to this conversation, I would need to retrieve a list of languages from the database.
+
+```
+data = executor.get_from_database("SELECT lang FROM default.Lang")
+if len(data) == 0:
+  executor.output('No languages found')
+else:
+  languages = [row["lang"] for row in data]
+  executor.output(f'Languages apart from English: {", ".join(languages)}')
+```
+=== EXECUTION RESULT ===
+Languages apart from English: English, Italian, Japanese, Mandarin, French, German

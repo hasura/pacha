@@ -1,0 +1,19 @@
+=== INPUT ===
+Which of my staff members have sold the most rentals?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve data from the database that shows the total sales of each staff member. 
+
+```
+data = executor.get_from_database("SELECT t.username, SUM(p.amount) AS totalSales FROM default.Paymant p JOIN default.Team t ON p.handledBy = t.id GROUP BY t.username ORDER BY totalSales DESC")
+if len(data) == 0:
+  executor.output('No sales data found')
+else:
+  for row in data:
+    executor.output(f'Staff member {row["username"]} has sold {row["totalSales"]} worth of rentals')
+```
+=== EXECUTION RESULT ===
+Staff member gaston.wuckert has sold 33927.040000004876 worth of rentals
+Staff member fay.kub has sold 33489.47000000525 worth of rentals

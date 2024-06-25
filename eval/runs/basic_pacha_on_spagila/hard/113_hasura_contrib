@@ -1,0 +1,44 @@
+=== INPUT ===
+"Stack rank all the stores by their efficiency (efficiency = DVD rented/ DVD inventory
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To stack rank all the stores by their efficiency, we need to retrieve the number of DVDs rented and the total DVD inventory for each store. 
+
+Here is the Python script to retrieve the required data:
+
+```
+data = executor.get_from_database("""
+    SELECT 
+        fu.id AS store_id, 
+        fu.address_id, 
+        COUNT(t.inventory_id) AS dvd_rented, 
+        (SELECT COUNT(catalog.inventory_id) FROM catalog WHERE catalog.store_id = fu.id) AS dvd_inventory,
+        COUNT(t.inventory_id) / (SELECT COUNT(catalog.inventory_id) FROM catalog WHERE catalog.store_id = fu.id) AS efficiency
+    FROM 
+        franchise_unit fu 
+    LEFT JOIN 
+        catalog ON fu.id = catalog.store_id 
+    LEFT JOIN 
+        trans t ON catalog.inventory_id = t.inventory_id 
+    GROUP BY 
+        fu.id, fu.address_id 
+    ORDER BY 
+        efficiency DESC
+""")
+
+executor.output(f"Store Efficiency Ranking:\n{data}")
+```
+
+This script will output a list of stores with their efficiency ranking, along with the number of DVDs rented and the total DVD inventory for each store. The efficiency is calculated as the number of DVDs rented divided by the total DVD inventory. The stores are ranked in descending order of their efficiency.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 26, in get_from_database
+    return self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.DivisionByZero: division by zero
+

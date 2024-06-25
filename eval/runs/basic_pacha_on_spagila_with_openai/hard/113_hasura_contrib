@@ -1,0 +1,29 @@
+=== INPUT ===
+"Stack rank all the stores by their efficiency (efficiency = DVD rented/ DVD inventory
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To calculate the efficiency of each store, we would need to retrieve the number of DVDs rented and the DVD inventory for each store. This data can be obtained from the `catalog` table which contains the inventory of copies in each store.
+
+Here is the Python script to retrieve the necessary data:
+
+```
+data = executor.get_from_database("SELECT c.store_id, COUNT(DISTINCT t.id) AS dvd_rented, COUNT(DISTINCT c.inventory_id) AS dvd_inventory \
+                                    FROM catalog c \
+                                    LEFT JOIN trans t ON c.inventory_id = t.inventory_id \
+                                    GROUP BY c.store_id")
+
+for row in data:
+    store_id = row["store_id"]
+    dvd_rented = row["dvd_rented"]
+    dvd_inventory = row["dvd_inventory"]
+    efficiency = dvd_rented / dvd_inventory if dvd_inventory != 0 else 0
+
+    executor.output(f'Store ID: {store_id}, Efficiency: {efficiency}')
+```
+
+This script retrieves the store ID, the count of DVDs rented, and the count of DVDs in inventory for each store. It then calculates the efficiency of each store by dividing the number of DVDs rented by the DVD inventory.
+=== EXECUTION RESULT ===
+Store ID: 1, Efficiency: 3.490308370044053
+Store ID: 2, Efficiency: 3.5140631761142362

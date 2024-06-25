@@ -1,0 +1,38 @@
+=== INPUT ===
+"Get the count and average rating of Hindi movies which are less than 2 hours long and have ""Shah Rukh Khan"" as one of their cast. "
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the count and average rating of Hindi movies that meet the specified criteria.
+
+```
+data = executor.get_from_database("SELECT COUNT(m.id), AVG(m.rate) FROM default.Movie m JOIN default.MovieCm mc ON m.id = mc.filmId JOIN default.Castmember c ON mc.id = c.id WHERE m.length < 120 AND c.surname = 'Khan' AND c.givenName = 'Shah Rukh' AND m.languageId IN (SELECT languageId FROM default.Lang WHERE lang = 'Hindi')")
+if len(data) == 0:
+  executor.output('No Hindi movies found with Shah Rukh Khan as cast and less than 2 hours long')
+else:
+  executor.output(f'Count of Hindi movies with Shah Rukh Khan as cast and less than 2 hours long: {data[0]["count"]}')
+  executor.output(f'Average rating of Hindi movies with Shah Rukh Khan as cast and less than 2 hours long: {data[0]["avg"]}')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 5, in <module>
+KeyError: 'count'
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is because the column names in the SELECT statement are not explicitly specified. Here's the corrected script:
+
+```
+data = executor.get_from_database("SELECT COUNT(m.id) AS count, AVG(m.rate) AS avg_rate FROM default.Movie m JOIN default.MovieCm mc ON m.id = mc.filmId JOIN default.Castmember c ON mc.id = c.id WHERE m.length < 120 AND c.surname = 'Khan' AND c.givenName = 'Shah Rukh' AND m.languageId IN (SELECT languageId FROM default.Lang WHERE lang = 'Hindi')")
+if len(data) == 0:
+  executor.output('No Hindi movies found with Shah Rukh Khan as cast and less than 2 hours long')
+else:
+  executor.output(f'Count of Hindi movies with Shah Rukh Khan as cast and less than 2 hours long: {data[0]["count"]}')
+  executor.output(f'Average rating of Hindi movies with Shah Rukh Khan as cast and less than 2 hours long: {data[0]["avg_rate"]}')
+```
+=== EXECUTION RESULT ===
+Count of Hindi movies with Shah Rukh Khan as cast and less than 2 hours long: 0
+Average rating of Hindi movies with Shah Rukh Khan as cast and less than 2 hours long: None

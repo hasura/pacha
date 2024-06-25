@@ -1,0 +1,353 @@
+=== INPUT ===
+show me the titles of all action movies, along with their other tagged categories
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the titles of action movies along with their other tagged categories from the database.
+
+```
+data = executor.get_from_database("SELECT m.title, mc.name FROM movie m JOIN movie_cat mc ON m.id = mc.film_id WHERE mc.name = 'Action'")
+if len(data) == 0:
+  executor.output('No action movies found')
+else:
+  for movie in data:
+    executor.output(f'Title: {movie["title"]}, Category: Action')
+    other_categories = executor.get_from_database(f"SELECT mc.name FROM movie_cat mc WHERE mc.film_id = (SELECT id FROM movie WHERE title = '{movie['title']}') AND mc.name != 'Action'")
+    if len(other_categories) > 0:
+      executor.output(f'Other categories: {", ".join([cat["name"] for cat in other_categories])}')
+    else:
+      executor.output('No other categories')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 40, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 37, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column mc.name does not exist
+LINE 1: SELECT json_agg(t) FROM (SELECT m.title, mc.name FROM movie ...
+                                                 ^
+HINT:  Perhaps you meant to reference the column "m.rate".
+
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that the `name` column is not present in the `movie_cat` table. Instead, it's present in the `cat` table. We need to join the `movie_cat` table with the `cat` table to get the category names. Here's the corrected script:
+
+```
+data = executor.get_from_database("SELECT m.title, c.name FROM movie m JOIN movie_cat mc ON m.id = mc.film_id JOIN cat c ON mc.category_id = c.id WHERE c.name = 'Action'")
+if len(data) == 0:
+  executor.output('No action movies found')
+else:
+  for movie in data:
+    executor.output(f'Title: {movie["title"]}, Category: Action')
+    other_categories = executor.get_from_database(f"SELECT c.name FROM movie_cat mc JOIN cat c ON mc.category_id = c.id WHERE mc.film_id = (SELECT id FROM movie WHERE title = '{movie['title']}') AND c.name != 'Action'")
+    if len(other_categories) > 0:
+      executor.output(f'Other categories: {", ".join([cat["name"] for cat in other_categories])}')
+    else:
+      executor.output('No other categories')
+```
+=== EXECUTION RESULT ===
+Title: ARIZONA BANG, Category: Action
+Other categories: Foreign
+Title: ACE GOLDFINGER, Category: Action
+Other categories: New, Sci-Fi
+Title: ALASKA PHANTOM, Category: Action
+Other categories: Documentary
+Title: ANGELS LIFE, Category: Action
+Other categories: Classics, Drama
+Title: AIRPLANE SIERRA, Category: Action
+Other categories: Sports
+Title: BIRDCAGE CASPER, Category: Action
+Other categories: Classics, Horror
+Title: BIRCH ANTITRUST, Category: Action
+Other categories: Sci-Fi
+Title: CLERKS ANGELS, Category: Action
+Other categories: Children, Drama
+Title: CORE SUIT, Category: Action
+Other categories: Games
+Title: CAT CONEHEADS, Category: Action
+Other categories: Horror
+Title: CLUE GRAIL, Category: Action
+Other categories: Children, Travel
+Title: CALIFORNIA BIRDS, Category: Action
+Other categories: Drama, New
+Title: CROW GREASE, Category: Action
+Other categories: Music, Travel
+Title: DAUGHTER MADIGAN, Category: Action
+Other categories: Comedy, Sci-Fi
+Title: DRUMLINE CYCLONE, Category: Action
+Other categories: Family, Games
+Title: DEVIL DESIRE, Category: Action
+Other categories: Documentary, Sci-Fi
+Title: FERRIS MOTHER, Category: Action
+Other categories: Comedy, Travel
+Title: DISTURBING SCARFACE, Category: Action
+Other categories: Documentary, Foreign
+Title: DRIVING POLISH, Category: Action
+Other categories: New
+Title: DRUMS DYNAMITE, Category: Action
+Other categories: New, Sports
+Title: DETECTIVE VISION, Category: Action
+Other categories: Comedy, Sci-Fi
+Title: GUN BONNIE, Category: Action
+Other categories: Drama, Family
+Title: FRISCO FORREST, Category: Action
+Other categories: Foreign, Sci-Fi
+Title: FUGITIVE MAGUIRE, Category: Action
+Other categories: Children, Music
+Title: HALF OUTFIELD, Category: Action
+Other categories: Animation, Sports
+Title: GROOVE FICTION, Category: Action
+Other categories: Children, Sci-Fi
+Title: GUMP DATE, Category: Action
+Other categories: Games, Sci-Fi
+Title: INCH JET, Category: Action
+Other categories: Comedy, Games
+Title: INSIDER ARIZONA, Category: Action
+Other categories: Comedy
+Title: JINGLE SAGEBRUSH, Category: Action
+Other categories: Documentary, Drama
+Title: KISS GLORY, Category: Action
+Other categories: Documentary
+Title: JEDI BENEATH, Category: Action
+Other categories: Foreign
+Title: LOCK REAR, Category: Action
+Other categories: Animation, Travel
+Title: HUMAN GRAFFITI, Category: Action
+Other categories: Documentary, Horror
+Title: MISSION ZOOLANDER, Category: Action
+Other categories: Documentary
+Title: LUST LOCK, Category: Action
+Other categories: Animation, Games
+Title: MONSOON CAUSE, Category: Action
+Other categories: Foreign
+Title: MADRE GABLES, Category: Action
+Other categories: Games
+Title: MADNESS ATTACKS, Category: Action
+Other categories: Sci-Fi
+Title: MIRACLE VIRTUAL, Category: Action
+Other categories: Family
+Title: MOONSHINE CABIN, Category: Action
+Other categories: Sci-Fi
+Title: OTHERS SOUP, Category: Action
+Other categories: Drama
+Title: PREJUDICE OLEANDER, Category: Action
+Other categories: Music
+Title: SHEPHERD MIDSUMMER, Category: Action
+Other categories: Comedy
+Title: RIGHT CRANES, Category: Action
+Other categories: Music
+Title: POTTER CONNECTICUT, Category: Action
+Other categories: Documentary
+Title: RANDOM GO, Category: Action
+Other categories: Family
+Title: SOMETHING DUCK, Category: Action
+Other categories: Sports
+Title: SPIKING ELEMENT, Category: Action
+Other categories: Children
+Title: RUSHMORE MERMAID, Category: Action
+Other categories: Games
+Title: SHOOTIST SUPERFLY, Category: Action
+Other categories: Travel
+Title: SEARCHERS WAIT, Category: Action
+Other categories: Foreign
+Title: STEPMOM DREAM, Category: Action
+No other categories
+Title: SHAWSHANK BUBBLE, Category: Action
+Other categories: Travel
+Title: VACATION BOONDOCK, Category: Action
+No other categories
+Title: WARS PLUTO, Category: Action
+Other categories: Drama
+Title: UNDEFEATED DALMATIONS, Category: Action
+No other categories
+Title: TITANIC BOONDOCK, Category: Action
+Other categories: Sports
+Title: TENENBAUMS COMMAND, Category: Action
+Other categories: Classics
+Title: TIMBERLAND SKY, Category: Action
+Other categories: Classics
+Title: THEORY MERMAID, Category: Action
+Other categories: Comedy
+Title: BAKED CLEOPATRA, Category: Action
+Other categories: Family, Games
+Title: ANYTHING SAVANNAH, Category: Action
+Other categories: Children, Horror
+Title: ADAPTATION HOLES, Category: Action
+Other categories: New
+Title: WHISPERER GIANT, Category: Action
+Other categories: Comedy
+Title: WATERSHIP FRONTIER, Category: Action
+Other categories: Family
+Title: ZHIVAGO CORE, Category: Action
+Other categories: Sports
+Title: WOMEN DORADO, Category: Action
+Other categories: Foreign
+Title: BONNIE HOLOCAUST, Category: Action
+Other categories: Sports, Travel
+Title: BORN SPINAL, Category: Action
+Other categories: Animation, Drama
+Title: BRIDE INTRIGUE, Category: Action
+Other categories: Foreign, Horror
+Title: CANYON STOCK, Category: Action
+Other categories: Children, Music
+Title: CAMPUS REMEMBER, Category: Action
+Other categories: Classics, Foreign
+Title: BULWORTH COMMANDMENTS, Category: Action
+Other categories: Animation, Foreign
+Title: DECEIVER BETRAYED, Category: Action
+Other categories: Animation, Sci-Fi
+Title: ENCOUNTERS CURTAIN, Category: Action
+Other categories: Classics, Sports
+Title: DINOSAUR SECRETARY, Category: Action
+Other categories: Classics, Sci-Fi
+Title: CRYSTAL BREAKING, Category: Action
+Other categories: Documentary, Drama
+Title: DYING MAKER, Category: Action
+Other categories: Horror, Music
+Title: DRIVER ANNIE, Category: Action
+Other categories: Family, Foreign
+Title: DIVORCE SHINING, Category: Action
+Other categories: Children, New
+Title: FACTORY DRAGON, Category: Action
+Other categories: Classics
+Title: ENTRAPMENT SATISFACTION, Category: Action
+Other categories: Games, New
+Title: FIRE WOLVES, Category: Action
+Other categories: Documentary, Music
+Title: GOODFELLAS SALUTE, Category: Action
+Other categories: Documentary, Foreign
+Title: FOOL MOCKINGBIRD, Category: Action
+Other categories: Horror, Sci-Fi
+Title: GAMES BOWFINGER, Category: Action
+Other categories: Classics, Foreign
+Title: IGBY MAKER, Category: Action
+Other categories: Foreign
+Title: JET NEIGHBORS, Category: Action
+Other categories: Drama
+Title: HOOK CHARIOTS, Category: Action
+Other categories: Games, Travel
+Title: HARDLY ROBBERS, Category: Action
+Other categories: Classics, Music
+Title: INSTINCT AIRPORT, Category: Action
+Other categories: Family
+Title: JUMPING WRATH, Category: Action
+Other categories: Children, Travel
+Title: HUSTLER PARTY, Category: Action
+Other categories: Family, Music
+Title: MIXED DOORS, Category: Action
+Other categories: Music
+Title: LABYRINTH LEAGUE, Category: Action
+Other categories: Games
+Title: MONEY HAROLD, Category: Action
+Other categories: Sci-Fi
+Title: LIBERTY MAGNIFICENT, Category: Action
+Other categories: Children
+Title: LEBOWSKI SOLDIERS, Category: Action
+Other categories: Documentary
+Title: LIFE TWISTED, Category: Action
+Other categories: Music
+Title: MONSTER SPARTACUS, Category: Action
+Other categories: Animation
+Title: ORDER BETRAYED, Category: Action
+Other categories: Foreign
+Title: NEIGHBORS CHARADE, Category: Action
+Other categories: Foreign
+Title: PITY BOUND, Category: Action
+Other categories: New
+Title: OKLAHOMA JUMANJI, Category: Action
+Other categories: Classics
+Title: NASH CHOCOLAT, Category: Action
+Other categories: Music
+Title: PARK CITIZEN, Category: Action
+Other categories: Music
+Title: ROBBERY BRIGHT, Category: Action
+Other categories: Documentary
+Title: RAINBOW SHOCK, Category: Action
+Other categories: Games
+Title: SLUMS DUCK, Category: Action
+Other categories: Horror
+Title: SKY MIRACLE, Category: Action
+Other categories: Drama
+Title: SHANE DARKNESS, Category: Action
+Other categories: Documentary
+Title: TROOPERS METAL, Category: Action
+Other categories: Sports
+Title: SEABISCUIT PUNK, Category: Action
+Other categories: Travel
+Title: TRAP GUYS, Category: Action
+Other categories: Foreign
+Title: STOCK GLASS, Category: Action
+Other categories: Music
+Title: THIN SAGEBRUSH, Category: Action
+Other categories: Documentary
+Title: TEQUILA PAST, Category: Action
+Other categories: Family
+Title: STEERS ARMAGEDDON, Category: Action
+Other categories: Family
+Title: WONDERLAND CHRISTMAS, Category: Action
+Other categories: Sci-Fi
+Title: VANISHING ROCKY, Category: Action
+Other categories: New
+Title: WEEKEND PERSONAL, Category: Action
+Other categories: Sports
+Title: CATCH AMISTAD, Category: Action
+Other categories: Children, Comedy
+Title: BEDAZZLED MARRIED, Category: Action
+Other categories: Documentary
+Title: BENEATH RUSH, Category: Action
+Other categories: Foreign, Sports
+Title: BEHAVIOR RUNAWAY, Category: Action
+Other categories: Family, New
+Title: BANGER PINOCCHIO, Category: Action
+Other categories: Documentary, Foreign
+Title: DARKO DORADO, Category: Action
+Other categories: Animation, Children
+Title: CLUELESS BUCKET, Category: Action
+Other categories: Animation, Games
+Title: CHILL LUCK, Category: Action
+Other categories: Horror, New
+Title: DETAILS PACKER, Category: Action
+Other categories: Foreign
+Title: DISCIPLE MOTHER, Category: Action
+Other categories: Comedy, Foreign
+Title: CLOSER BANG, Category: Action
+Other categories: Foreign, Sports
+Title: CONQUERER NUTS, Category: Action
+Other categories: Classics, Family
+Title: FREEDOM CLEOPATRA, Category: Action
+Other categories: Comedy, Sci-Fi
+Title: FRONTIER CABIN, Category: Action
+Other categories: Games, New
+Title: FIREHOUSE VIETNAM, Category: Action
+Other categories: Comedy, Sports
+Title: ELEPHANT TROJAN, Category: Action
+Other categories: Animation, Sports
+Title: GALAXY SWEETHEARTS, Category: Action
+Other categories: Children, Music
+Title: EARRING INSTINCT, Category: Action
+Other categories: Travel
+Title: GATHERING CALENDAR, Category: Action
+Other categories: Animation, Drama
+Title: HONEY TIES, Category: Action
+Other categories: Classics, New
+Title: IDOLS SNATCHERS, Category: Action
+Other categories: Drama, Sci-Fi
+Title: HARRY IDAHO, Category: Action
+Other categories: Classics, Sci-Fi
+Title: HEAD STRANGER, Category: Action
+Other categories: New, Sci-Fi
+Title: HOLOCAUST HIGHBALL, Category: Action
+Other categories: Children, Sci-Fi
+Title: IDENTITY LOVER, Category: Action
+Other categories: Children, Family
+Title: JERICHO MULAN, Category: Action
+Other categories: Games, Music
+Title: IRON MOON, Category: Action
+Other categories: Sci-Fi, Sports

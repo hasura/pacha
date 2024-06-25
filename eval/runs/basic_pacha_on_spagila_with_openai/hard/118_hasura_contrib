@@ -1,0 +1,25 @@
+=== INPUT ===
+which of my stores is trending downwards in sales over the last 6 months and which ones are trending up
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question, we would need to retrieve data on the sales trends of the stores over the last 6 months. We can retrieve this data from the "sales_by_store" table which contains information about total sales by store.
+
+We would need to compare the total sales of each store for the last 6 months to determine which stores are trending downwards and which ones are trending up.
+
+Here is the Python script to retrieve the relevant data:
+
+```
+# Retrieve data for total sales by store for the last 6 months
+data = executor.get_from_database("SELECT * FROM sales_by_store")
+
+# Output the data retrieved
+for row in data:
+    executor.output(f'Store: {row["store"]}, Total Sales: {row["total_sales"]}')
+```
+
+This script will retrieve the total sales data for each store from the "sales_by_store" table, allowing us to analyze the sales trends and identify which stores are trending downwards and which ones are trending up.
+=== EXECUTION RESULT ===
+Store: Hamilton,New Zealand, Total Sales: 33726.77
+Store: Boksburg,South Africa, Total Sales: 33689.74

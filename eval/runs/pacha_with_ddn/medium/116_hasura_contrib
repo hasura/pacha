@@ -1,0 +1,30 @@
+=== INPUT ===
+what was the most frequently rented movie for each of the stores in the last month
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve the most frequently rented movie for each store in the last month. 
+
+We can do this by joining the `Trans` table (which contains rental information) with the `Catalog` table (which contains inventory information) and the `Movie` table (which contains movie information). We'll also need to filter the results to only include rentals from the last month.
+
+Here's the Python script to retrieve the data:
+```
+data = executor.get_from_database("""
+    SELECT s.id AS store_id, m.title, COUNT(t.id) AS rental_count
+    FROM Trans t
+    JOIN Catalog c ON t.inventoryId = c.inventoryId
+    JOIN Movie m ON c.filmId = m.id
+    JOIN FranchiseUnit s ON c.storeId = s.id
+    WHERE t.rentalDate > NOW() - INTERVAL '1 month'
+    GROUP BY s.id, m.title
+    ORDER BY s.id, rental_count DESC
+""")
+if len(data) == 0:
+    executor.output('No rental data found for the last month')
+else:
+    for row in data:
+        executor.output(f'Store {row["store_id"]}: Most frequently rented movie is {row["title"]} with {row["rental_count"]} rentals')
+```
+=== EXECUTION RESULT ===
+No rental data found for the last month

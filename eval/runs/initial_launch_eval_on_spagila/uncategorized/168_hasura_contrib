@@ -1,0 +1,46 @@
+=== INPUT ===
+What is the most cosmopolitan country based on movie languages and their rental volume
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve data on the languages of movies and their rental volume. 
+
+We need to retrieve the languages of movies, the countries where these movies were rented, and the volume of rentals for each country. 
+
+Here is the Python script to retrieve the required data:
+```
+data = executor.get_from_database("""
+    SELECT l.lang, c.country, COUNT(t.inventoryId) AS rental_volume
+    FROM default.Trans t
+    JOIN default.Movie m ON t.inventoryId = m.id
+    JOIN default.Lang l ON m.languageId = l.languageId
+    JOIN default.FranchiseUnit fu ON t.staffId = fu.id
+    JOIN default.Loc loc ON fu.addressId = loc.id
+    JOIN default.Muni muni ON loc.cityId = muni.id
+    JOIN default.Country c ON muni.countryId = c.id
+    GROUP BY l.lang, c.country
+    ORDER BY rental_volume DESC
+""")
+
+if len(data) == 0:
+    executor.output('No data found')
+else:
+    executor.output('Most cosmopolitan country based on movie languages and their rental volume:')
+    for row in data:
+        executor.output(f'Language: {row["lang"]}, Country: {row["country"]}, Rental Volume: {row["rental_volume"]}')
+```
+=== EXECUTION RESULT ===
+Most cosmopolitan country based on movie languages and their rental volume:
+Language: English, Country: South Africa, Rental Volume: 1058
+Language: English, Country: New Zealand, Rental Volume: 1013
+Language: Mandarin, Country: South Africa, Rental Volume: 163
+Language: Mandarin, Country: New Zealand, Rental Volume: 155
+Language: French, Country: South Africa, Rental Volume: 153
+Language: Italian, Country: South Africa, Rental Volume: 147
+Language: German, Country: New Zealand, Rental Volume: 144
+Language: German, Country: South Africa, Rental Volume: 140
+Language: Italian, Country: New Zealand, Rental Volume: 131
+Language: French, Country: New Zealand, Rental Volume: 131
+Language: Japanese, Country: New Zealand, Rental Volume: 127
+Language: Japanese, Country: South Africa, Rental Volume: 113

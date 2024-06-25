@@ -1,0 +1,31 @@
+=== INPUT ===
+what was the most frequently rented movie for each of the stores in the last month
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve the most frequently rented movie for each store in the last month. We can do this by joining the `trans` table (which stores customer transactions, including rentals) with the `catalog` table (which stores information about the movies) and the `franchise_unit` table (which stores information about the stores).
+
+Here is the Python script to retrieve the required data:
+```
+data = executor.get_from_database("""
+    SELECT fu.id AS store_id, m.title, COUNT(t.id) AS rental_count
+    FROM trans t
+    JOIN catalog c ON t.inventory_id = c.inventory_id
+    JOIN movie m ON c.film_id = m.id
+    JOIN franchise_unit fu ON t.staff_id = fu.id
+    WHERE t.rental_date > NOW() - INTERVAL '1 month'
+    GROUP BY fu.id, m.title
+    ORDER BY fu.id, rental_count DESC
+""")
+
+executor.output("Most frequently rented movie for each store in the last month:")
+for row in data:
+    executor.output(f"Store {row['store_id']}: {row['title']} ({row['rental_count']} rentals)")
+```
+This script retrieves the store ID, movie title, and rental count for each movie rented in the last month, grouped by store and movie. The results are then ordered by store ID and rental count in descending order, so the most frequently rented movie for each store is at the top of the list.
+=== EXECUTION RESULT ===
+Most frequently rented movie for each store in the last month:
+Traceback (most recent call last):
+  File "<string>", line 13, in <module>
+TypeError: 'NoneType' object is not iterable

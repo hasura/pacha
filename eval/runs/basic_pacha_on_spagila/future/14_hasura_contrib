@@ -1,0 +1,44 @@
+=== INPUT ===
+Movies liked by people who liked similar movies as me
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I need to retrieve data from the user's database. Specifically, I need to know the movies liked by the user and the movies liked by people who liked similar movies as the user.
+
+Here is the Python script to retrieve the required data:
+```
+# Get the user's liked movies
+user_liked_movies = executor.get_from_database("SELECT m.title FROM movie m JOIN trans t ON m.id = t.inventory_id WHERE t.customer_id = <user_id>")
+
+# Get the movies liked by people who liked similar movies as the user
+similar_movies = executor.get_from_database("""
+    SELECT m.title 
+    FROM movie m 
+    JOIN trans t ON m.id = t.inventory_id 
+    JOIN (
+        SELECT customer_id 
+        FROM trans 
+        WHERE inventory_id IN ({}) 
+        GROUP BY customer_id 
+        HAVING COUNT(DISTINCT inventory_id) > 1
+    ) similar_customers ON t.customer_id = similar_customers.customer_id
+    WHERE m.id NOT IN ({})
+""".format(','.join(str(movie['id']) for movie in user_liked_movies), ','.join(str(movie['id']) for movie in user_liked_movies)))
+
+executor.output("User's liked movies: " + ', '.join(movie['title'] for movie in user_liked_movies))
+executor.output("Movies liked by people who liked similar movies as the user: " + ', '.join(movie['title'] for movie in similar_movies))
+```
+This script assumes that the user's ID is available as `<user_id>`. The first query retrieves the movies liked by the user, and the second query retrieves the movies liked by people who liked similar movies as the user. The results are then outputted as a list of movie titles.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 26, in get_from_database
+    return self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.SyntaxError: syntax error at or near "<"
+LINE 1: ... t ON m.id = t.inventory_id WHERE t.customer_id = <user_id>)...
+                                                             ^
+

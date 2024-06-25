@@ -1,0 +1,21 @@
+=== INPUT ===
+Best performing regions
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I would like to retrieve data on the top-performing regions in terms of sales.
+
+```
+data = executor.get_from_database("SELECT store, total_sales FROM sales_by_store ORDER BY total_sales DESC LIMIT 5")
+if len(data) == 0:
+  executor.output('No sales data found')
+else:
+  executor.output('Top 5 performing regions by sales:')
+  for i, row in enumerate(data):
+    executor.output(f'Rank {i+1}: {row["store"]} - Total Sales: {row["total_sales"]}')
+```
+=== EXECUTION RESULT ===
+Top 5 performing regions by sales:
+Rank 1: Hamilton,New Zealand - Total Sales: 33726.77
+Rank 2: Boksburg,South Africa - Total Sales: 33689.74

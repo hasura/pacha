@@ -1,0 +1,21 @@
+=== INPUT ===
+"Given my recent viewing history
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+Based on the conversation, it seems like the user is about to ask for a recommendation or discuss their viewing history. To add context to the conversation, I would retrieve the user's recent viewing history from the database.
+
+Here is the Python script to retrieve the data:
+```
+data = executor.get_from_database("SELECT m.title, t.rentalDate FROM default.Trans t JOIN default.Movie m ON t.inventoryId = m.id WHERE t.customerId = (SELECT id FROM default.Patron WHERE emailAddr = '<user_email>') ORDER BY t.rentalDate DESC LIMIT 5")
+if len(data) == 0:
+  executor.output('No recent viewing history found')
+else:
+  executor.output('Recent viewing history:')
+  for movie in data:
+    executor.output(f'{movie["title"]} - Rented on {movie["rentalDate"]}')
+```
+This script retrieves the titles of the movies the user has rented recently, along with the rental dates, and outputs them in a readable format.
+=== EXECUTION RESULT ===
+No recent viewing history found

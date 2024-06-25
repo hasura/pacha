@@ -1,41 +1,68 @@
-# pacha-ai
+# Patcha DDN
 
-Connect your private data to LLMs
+Connect realtime data to your AI
 
 ## What is it?
 
-Pacha is an AI tool does query planning and retrieval of context for a natural language over a SQL interface.
+Pacha is an AI tool that does retrieval of context for a natural language query using a SQL interface.
+Pacha is specially built to work with Hasura DDN for authorized multi-source querying.
 
-You would use Pacha with your favourite LLMs to generate grounded responses in your AI apps/agents.
+You would use Pacha with your favourite LLMs to generate grounded responses in your AI apps/agents/chatbots.
 
-## Quickstart
+## Getting Started
 
-#### Requirements
+### Prerequisites
 
-- An LLM for response generation
-- A SQL layer (you can use Hasura DDN for a unified SQLlayer over all your data)
+- Atleast Python version 3.12
+- Access to Llama. There are three options
+  - A [Together](api.together.xyz) API key. This is what the rest of the README assumes.
+  - A Replicate API key. The LLM class in use in the example will need to be changed to Replicate instead of Together.
+  - An Ollama instance. Again, the LLM class in use in the example will need to be changed to Ollama instead of Together
+- A postgres database you want to try Pacha out on.
 
+### Install Python Dependencies
 
-```python
+- Install [Poetry](https://python-poetry.org/docs/)
+- Run `poetry install` to install Python dependencies.
 
-from pacha import pacha 
-from openai import OpenAI
+### Setup Hasura DDN
 
-llm = OpenAI(model="gpt-4o")
+Note: You can skip this step if running Pacha directly against Postgres instead of Hasura DDN.
 
-pachaClient = pacha(llm=llm, query_layer='https://myhasuraproject.com/sql')
-
-response = pachaClient.chat("Write a personalized email to the customer with the most amount of spend and list out some of the movies they have rented in the email ")
-
+- Create a Hasura account at hasura.io/ddn
+- Scaffold a local Hasura setup on a postgres database like this:
+```bash
+poetry run ddn_setup -c <postgres connection string> --dir ddn_project
+```
+- The above generated metadata is where you would configure row / column access control rules for your data.
+- Start a local Hasura engine with:
+```bash
+docker compose -f ddn_project/docker-compose.hasura.yaml up -d
 ```
 
-## Reference Architecture
+### Running Pacha
 
-![Pacha Architecture](architecture.png)
+`examples/chat_with_tool.py` is a CLI chat interface that uses Pacha with OpenAI.
 
-## Integrations
+```bash
+OPENAI_API_KEY=<api-key> TOGETHER_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u <DDN SQL URL> -H <header to pass to DDN> 
+```
 
-- LangChain
-- LlamaIndex
+Example:
+```bash
+OPENAI_API_KEY=<api-key> TOGETHER_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u http://localhost:3000/v1/sql -H 'x-hasura-role: admin'
+```
 
-## Examples
+## Customizing
+
+### Running against a custom SQL backend
+
+If you want to run against a custom SQL backend that's not Hasura DDN or Postgres, you can implement the `DataEngine` class in `pacha/data_engine`, and pass that to the Pacha SDK. See usage [here](pacha/sdk/tools/code_tool.py#L57).
+
+You can see example Postgres implementation of DataEngine is in `pacha/data_engine/postgres.py`.
+
+### Running against a custom LLM
+
+You can customize which LLM to use, both for query planning, and user-facing respones by implementing the `Llm` class in `pacha/utils/llm`.
+
+You can see example implementations of various Llama platforms and OpenAI in `pacha/utils/llm/llama` and `pacha/utils/llm/openai.py` respectively.

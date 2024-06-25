@@ -1,0 +1,54 @@
+=== INPUT ===
+What are the 5 worst rated Tom Cruise movies that I haven't seen?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I would need to retrieve data from the database about Tom Cruise movies and their ratings. 
+
+I would need to retrieve the following data:
+
+- A list of movies starring Tom Cruise
+- The ratings of each of these movies
+- A list of movies the user has already seen
+
+Here is a Python script to retrieve this data:
+
+```
+# Retrieve a list of movies starring Tom Cruise
+tom_cruise_movies = executor.get_from_database("SELECT * FROM movie WHERE id IN (SELECT film_id FROM movie_cm WHERE id IN (SELECT id FROM castmember WHERE given_name = 'Tom' AND surname = 'Cruise'))")
+
+# Retrieve the ratings of each of these movies
+movie_ratings = executor.get_from_database("SELECT * FROM movie_list WHERE fid IN (SELECT id FROM movie WHERE id IN (SELECT film_id FROM movie_cm WHERE id IN (SELECT id FROM castmember WHERE given_name = 'Tom' AND surname = 'Cruise')))")
+
+# Assume the user's seen movies are stored in a table called 'user_seen_movies'
+user_seen_movies = executor.get_from_database("SELECT * FROM user_seen_movies")
+
+# Process the data to get the 5 worst rated Tom Cruise movies the user hasn't seen
+worst_rated_movies = []
+for movie in tom_cruise_movies:
+    if movie['id'] not in [seen_movie['movie_id'] for seen_movie in user_seen_movies]:
+        for rating in movie_ratings:
+            if rating['fid'] == movie['id']:
+                worst_rated_movies.append({'title': movie['title'], 'rating': rating['rating']})
+                break
+
+worst_rated_movies.sort(key=lambda x: x['rating'])
+executor.output("The 5 worst rated Tom Cruise movies you haven't seen are:")
+for movie in worst_rated_movies[:5]:
+    executor.output(f"{movie['title']} - Rating: {movie['rating']}")
+```
+
+This script assumes that the user's seen movies are stored in a table called 'user_seen_movies' and that the ratings are stored in the 'ovie_list' table. The actual table and column names may vary depending on the database schema.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 8, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 26, in get_from_database
+    return self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedTable: relation "user_seen_movies" does not exist
+LINE 1: SELECT json_agg(t) FROM (SELECT * FROM user_seen_movies) AS ...
+                                               ^
+

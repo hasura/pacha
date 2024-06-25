@@ -1,0 +1,19 @@
+=== INPUT ===
+Which stores have the greatest customer turnover?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, we need to retrieve the stores with the highest number of customers. We can do this by counting the number of customers associated with each store.
+
+```
+data = executor.get_from_database("SELECT storeId, COUNT(id) AS customer_count FROM default.Patron GROUP BY storeId ORDER BY customer_count DESC")
+if len(data) == 0:
+  executor.output('No customers found')
+else:
+  for row in data:
+    executor.output(f'Store {row["storeId"]} has {row["customer_count"]} customers')
+```
+=== EXECUTION RESULT ===
+Store 1 has 326 customers
+Store 2 has 273 customers

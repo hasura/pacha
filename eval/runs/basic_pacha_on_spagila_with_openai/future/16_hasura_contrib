@@ -1,0 +1,44 @@
+=== INPUT ===
+What are the 5 worst rated Tom Cruise movies that I haven't seen?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question, we would need to retrieve data from the `movie` table to get the ratings of Tom Cruise movies, and data from the `trans` table to see which movies the user has already seen.
+
+We would need to retrieve the following columns from the `movie` table:
+- `title`: The title of the movie
+- `rated`: The rating of the movie
+- `id`: The unique identifier of the movie
+
+And the following columns from the `trans` table:
+- `customer_id`: The ID of the customer (to identify the user)
+- `inventory_id`: The ID of the movie that the user has already seen
+
+We can then filter out the Tom Cruise movies and find the 5 worst rated movies that the user hasn't seen.
+
+Here is the Python script to retrieve the relevant data:
+```python
+# Retrieve the IDs of the movies the user has already seen
+seen_movies = executor.get_from_database("SELECT inventory_id FROM trans WHERE customer_id = <user_id>")
+seen_movie_ids = [movie["inventory_id"] for movie in seen_movies]
+
+# Retrieve the titles, ratings, and IDs of Tom Cruise movies that the user hasn't seen
+tom_cruise_movies = executor.get_from_database("SELECT title, rated, id FROM movie WHERE title LIKE '%Tom Cruise%' AND id NOT IN %s ORDER BY rated ASC LIMIT 5" % str(tuple(seen_movie_ids)))
+
+for movie in tom_cruise_movies:
+    executor.output(f'Title: {movie["title"]}, Rating: {movie["rated"]}')
+```
+Please note that `<user_id>` should be replaced with the actual ID of the user in the `trans` table.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 35, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.SyntaxError: syntax error at or near "<"
+LINE 1: ...ELECT inventory_id FROM trans WHERE customer_id = <user_id>)...
+                                                             ^
+

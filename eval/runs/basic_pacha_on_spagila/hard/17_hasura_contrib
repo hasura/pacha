@@ -1,0 +1,27 @@
+=== INPUT ===
+Which Tom Cruise DVDs contain extra footage of him bragging about doing his own stunts?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would need to retrieve data from the database about Tom Cruise movies that have extra footage of him discussing his stunts. 
+
+Here is the Python script to retrieve the relevant data:
+```
+data = executor.get_from_database("SELECT m.title, mc.special_features FROM movie m JOIN movie_cat mc ON m.id = mc.film_id WHERE m.title LIKE '%Tom Cruise%' AND mc.special_features LIKE '%Behind the Scenes%'")
+executor.output(f'Tom Cruise movies with behind-the-scenes footage: {data}')
+```
+This script retrieves the titles of Tom Cruise movies that have special features containing behind-the-scenes footage, which may include him discussing his stunts.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 26, in get_from_database
+    return self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column mc.special_features does not exist
+LINE 1: SELECT json_agg(t) FROM (SELECT m.title, mc.special_features...
+                                                 ^
+HINT:  Perhaps you meant to reference the column "m.special_features".
+

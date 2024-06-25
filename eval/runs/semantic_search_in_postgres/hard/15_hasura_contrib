@@ -1,0 +1,76 @@
+=== INPUT ===
+Suggest a children's' movie by popularity
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To suggest a popular children's movie, I would like to retrieve the top-rated children's movies from the database.
+
+```
+query = """
+  SELECT 
+    m.title,
+    AVG(r.rating) AS avg_rating
+  FROM public.movie m
+  JOIN public.movie_list ml ON m.id = ml.fid
+  JOIN public.payment_p2022_01 p ON m.id = p.rental_id
+  WHERE m.rated IN ('G', 'PG') AND ml.category = 'Children'
+  GROUP BY m.title
+  ORDER BY avg_rating DESC
+  LIMIT 1
+"""
+
+data = executor.get_from_database(query)
+if len(data) == 0:
+  executor.output('No children movies found')
+else:
+  executor.output(f'The most popular children movie is: {data[0]["title"]} with an average rating of {data[0]["avg_rating"]}')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 14, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/python_executor.py", line 34, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/postgres.py", line 119, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({
+psycopg2.errors.UndefinedTable: missing FROM-clause entry for table "r"
+LINE 3:     AVG(r.rating) AS avg_rating
+                ^
+
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error is due to the fact that there is no table named "r" in the database. The table "r" is supposed to be an alias for a ratings table, but it's not defined in the query.
+
+However, based on the provided database schema, there is no ratings table. The payment tables (payment_p2022_01, payment_p2022_02, etc.) do not have a rating column. 
+
+If we assume that the rating is not available in the database, we can modify the query to suggest a popular children's movie based on the number of payments (i.e., rentals).
+
+Here's the modified query:
+
+```
+query = """
+  SELECT 
+    m.title,
+    COUNT(p.id) AS rental_count
+  FROM public.movie m
+  JOIN public.movie_list ml ON m.id = ml.fid
+  JOIN public.catalog c ON m.id = c.film_id
+  JOIN public.trans p ON c.inventory_id = p.inventory_id
+  WHERE m.rated IN ('G', 'PG') AND ml.category = 'Children'
+  GROUP BY m.title
+  ORDER BY rental_count DESC
+  LIMIT 1
+"""
+
+data = executor.get_from_database(query)
+if len(data) == 0:
+  executor.output('No children movies found')
+else:
+  executor.output(f'The most popular children movie is: {data[0]["title"]} with {data[0]["rental_count"]} rentals')
+```
+=== EXECUTION RESULT ===
+The most popular children movie is: DOGMA FAMILY with 30 rentals

@@ -1,0 +1,37 @@
+=== INPUT ===
+who are my top 5 renters for each of my stores
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide the top 5 renters for each store, I need to retrieve data from the database. 
+
+I will need to retrieve the following data:
+- A list of all stores
+- For each store, a list of the top 5 customers who have rented the most items, along with the number of items they have rented
+
+Here is the Python script to retrieve this data:
+```
+stores = executor.get_from_database("SELECT id, address_id FROM franchise_unit")
+for store in stores:
+    store_id = store['id']
+    top_renters = executor.get_from_database(f"""
+        SELECT p.id, p.surname, p.given_name, COUNT(t.id) as num_rentals
+        FROM patron p
+        JOIN trans t ON p.id = t.customer_id
+        JOIN catalog c ON t.inventory_id = c.inventory_id
+        WHERE c.store_id = {store_id}
+        GROUP BY p.id, p.surname, p.given_name
+        ORDER BY num_rentals DESC
+        LIMIT 5
+    """)
+    executor.output(f"Top 5 renters for store {store_id}:")
+    for renter in top_renters:
+        executor.output(f"{renter['surname']} {renter['given_name']}: {renter['num_rentals']} rentals")
+```
+This script will output the top 5 renters for each store, along with the number of items they have rented.
+=== EXECUTION RESULT ===
+Top 5 renters for store 0:
+Traceback (most recent call last):
+  File "<string>", line 15, in <module>
+TypeError: 'NoneType' object is not iterable

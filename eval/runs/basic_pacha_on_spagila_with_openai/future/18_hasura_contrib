@@ -1,0 +1,23 @@
+=== INPUT ===
+Which is the closest video shop to my parent's house at postcode <blah>?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question about the closest video shop to their parent's house at a specific postcode, we would need to retrieve data from the `loc` table to find the address information for the video shops and then possibly join it with the `franchise_unit` table to get the locations of the video shops.
+
+Here is the Python script to retrieve the relevant data:
+
+```
+data = executor.get_from_database("SELECT loc.addr1, loc.addr2, loc.city_id, loc.zip, loc.state_distr, franchise_unit.id AS shop_id FROM loc JOIN franchise_unit ON loc.id = franchise_unit.address_id WHERE loc.zip = '<blah>'")
+for row in data:
+    executor.output(f'Shop ID: {row["shop_id"]}')
+    executor.output(f'Address 1: {row["addr1"]}')
+    executor.output(f'Address 2: {row["addr2"]}')
+    executor.output(f'City ID: {row["city_id"]}')
+    executor.output(f'Zip Code: {row["zip"]}')
+    executor.output(f'State/District: {row["state_distr"]}')
+```
+
+This script will retrieve the address information for the video shops located at the specified postcode `<blah>` and output the relevant details such as shop ID, address, city ID, zip code, and state/district.
+=== EXECUTION RESULT ===

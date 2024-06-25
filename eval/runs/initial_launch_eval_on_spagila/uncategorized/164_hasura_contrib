@@ -1,0 +1,103 @@
+=== INPUT ===
+How many stores do I have in each country?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the number of stores in each country from the database.
+
+```
+data = executor.get_from_database("SELECT country, COUNT(DISTINCT fu.id) AS num_stores FROM default.FranchiseUnit fu JOIN default.Loc l ON fu.addressId = l.id JOIN default.Muni m ON l.cityId = m.id JOIN default.Country c ON m.countryId = c.id GROUP BY country")
+if len(data) == 0:
+  executor.output('No store locations found')
+else:
+  for row in data:
+    executor.output(f'Country: {row["country"]}, Number of stores: {row["num_stores"]}')
+```
+=== EXECUTION RESULT ===
+Country: Afghanistan, Number of stores: 1
+Country: Algeria, Number of stores: 7
+Country: American Samoa, Number of stores: 3
+Country: Angola, Number of stores: 2
+Country: Argentina, Number of stores: 9
+Country: Armenia, Number of stores: 1
+Country: Australia, Number of stores: 3
+Country: Austria, Number of stores: 1
+Country: Azerbaijan, Number of stores: 1
+Country: Bangladesh, Number of stores: 1
+Country: Belarus, Number of stores: 1
+Country: Brazil, Number of stores: 24
+Country: Cambodia, Number of stores: 2
+Country: Canada, Number of stores: 3
+Country: Chad, Number of stores: 1
+Country: Chile, Number of stores: 5
+Country: China, Number of stores: 37
+Country: Colombia, Number of stores: 2
+Country: Czech Republic, Number of stores: 1
+Country: Egypt, Number of stores: 6
+Country: Estonia, Number of stores: 1
+Country: Ethiopia, Number of stores: 3
+Country: Faroe Islands, Number of stores: 1
+Country: Finland, Number of stores: 1
+Country: France, Number of stores: 6
+Country: French Guiana, Number of stores: 2
+Country: French Polynesia, Number of stores: 1
+Country: Gambia, Number of stores: 1
+Country: Germany, Number of stores: 5
+Country: Greenland, Number of stores: 2
+Country: Holy See (Vatican City State), Number of stores: 4
+Country: Hungary, Number of stores: 1
+Country: India, Number of stores: 54
+Country: Indonesia, Number of stores: 12
+Country: Iran, Number of stores: 6
+Country: Israel, Number of stores: 3
+Country: Italy, Number of stores: 6
+Country: Japan, Number of stores: 27
+Country: Kazakstan, Number of stores: 3
+Country: Kenya, Number of stores: 1
+Country: Kuwait, Number of stores: 1
+Country: Latvia, Number of stores: 2
+Country: Liechtenstein, Number of stores: 4
+Country: Malawi, Number of stores: 2
+Country: Malaysia, Number of stores: 1
+Country: Mexico, Number of stores: 23
+Country: Morocco, Number of stores: 4
+Country: Mozambique, Number of stores: 1
+Country: Myanmar, Number of stores: 1
+Country: Nepal, Number of stores: 1
+Country: Netherlands, Number of stores: 4
+Country: New Zealand, Number of stores: 2
+Country: Nigeria, Number of stores: 11
+Country: Oman, Number of stores: 1
+Country: Pakistan, Number of stores: 4
+Country: Paraguay, Number of stores: 5
+Country: Peru, Number of stores: 3
+Country: Philippines, Number of stores: 15
+Country: Poland, Number of stores: 10
+Country: Puerto Rico, Number of stores: 2
+Country: Romania, Number of stores: 2
+Country: Runion, Number of stores: 1
+Country: Russian Federation, Number of stores: 22
+Country: Saudi Arabia, Number of stores: 7
+Country: Senegal, Number of stores: 2
+Country: Slovakia, Number of stores: 4
+Country: South Africa, Number of stores: 5
+Country: South Korea, Number of stores: 4
+Country: Spain, Number of stores: 2
+Country: Sudan, Number of stores: 1
+Country: Sweden, Number of stores: 1
+Country: Switzerland, Number of stores: 4
+Country: Taiwan, Number of stores: 11
+Country: Tanzania, Number of stores: 2
+Country: Thailand, Number of stores: 4
+Country: Tunisia, Number of stores: 1
+Country: Turkey, Number of stores: 10
+Country: Tuvalu, Number of stores: 1
+Country: Ukraine, Number of stores: 8
+Country: United Arab Emirates, Number of stores: 5
+Country: United Kingdom, Number of stores: 7
+Country: United States, Number of stores: 33
+Country: Venezuela, Number of stores: 6
+Country: Vietnam, Number of stores: 3
+Country: Yemen, Number of stores: 5
+Country: Zambia, Number of stores: 1

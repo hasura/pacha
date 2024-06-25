@@ -1,0 +1,7 @@
+# tags
+# like 1, and understands:
+# - proper formating of rating
+# - that we are referring to rating and language at all
+# - deeper reasoning about lang vs langOrig
+# - deeper nested conditional
+Show me titles of all the french PG13 movies (dubbed into french is fine)

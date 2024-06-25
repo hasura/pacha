@@ -1,0 +1,17 @@
+=== INPUT ===
+Which is the closest video shop to my parent's house at postcode <blah>?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the closest franchise unit (video shop) to the user's parent's house based on the provided postcode.
+
+```
+data = executor.get_from_database("SELECT * FROM public.franchise_unit fu JOIN public.loc l ON fu.address_id = l.id WHERE l.zip = '<blah>' ORDER BY l.zip LIMIT 1")
+if len(data) == 0:
+  executor.output('No video shop found near the provided postcode')
+else:
+  executor.output(f'Closest video shop is at {data[0]["addr1"]}, {data[0]["city"]}, {data[0]["zip"]}')
+```
+=== EXECUTION RESULT ===
+No video shop found near the provided postcode

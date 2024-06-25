@@ -1,0 +1,19 @@
+=== INPUT ===
+Find me all movies that Emily Blunt has been in
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve data from the database about Emily Blunt's filmography. 
+
+```
+data = executor.get_from_database("SELECT m.title FROM default.Movie m JOIN default.MovieCm mc ON m.id = mc.filmId JOIN default.Castmember c ON mc.id = c.id WHERE c.givenName = 'Emily' AND c.surname = 'Blunt'")
+if len(data) == 0:
+  executor.output('No movies found with Emily Blunt')
+else:
+  executor.output('Movies featuring Emily Blunt:')
+  for movie in data:
+    executor.output(f'- {movie["title"]}')
+```
+=== EXECUTION RESULT ===
+No movies found with Emily Blunt

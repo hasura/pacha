@@ -1,0 +1,18 @@
+=== INPUT ===
+What is Titanic rated?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer this question, I need to retrieve the rating of the movie "Titanic" from the database.
+
+Here is the Python script to retrieve the data:
+```
+data = executor.get_from_database("SELECT rated FROM movie WHERE title = 'TITANIC'")
+executor.output(f'Titanic is rated: {data[0]["rated"]}')
+```
+This script retrieves the rating of the movie "Titanic" from the "movie" table and outputs the result.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+TypeError: 'NoneType' object is not subscriptable

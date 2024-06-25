@@ -1,0 +1,19 @@
+=== INPUT ===
+Movies liked by people who liked similar movies as me
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to this conversation, I would like to retrieve a list of movies that the user has liked or rented in the past. This information can be used to identify similar movies that the user might enjoy.
+
+```
+data = executor.get_from_database("SELECT m.title FROM default.Trans t JOIN default.Movie m ON t.inventoryId = m.id WHERE t.customerId = (SELECT id FROM default.Patron WHERE emailAddr = '<user_email>')")
+if len(data) == 0:
+  executor.output('No movie rental history found for this user')
+else:
+  executor.output('Movies liked by this user:')
+  for movie in data:
+    executor.output(f'- {movie["title"]}')
+```
+=== EXECUTION RESULT ===
+No movie rental history found for this user

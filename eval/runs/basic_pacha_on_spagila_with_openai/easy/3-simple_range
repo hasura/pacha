@@ -1,0 +1,29 @@
+=== INPUT ===
+top ten largest payment values
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide the user with the top ten largest payment values, we would need to retrieve data from the `paymant` table which contains information about each payment made by a customer.
+
+We can query the `amount` column in the `paymant` table and sort the results in descending order to get the top ten largest payment values.
+
+Here is the Python script to retrieve and output the top ten largest payment values:
+
+```
+data = executor.get_from_database("SELECT amount FROM paymant ORDER BY amount DESC LIMIT 10")
+
+for index, row in enumerate(data, start=1):
+    executor.output(f'{index}. Payment Value: {row["amount"]}')
+```
+=== EXECUTION RESULT ===
+1. Payment Value: 11.99
+2. Payment Value: 11.99
+3. Payment Value: 11.99
+4. Payment Value: 11.99
+5. Payment Value: 11.99
+6. Payment Value: 11.99
+7. Payment Value: 11.99
+8. Payment Value: 11.99
+9. Payment Value: 11.99
+10. Payment Value: 11.99

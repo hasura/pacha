@@ -1,0 +1,6 @@
+# where, conditional join, enum
+# - understanding of format of low-cardinality "rated" column from description (NOTE: later from schema when exposed as enum!)
+# - understanding "rate" vs "rated"
+# - inferring correspondence of input object fields to documented output fields
+# - understanding "name" means title
+what are our films rated pg? just names is fine

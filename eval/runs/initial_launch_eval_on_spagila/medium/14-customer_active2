@@ -1,0 +1,18 @@
+=== INPUT ===
+home store id for every deleted customer
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the home store ID for every deleted customer from the database.
+
+```
+data = executor.get_from_database("SELECT storeId FROM default.Patron WHERE active = FALSE")
+if len(data) == 0:
+  executor.output('No deleted customers found')
+else:
+  for row in data:
+    executor.output(f'Home store ID for deleted customer: {row["storeId"]}')
+```
+=== EXECUTION RESULT ===
+No deleted customers found

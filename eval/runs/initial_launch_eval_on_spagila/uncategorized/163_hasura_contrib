@@ -1,0 +1,33 @@
+=== INPUT ===
+How much money do I make from each film category?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide more context to the conversation, I need to retrieve data on the total sales for each film category.
+
+```
+data = executor.get_from_database("SELECT category, totalSales FROM default.SalesByCat")
+if len(data) == 0:
+  executor.output('No sales data found')
+else:
+  for row in data:
+    executor.output(f'Total sales for {row["category"]}: {row["totalSales"]}')
+```
+=== EXECUTION RESULT ===
+Total sales for Foreign: 10507.67
+Total sales for Children: 10437.05
+Total sales for Animation: 10369.55
+Total sales for Documentary: 10307.29
+Total sales for Action: 10289.6
+Total sales for Music: 10188.81
+Total sales for Sci-Fi: 10054.1
+Total sales for New: 9915.24
+Total sales for Sports: 9902.86
+Total sales for Games: 9848.23
+Total sales for Horror: 9807.69
+Total sales for Travel: 9793.98
+Total sales for Classics: 9708.77
+Total sales for Family: 9703.84
+Total sales for Drama: 9522.54
+Total sales for Comedy: 9181.93

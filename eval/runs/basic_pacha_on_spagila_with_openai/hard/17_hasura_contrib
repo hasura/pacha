@@ -1,0 +1,24 @@
+=== INPUT ===
+Which Tom Cruise DVDs contain extra footage of him bragging about doing his own stunts?
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To answer the user's question about Tom Cruise DVDs containing extra footage of him bragging about doing his own stunts, we would need to retrieve data from the database to find the relevant movies and their special features.
+
+We would need to retrieve data from the `movie` table and the `movie_cat` table to find the movies that Tom Cruise starred in and their categories. Additionally, we would need to check the `special_features` column in the `movie` table to see if there is any mention of extra footage related to Tom Cruise's stunts.
+
+Here is the Python script to retrieve the relevant data:
+
+```
+# Retrieve data from the database
+data = executor.get_from_database("SELECT m.title, m.special_features FROM movie m JOIN movie_cat mc ON m.id = mc.film_id JOIN cat c ON mc.category_id = c.id WHERE m.title LIKE '%Tom Cruise%' AND c.name = 'Action'")
+
+# Output the retrieved data
+for row in data:
+    executor.output(f'Title: {row["title"]}')
+    executor.output(f'Special Features: {row["special_features"]}')
+```
+
+This script will retrieve the titles of movies starring Tom Cruise in the action category and their special features, which may include any extra footage related to his stunts.
+=== EXECUTION RESULT ===

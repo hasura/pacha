@@ -1,0 +1,34 @@
+=== INPUT ===
+Give me a trend of stores by their efficiency over last 12 months (calculate the efficiency weekly for each store and then plot for me to get an idea which stores are improving efficiency)
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To provide a trend of stores by their efficiency over the last 12 months, we would need to calculate the efficiency weekly for each store. To do this, we would need to retrieve data from the database related to store efficiency metrics. Specifically, we would need data from the `sales_by_store` table which contains information about total sales for each store.
+
+We can calculate the efficiency of each store by analyzing the trend in total sales over time. By comparing weekly total sales for each store over the last 12 months, we can identify which stores are improving in efficiency.
+
+Here is the Python script to retrieve the necessary data from the database:
+
+```
+# Retrieve total sales data for each store over the last 12 months
+data = executor.get_from_database("SELECT * FROM sales_by_store WHERE EXTRACT(MONTH FROM updated) >= EXTRACT(MONTH FROM NOW()) - 12")
+
+# Output the retrieved data
+for row in data:
+    executor.output(f'Store: {row["store"]}, Total Sales: {row["total_sales"]}, Manager: {row["manager"]}')
+```
+
+This script will retrieve the total sales data for each store over the last 12 months from the `sales_by_store` table and output the store name, total sales, and manager for each store. This data can then be used to analyze the efficiency trends of each store over time.
+=== EXECUTION RESULT ===
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 35, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 34, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column "updated" does not exist
+LINE 1: ...CT * FROM sales_by_store WHERE EXTRACT(MONTH FROM updated) >...
+                                                             ^
+

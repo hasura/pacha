@@ -1,0 +1,932 @@
+=== INPUT ===
+Suggest a children's' movie by popularity
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To suggest a children's movie by popularity, we would need to retrieve data from the database related to movies that are categorized as children's movies and are popular based on some criteria like ratings or sales.
+
+We can retrieve data from the `movie` table and `movie_cat` table to find children's movies and their categories. Additionally, we can look at the `sales_by_cat` table to determine the popularity of movies based on sales.
+
+Here is the Python script to retrieve the relevant data:
+
+```
+# Retrieve data for children's movies
+children_movies_data = executor.get_from_database("SELECT m.title, m.release_year, m.rate, m.length, m.logline, c.name AS category \
+                                                    FROM movie m \
+                                                    JOIN movie_cat mc ON m.id = mc.film_id \
+                                                    JOIN cat c ON mc.category_id = c.id \
+                                                    WHERE c.name = 'Children'")
+
+# Output the data retrieved
+for row in children_movies_data:
+    executor.output(f'Title: {row["title"]}')
+    executor.output(f'Release Year: {row["release_year"]}')
+    executor.output(f'Rating: {row["rate"]}')
+    executor.output(f'Length: {row["length"]} minutes')
+    executor.output(f'Logline: {row["logline"]}')
+    executor.output(f'Category: {row["category"]}')
+```
+
+This script will retrieve and output information about children's movies from the database, including the title, release year, rating, length, logline, and category of each movie.
+=== EXECUTION RESULT ===
+Title: BIRDS PERDITION
+Release Year: 2008
+Rating: 4.99
+Length: 61 minutes
+Logline: A Boring Story of a Womanizer And a Pioneer who must Face a Dog in California
+Category: Children
+Title: BARBARELLA STREETCAR
+Release Year: 2009
+Rating: 2.99
+Length: 65 minutes
+Logline: A Awe-Inspiring Story of a Feminist And a Cat who must Conquer a Dog in A Monastery
+Category: Children
+Title: BOOGIE AMELIE
+Release Year: 2021
+Rating: 4.99
+Length: 121 minutes
+Logline: A Lacklusture Character Study of a Husband And a Sumo Wrestler who must Succumb a Technical Writer in The Gulf of Mexico
+Category: Children
+Title: ALADDIN CALENDAR
+Release Year: 2014
+Rating: 4.99
+Length: 63 minutes
+Logline: A Action-Packed Tale of a Man And a Lumberjack who must Reach a Feminist in Ancient China
+Category: Children
+Title: BUBBLE GROSSE
+Release Year: 2020
+Rating: 4.99
+Length: 60 minutes
+Logline: A Awe-Inspiring Panorama of a Crocodile And a Moose who must Confront a Girl in A Baloon
+Category: Children
+Title: ALABAMA DEVIL
+Release Year: 2011
+Rating: 2.99
+Length: 114 minutes
+Logline: A Thoughtful Panorama of a Database Administrator And a Mad Scientist who must Outgun a Mad Scientist in A Jet Boat
+Category: Children
+Title: ARGONAUTS TOWN
+Release Year: 2011
+Rating: 0.99
+Length: 127 minutes
+Logline: A Emotional Epistle of a Forensic Psychologist And a Butler who must Challenge a Waitress in An Abandoned Mine Shaft
+Category: Children
+Title: CASUALTIES ENCINO
+Release Year: 2022
+Rating: 4.99
+Length: 179 minutes
+Logline: A Insightful Yarn of a A Shark And a Pastry Chef who must Face a Boy in A Monastery
+Category: Children
+Title: CUPBOARD SINNERS
+Release Year: 2015
+Rating: 2.99
+Length: 56 minutes
+Logline: A Emotional Reflection of a Frisbee And a Boat who must Reach a Pastry Chef in An Abandoned Amusement Park
+Category: Children
+Title: BUTCH PANTHER
+Release Year: 2013
+Rating: 0.99
+Length: 67 minutes
+Logline: A Lacklusture Yarn of a Feminist And a Database Administrator who must Face a Hunter in New Orleans
+Category: Children
+Title: CAMELOT VACATION
+Release Year: 2012
+Rating: 0.99
+Length: 61 minutes
+Logline: A Touching Character Study of a Woman And a Waitress who must Battle a Pastry Chef in A MySQL Convention
+Category: Children
+Title: CHRISTMAS MOONSHINE
+Release Year: 2012
+Rating: 0.99
+Length: 150 minutes
+Logline: A Action-Packed Epistle of a Feminist And a Astronaut who must Conquer a Boat in A Manhattan Penthouse
+Category: Children
+Title: CANYON STOCK
+Release Year: 2020
+Rating: 0.99
+Length: 85 minutes
+Logline: A Thoughtful Reflection of a Waitress And a Feminist who must Escape a Squirrel in A Manhattan Penthouse
+Category: Children
+Title: DARKO DORADO
+Release Year: 2016
+Rating: 4.99
+Length: 130 minutes
+Logline: A Stunning Reflection of a Frisbee And a Husband who must Redeem a Dog in New Orleans
+Category: Children
+Title: EVERYONE CRAFT
+Release Year: 2010
+Rating: 0.99
+Length: 163 minutes
+Logline: A Fateful Display of a Waitress And a Dentist who must Reach a Butler in Nigeria
+Category: Children
+Title: FALCON VOLUME
+Release Year: 2011
+Rating: 4.99
+Length: 102 minutes
+Logline: A Fateful Saga of a Sumo Wrestler And a Hunter who must Redeem a A Shark in New Orleans
+Category: Children
+Title: EXTRAORDINARY CONQUERER
+Release Year: 2020
+Rating: 2.99
+Length: 122 minutes
+Logline: A Stunning Story of a Dog And a Feminist who must Face a Forensic Psychologist in Berlin
+Category: Children
+Title: FAMILY SWEET
+Release Year: 2020
+Rating: 0.99
+Length: 155 minutes
+Logline: A Epic Documentary of a Teacher And a Boy who must Escape a Woman in Berlin
+Category: Children
+Title: DIVORCE SHINING
+Release Year: 2023
+Rating: 2.99
+Length: 47 minutes
+Logline: A Unbelieveable Saga of a Crocodile And a Student who must Discover a Cat in Ancient India
+Category: Children
+Title: DRAGON SQUAD
+Release Year: 2011
+Rating: 0.99
+Length: 170 minutes
+Logline: A Taut Reflection of a Boy And a Waitress who must Outgun a Teacher in Ancient China
+Category: Children
+Title: HANKY OCTOBER
+Release Year: 2020
+Rating: 2.99
+Length: 107 minutes
+Logline: A Boring Epistle of a Database Administrator And a Explorer who must Pursue a Madman in Soviet Georgia
+Category: Children
+Title: FLINTSTONES HAPPINESS
+Release Year: 2014
+Rating: 4.99
+Length: 148 minutes
+Logline: A Fateful Story of a Husband And a Moose who must Vanquish a Boy in California
+Category: Children
+Title: FRENCH HOLIDAY
+Release Year: 2017
+Rating: 4.99
+Length: 99 minutes
+Logline: A Thrilling Epistle of a Dog And a Feminist who must Kill a Madman in Berlin
+Category: Children
+Title: GODFATHER DIARY
+Release Year: 2012
+Rating: 2.99
+Length: 73 minutes
+Logline: A Stunning Saga of a Lumberjack And a Squirrel who must Chase a Car in The Outback
+Category: Children
+Title: FRIDA SLIPPER
+Release Year: 2011
+Rating: 2.99
+Length: 73 minutes
+Logline: A Fateful Story of a Lumberjack And a Car who must Escape a Boat in An Abandoned Mine Shaft
+Category: Children
+Title: HOLOCAUST HIGHBALL
+Release Year: 2008
+Rating: 0.99
+Length: 149 minutes
+Logline: A Awe-Inspiring Yarn of a Composer And a Man who must Find a Robot in Soviet Georgia
+Category: Children
+Title: HEAVEN FREEDOM
+Release Year: 2015
+Rating: 2.99
+Length: 48 minutes
+Logline: A Intrepid Story of a Butler And a Car who must Vanquish a Man in New Orleans
+Category: Children
+Title: HYSTERICAL GRAIL
+Release Year: 2007
+Rating: 4.99
+Length: 150 minutes
+Logline: A Amazing Saga of a Madman And a Dentist who must Build a Car in A Manhattan Penthouse
+Category: Children
+Title: ICE CROSSING
+Release Year: 2010
+Rating: 2.99
+Length: 131 minutes
+Logline: A Fast-Paced Tale of a Butler And a Moose who must Overcome a Pioneer in A Manhattan Penthouse
+Category: Children
+Title: JOON NORTHWEST
+Release Year: 2023
+Rating: 0.99
+Length: 105 minutes
+Logline: A Thrilling Panorama of a Technical Writer And a Car who must Discover a Forensic Psychologist in A Shark Tank
+Category: Children
+Title: KISSING DOLLS
+Release Year: 2007
+Rating: 4.99
+Length: 141 minutes
+Logline: A Insightful Reflection of a Pioneer And a Teacher who must Build a Composer in The First Manned Space Station
+Category: Children
+Title: JAPANESE RUN
+Release Year: 2009
+Rating: 0.99
+Length: 135 minutes
+Logline: A Awe-Inspiring Epistle of a Feminist And a Girl who must Sink a Girl in The Outback
+Category: Children
+Title: LIBERTY MAGNIFICENT
+Release Year: 2018
+Rating: 2.99
+Length: 138 minutes
+Logline: A Boring Drama of a Student And a Cat who must Sink a Technical Writer in A Baloon
+Category: Children
+Title: IDENTITY LOVER
+Release Year: 2009
+Rating: 2.99
+Length: 119 minutes
+Logline: A Boring Tale of a Composer And a Mad Cow who must Defeat a Car in The Outback
+Category: Children
+Title: MONTEZUMA COMMAND
+Release Year: 2018
+Rating: 0.99
+Length: 126 minutes
+Logline: A Thrilling Reflection of a Waitress And a Butler who must Battle a Butler in A Jet Boat
+Category: Children
+Title: NOTTING SPEAKEASY
+Release Year: 2006
+Rating: 0.99
+Length: 48 minutes
+Logline: A Thoughtful Display of a Butler And a Womanizer who must Find a Waitress in The Canadian Rockies
+Category: Children
+Title: NIGHTMARE CHILL
+Release Year: 2015
+Rating: 4.99
+Length: 149 minutes
+Logline: A Brilliant Display of a Robot And a Butler who must Fight a Waitress in An Abandoned Mine Shaft
+Category: Children
+Title: MERMAID INSECTS
+Release Year: 2012
+Rating: 4.99
+Length: 104 minutes
+Logline: A Lacklusture Drama of a Waitress And a Husband who must Fight a Husband in California
+Category: Children
+Title: MALLRATS UNITED
+Release Year: 2020
+Rating: 0.99
+Length: 133 minutes
+Logline: A Thrilling Yarn of a Waitress And a Dentist who must Find a Hunter in A Monastery
+Category: Children
+Title: LUKE MUMMY
+Release Year: 2007
+Rating: 2.99
+Length: 74 minutes
+Logline: A Taut Character Study of a Boy And a Robot who must Redeem a Mad Scientist in Ancient India
+Category: Children
+Title: RIDER CADDYSHACK
+Release Year: 2010
+Rating: 2.99
+Length: 177 minutes
+Logline: A Taut Reflection of a Monkey And a Womanizer who must Chase a Moose in Nigeria
+Category: Children
+Title: PHILADELPHIA WIFE
+Release Year: 2023
+Rating: 4.99
+Length: 137 minutes
+Logline: A Taut Yarn of a Hunter And a Astronaut who must Conquer a Database Administrator in The Sahara Desert
+Category: Children
+Title: QUILLS BULL
+Release Year: 2019
+Rating: 4.99
+Length: 112 minutes
+Logline: A Thoughtful Story of a Pioneer And a Woman who must Reach a Moose in Australia
+Category: Children
+Title: ROOTS REMEMBER
+Release Year: 2014
+Rating: 0.99
+Length: 89 minutes
+Logline: A Brilliant Drama of a Mad Cow And a Hunter who must Escape a Hunter in Berlin
+Category: Children
+Title: PATRIOT ROMAN
+Release Year: 2013
+Rating: 2.99
+Length: 65 minutes
+Logline: A Taut Saga of a Robot And a Database Administrator who must Challenge a Astronaut in California
+Category: Children
+Title: OUTFIELD MASSACRE
+Release Year: 2017
+Rating: 0.99
+Length: 129 minutes
+Logline: A Thoughtful Drama of a Husband And a Secret Agent who must Pursue a Database Administrator in Ancient India
+Category: Children
+Title: PAJAMA JAWBREAKER
+Release Year: 2016
+Rating: 0.99
+Length: 126 minutes
+Logline: A Emotional Drama of a Boy And a Technical Writer who must Redeem a Sumo Wrestler in California
+Category: Children
+Title: SCHOOL JACKET
+Release Year: 2014
+Rating: 4.99
+Length: 151 minutes
+Logline: A Intrepid Yarn of a Monkey And a Boy who must Fight a Composer in A Manhattan Penthouse
+Category: Children
+Title: RULES HUMAN
+Release Year: 2018
+Rating: 4.99
+Length: 153 minutes
+Logline: A Beautiful Epistle of a Astronaut And a Student who must Confront a Monkey in An Abandoned Fun House
+Category: Children
+Title: SORORITY QUEEN
+Release Year: 2016
+Rating: 0.99
+Length: 184 minutes
+Logline: A Fast-Paced Display of a Squirrel And a Composer who must Fight a Forensic Psychologist in A Jet Boat
+Category: Children
+Title: SATURDAY LAMBS
+Release Year: 2006
+Rating: 4.99
+Length: 150 minutes
+Logline: A Thoughtful Reflection of a Mad Scientist And a Moose who must Kill a Husband in A Baloon
+Category: Children
+Title: STRAIGHT HOURS
+Release Year: 2009
+Rating: 0.99
+Length: 151 minutes
+Logline: A Boring Panorama of a Secret Agent And a Girl who must Sink a Waitress in The Outback
+Category: Children
+Title: SPLASH GUMP
+Release Year: 2020
+Rating: 0.99
+Length: 175 minutes
+Logline: A Taut Saga of a Crocodile And a Boat who must Conquer a Hunter in A Shark Tank
+Category: Children
+Title: SPEAKEASY DATE
+Release Year: 2006
+Rating: 2.99
+Length: 165 minutes
+Logline: A Lacklusture Drama of a Forensic Psychologist And a Car who must Redeem a Man in A Manhattan Penthouse
+Category: Children
+Title: SUN CONFESSIONS
+Release Year: 2023
+Rating: 0.99
+Length: 141 minutes
+Logline: A Beautiful Display of a Mad Cow And a Dog who must Redeem a Waitress in An Abandoned Amusement Park
+Category: Children
+Title: STREAK RIDGEMONT
+Release Year: 2007
+Rating: 0.99
+Length: 132 minutes
+Logline: A Astounding Character Study of a Hunter And a Waitress who must Sink a Man in New Orleans
+Category: Children
+Title: TADPOLE PARK
+Release Year: 2024
+Rating: 2.99
+Length: 155 minutes
+Logline: A Beautiful Tale of a Frisbee And a Moose who must Vanquish a Dog in An Abandoned Amusement Park
+Category: Children
+Title: TRANSLATION SUMMER
+Release Year: 2013
+Rating: 0.99
+Length: 168 minutes
+Logline: A Touching Reflection of a Man And a Monkey who must Pursue a Womanizer in A MySQL Convention
+Category: Children
+Title: SUMMER SCARFACE
+Release Year: 2018
+Rating: 0.99
+Length: 53 minutes
+Logline: A Emotional Panorama of a Lumberjack And a Hunter who must Meet a Girl in A Shark Tank
+Category: Children
+Title: VOLUME HOUSE
+Release Year: 2010
+Rating: 4.99
+Length: 132 minutes
+Logline: A Boring Tale of a Dog And a Woman who must Meet a Dentist in California
+Category: Children
+Title: UNCUT SUICIDES
+Release Year: 2013
+Rating: 2.99
+Length: 172 minutes
+Logline: A Intrepid Yarn of a Explorer And a Pastry Chef who must Pursue a Mad Cow in A U-Boat
+Category: Children
+Title: YOUNG LANGUAGE
+Release Year: 2019
+Rating: 0.99
+Length: 183 minutes
+Logline: A Unbelieveable Yarn of a Boat And a Database Administrator who must Meet a Boy in The First Manned Space Station
+Category: Children
+Title: YENTL IDAHO
+Release Year: 2023
+Rating: 4.99
+Length: 86 minutes
+Logline: A Amazing Display of a Robot And a Astronaut who must Fight a Womanizer in Berlin
+Category: Children
+Title: ATTACKS HATE
+Release Year: 2010
+Rating: 4.99
+Length: 113 minutes
+Logline: A Fast-Paced Panorama of a Technical Writer And a Mad Scientist who must Find a Feminist in An Abandoned Mine Shaft
+Category: Children
+Title: WEREWOLF LOLA
+Release Year: 2010
+Rating: 4.99
+Length: 79 minutes
+Logline: A Fanciful Story of a Man And a Sumo Wrestler who must Outrace a Student in A Monastery
+Category: Children
+Title: WORKER TARZAN
+Release Year: 2023
+Rating: 2.99
+Length: 139 minutes
+Logline: A Action-Packed Yarn of a Secret Agent And a Technical Writer who must Battle a Sumo Wrestler in The First Manned Space Station
+Category: Children
+Title: BASIC EASY
+Release Year: 2019
+Rating: 2.99
+Length: 90 minutes
+Logline: A Stunning Epistle of a Man And a Husband who must Reach a Mad Scientist in A Jet Boat
+Category: Children
+Title: BALLOON HOMEWARD
+Release Year: 2012
+Rating: 2.99
+Length: 75 minutes
+Logline: A Insightful Panorama of a Forensic Psychologist And a Mad Cow who must Build a Mad Scientist in The First Manned Space Station
+Category: Children
+Title: BREAKFAST GOLDFINGER
+Release Year: 2024
+Rating: 4.99
+Length: 123 minutes
+Logline: A Beautiful Reflection of a Student And a Student who must Fight a Moose in Berlin
+Category: Children
+Title: CATCH AMISTAD
+Release Year: 2007
+Rating: 0.99
+Length: 183 minutes
+Logline: A Boring Reflection of a Lumberjack And a Feminist who must Discover a Woman in Nigeria
+Category: Children
+Title: BLOOD ARGONAUTS
+Release Year: 2021
+Rating: 0.99
+Length: 71 minutes
+Logline: A Boring Drama of a Explorer And a Man who must Kill a Lumberjack in A Manhattan Penthouse
+Category: Children
+Title: CLUE GRAIL
+Release Year: 2024
+Rating: 4.99
+Length: 70 minutes
+Logline: A Taut Tale of a Butler And a Mad Scientist who must Build a Crocodile in Ancient China
+Category: Children
+Title: CHASING FIGHT
+Release Year: 2013
+Rating: 4.99
+Length: 114 minutes
+Logline: A Astounding Saga of a Technical Writer And a Butler who must Battle a Butler in A Shark Tank
+Category: Children
+Title: CIDER DESIRE
+Release Year: 2008
+Rating: 2.99
+Length: 101 minutes
+Logline: A Stunning Character Study of a Composer And a Mad Cow who must Succumb a Cat in Soviet Georgia
+Category: Children
+Title: BUGSY SONG
+Release Year: 2010
+Rating: 2.99
+Length: 119 minutes
+Logline: A Awe-Inspiring Character Study of a Secret Agent And a Boat who must Find a Squirrel in The First Manned Space Station
+Category: Children
+Title: DYNAMITE TARZAN
+Release Year: 2021
+Rating: 0.99
+Length: 141 minutes
+Logline: A Intrepid Documentary of a Forensic Psychologist And a Mad Scientist who must Face a Explorer in A U-Boat
+Category: Children
+Title: DANGEROUS UPTOWN
+Release Year: 2008
+Rating: 4.99
+Length: 121 minutes
+Logline: A Unbelieveable Story of a Mad Scientist And a Woman who must Overcome a Dog in California
+Category: Children
+Title: DARKNESS WAR
+Release Year: 2016
+Rating: 2.99
+Length: 99 minutes
+Logline: A Touching Documentary of a Husband And a Hunter who must Escape a Boy in The Sahara Desert
+Category: Children
+Title: DARES PLUTO
+Release Year: 2020
+Rating: 2.99
+Length: 89 minutes
+Logline: A Fateful Story of a Robot And a Dentist who must Defeat a Astronaut in New Orleans
+Category: Children
+Title: DUMBO LUST
+Release Year: 2020
+Rating: 0.99
+Length: 119 minutes
+Logline: A Touching Display of a Feminist And a Dentist who must Conquer a Husband in The Gulf of Mexico
+Category: Children
+Title: DOGMA FAMILY
+Release Year: 2010
+Rating: 4.99
+Length: 122 minutes
+Logline: A Brilliant Character Study of a Database Administrator And a Monkey who must Succumb a Astronaut in New Orleans
+Category: Children
+Title: CYCLONE FAMILY
+Release Year: 2021
+Rating: 2.99
+Length: 176 minutes
+Logline: A Lacklusture Drama of a Student And a Monkey who must Sink a Womanizer in A MySQL Convention
+Category: Children
+Title: GALAXY SWEETHEARTS
+Release Year: 2011
+Rating: 4.99
+Length: 128 minutes
+Logline: A Emotional Reflection of a Womanizer And a Pioneer who must Face a Squirrel in Berlin
+Category: Children
+Title: FLAMINGOS CONNECTICUT
+Release Year: 2007
+Rating: 4.99
+Length: 80 minutes
+Logline: A Fast-Paced Reflection of a Composer And a Composer who must Meet a Cat in The Sahara Desert
+Category: Children
+Title: GHOST GROUNDHOG
+Release Year: 2019
+Rating: 4.99
+Length: 85 minutes
+Logline: A Brilliant Panorama of a Madman And a Composer who must Succumb a Car in Ancient India
+Category: Children
+Title: GROOVE FICTION
+Release Year: 2009
+Rating: 0.99
+Length: 111 minutes
+Logline: A Unbelieveable Reflection of a Moose And a A Shark who must Defeat a Lumberjack in An Abandoned Mine Shaft
+Category: Children
+Title: FANTASIA PARK
+Release Year: 2013
+Rating: 2.99
+Length: 131 minutes
+Logline: A Thoughtful Documentary of a Mad Scientist And a A Shark who must Outrace a Feminist in Australia
+Category: Children
+Title: HATE HANDICAP
+Release Year: 2020
+Rating: 0.99
+Length: 107 minutes
+Logline: A Intrepid Reflection of a Mad Scientist And a Pioneer who must Overcome a Hunter in The First Manned Space Station
+Category: Children
+Title: KARATE MOON
+Release Year: 2009
+Rating: 0.99
+Length: 120 minutes
+Logline: A Astounding Yarn of a Womanizer And a Dog who must Reach a Waitress in A MySQL Convention
+Category: Children
+Title: HOLLYWOOD ANONYMOUS
+Release Year: 2018
+Rating: 0.99
+Length: 69 minutes
+Logline: A Fast-Paced Epistle of a Boy And a Explorer who must Escape a Dog in A U-Boat
+Category: Children
+Title: JERSEY SASSY
+Release Year: 2009
+Rating: 4.99
+Length: 60 minutes
+Logline: A Lacklusture Documentary of a Madman And a Mad Cow who must Find a Feminist in Ancient Japan
+Category: Children
+Title: JUGGLER HARDLY
+Release Year: 2017
+Rating: 0.99
+Length: 54 minutes
+Logline: A Epic Story of a Mad Cow And a Astronaut who must Challenge a Car in California
+Category: Children
+Title: ILLUSION AMELIE
+Release Year: 2018
+Rating: 0.99
+Length: 122 minutes
+Logline: A Emotional Epistle of a Boat And a Mad Scientist who must Outrace a Robot in An Abandoned Mine Shaft
+Category: Children
+Title: IMPOSSIBLE PREJUDICE
+Release Year: 2010
+Rating: 4.99
+Length: 103 minutes
+Logline: A Awe-Inspiring Yarn of a Monkey And a Hunter who must Chase a Teacher in Ancient China
+Category: Children
+Title: KRAMER CHOCOLATE
+Release Year: 2006
+Rating: 2.99
+Length: 171 minutes
+Logline: A Amazing Yarn of a Robot And a Pastry Chef who must Redeem a Mad Scientist in The Outback
+Category: Children
+Title: LOATHING LEGALLY
+Release Year: 2018
+Rating: 0.99
+Length: 140 minutes
+Logline: A Boring Epistle of a Pioneer And a Mad Scientist who must Escape a Frisbee in The Gulf of Mexico
+Category: Children
+Title: MIDNIGHT WESTWARD
+Release Year: 2018
+Rating: 0.99
+Length: 86 minutes
+Logline: A Taut Reflection of a Husband And a A Shark who must Redeem a Pastry Chef in A Monastery
+Category: Children
+Title: LOST BIRD
+Release Year: 2019
+Rating: 2.99
+Length: 98 minutes
+Logline: A Emotional Character Study of a Robot And a A Shark who must Defeat a Technical Writer in A Manhattan Penthouse
+Category: Children
+Title: LEGALLY SECRETARY
+Release Year: 2022
+Rating: 4.99
+Length: 113 minutes
+Logline: A Astounding Tale of a A Shark And a Moose who must Meet a Womanizer in The Sahara Desert
+Category: Children
+Title: LORD ARIZONA
+Release Year: 2023
+Rating: 2.99
+Length: 108 minutes
+Logline: A Action-Packed Display of a Frisbee And a Pastry Chef who must Pursue a Crocodile in A Jet Boat
+Category: Children
+Title: MOTHER OLEANDER
+Release Year: 2019
+Rating: 0.99
+Length: 103 minutes
+Logline: A Boring Tale of a Husband And a Boy who must Fight a Squirrel in Ancient China
+Category: Children
+Title: PEARL DESTINY
+Release Year: 2010
+Rating: 2.99
+Length: 74 minutes
+Logline: A Lacklusture Yarn of a Astronaut And a Pastry Chef who must Sink a Dog in A U-Boat
+Category: Children
+Title: POTLUCK MIXED
+Release Year: 2010
+Rating: 2.99
+Length: 179 minutes
+Logline: A Beautiful Story of a Dog And a Technical Writer who must Outgun a Student in A Baloon
+Category: Children
+Title: PURE RUNNER
+Release Year: 2019
+Rating: 2.99
+Length: 121 minutes
+Logline: A Thoughtful Documentary of a Student And a Madman who must Challenge a Squirrel in A Manhattan Penthouse
+Category: Children
+Title: ORIENT CLOSER
+Release Year: 2020
+Rating: 2.99
+Length: 118 minutes
+Logline: A Astounding Epistle of a Technical Writer And a Teacher who must Fight a Squirrel in The Sahara Desert
+Category: Children
+Title: PLATOON INSTINCT
+Release Year: 2022
+Rating: 4.99
+Length: 132 minutes
+Logline: A Thrilling Panorama of a Man And a Woman who must Reach a Woman in Australia
+Category: Children
+Title: PRIDE ALAMO
+Release Year: 2007
+Rating: 0.99
+Length: 114 minutes
+Logline: A Thoughtful Drama of a A Shark And a Forensic Psychologist who must Vanquish a Student in Ancient India
+Category: Children
+Title: SALUTE APOLLO
+Release Year: 2020
+Rating: 2.99
+Length: 73 minutes
+Logline: A Awe-Inspiring Character Study of a Boy And a Feminist who must Sink a Crocodile in Ancient China
+Category: Children
+Title: SENSE GREEK
+Release Year: 2011
+Rating: 4.99
+Length: 54 minutes
+Logline: A Taut Saga of a Lumberjack And a Pastry Chef who must Escape a Sumo Wrestler in An Abandoned Fun House
+Category: Children
+Title: RINGS HEARTBREAKERS
+Release Year: 2014
+Rating: 0.99
+Length: 58 minutes
+Logline: A Amazing Yarn of a Sumo Wrestler And a Boat who must Conquer a Waitress in New Orleans
+Category: Children
+Title: SILVERADO GOLDFINGER
+Release Year: 2013
+Rating: 4.99
+Length: 74 minutes
+Logline: A Stunning Epistle of a Sumo Wrestler And a Man who must Challenge a Waitress in Ancient India
+Category: Children
+Title: SLEEPLESS MONSOON
+Release Year: 2011
+Rating: 4.99
+Length: 64 minutes
+Logline: A Amazing Saga of a Moose And a Pastry Chef who must Escape a Butler in Australia
+Category: Children
+Title: SIEGE MADRE
+Release Year: 2022
+Rating: 0.99
+Length: 111 minutes
+Logline: A Boring Tale of a Frisbee And a Crocodile who must Vanquish a Moose in An Abandoned Mine Shaft
+Category: Children
+Title: SIDE ARK
+Release Year: 2008
+Rating: 0.99
+Length: 52 minutes
+Logline: A Stunning Panorama of a Crocodile And a Womanizer who must Meet a Feminist in The Canadian Rockies
+Category: Children
+Title: TRUMAN CRAZY
+Release Year: 2008
+Rating: 4.99
+Length: 92 minutes
+Logline: A Thrilling Epistle of a Moose And a Boy who must Meet a Database Administrator in A Monastery
+Category: Children
+Title: STRANGER STRANGERS
+Release Year: 2015
+Rating: 4.99
+Length: 139 minutes
+Logline: A Awe-Inspiring Yarn of a Womanizer And a Explorer who must Fight a Woman in The First Manned Space Station
+Category: Children
+Title: SWARM GOLD
+Release Year: 2013
+Rating: 0.99
+Length: 123 minutes
+Logline: A Insightful Panorama of a Crocodile And a Boat who must Conquer a Sumo Wrestler in A MySQL Convention
+Category: Children
+Title: TRADING PINOCCHIO
+Release Year: 2011
+Rating: 4.99
+Length: 170 minutes
+Logline: A Emotional Character Study of a Student And a Explorer who must Discover a Frisbee in The First Manned Space Station
+Category: Children
+Title: SPIKING ELEMENT
+Release Year: 2013
+Rating: 2.99
+Length: 79 minutes
+Logline: A Lacklusture Epistle of a Dentist And a Technical Writer who must Find a Dog in A Monastery
+Category: Children
+Title: TITANS JERK
+Release Year: 2023
+Rating: 4.99
+Length: 91 minutes
+Logline: A Unbelieveable Panorama of a Feminist And a Sumo Wrestler who must Challenge a Technical Writer in Ancient China
+Category: Children
+Title: STAGECOACH ARMAGEDDON
+Release Year: 2006
+Rating: 4.99
+Length: 112 minutes
+Logline: A Touching Display of a Pioneer And a Butler who must Chase a Car in California
+Category: Children
+Title: ALIEN CENTER
+Release Year: 2007
+Rating: 2.99
+Length: 46 minutes
+Logline: A Brilliant Drama of a Cat And a Mad Scientist who must Battle a Feminist in A MySQL Convention
+Category: Children
+Title: VANILLA DAY
+Release Year: 2022
+Rating: 4.99
+Length: 122 minutes
+Logline: A Fast-Paced Saga of a Girl And a Forensic Psychologist who must Redeem a Girl in Nigeria
+Category: Children
+Title: WORST BANGER
+Release Year: 2008
+Rating: 2.99
+Length: 185 minutes
+Logline: A Thrilling Drama of a Madman And a Dentist who must Conquer a Boy in The Outback
+Category: Children
+Title: ANYTHING SAVANNAH
+Release Year: 2007
+Rating: 2.99
+Length: 82 minutes
+Logline: A Epic Story of a Pastry Chef And a Woman who must Chase a Feminist in An Abandoned Fun House
+Category: Children
+Title: BEAR GRACELAND
+Release Year: 2022
+Rating: 2.99
+Length: 160 minutes
+Logline: A Astounding Saga of a Dog And a Boy who must Kill a Teacher in The First Manned Space Station
+Category: Children
+Title: BACKLASH UNDEFEATED
+Release Year: 2012
+Rating: 4.99
+Length: 118 minutes
+Logline: A Stunning Character Study of a Mad Scientist And a Mad Cow who must Kill a Car in A Monastery
+Category: Children
+Title: CANDIDATE PERDITION
+Release Year: 2007
+Rating: 2.99
+Length: 70 minutes
+Logline: A Brilliant Epistle of a Composer And a Database Administrator who must Vanquish a Mad Scientist in The First Manned Space Station
+Category: Children
+Title: CENTER DINOSAUR
+Release Year: 2016
+Rating: 4.99
+Length: 152 minutes
+Logline: A Beautiful Character Study of a Sumo Wrestler And a Dentist who must Find a Dog in California
+Category: Children
+Title: AUTUMN CROW
+Release Year: 2010
+Rating: 4.99
+Length: 108 minutes
+Logline: A Beautiful Tale of a Dentist And a Mad Cow who must Battle a Moose in The Sahara Desert
+Category: Children
+Title: CURTAIN VIDEOTAPE
+Release Year: 2018
+Rating: 0.99
+Length: 133 minutes
+Logline: A Boring Reflection of a Dentist And a Mad Cow who must Chase a Secret Agent in A Shark Tank
+Category: Children
+Title: CHEAPER CLYDE
+Release Year: 2008
+Rating: 0.99
+Length: 87 minutes
+Logline: A Emotional Character Study of a Pioneer And a Girl who must Discover a Dog in Ancient Japan
+Category: Children
+Title: CONEHEADS SMOOCHY
+Release Year: 2021
+Rating: 4.99
+Length: 112 minutes
+Logline: A Touching Story of a Womanizer And a Composer who must Pursue a Husband in Nigeria
+Category: Children
+Title: CLONES PINOCCHIO
+Release Year: 2008
+Rating: 2.99
+Length: 124 minutes
+Logline: A Amazing Drama of a Car And a Robot who must Pursue a Dentist in New Orleans
+Category: Children
+Title: CRANES RESERVOIR
+Release Year: 2021
+Rating: 2.99
+Length: 57 minutes
+Logline: A Fanciful Documentary of a Teacher And a Dog who must Outgun a Forensic Psychologist in A Baloon Factory
+Category: Children
+Title: CLERKS ANGELS
+Release Year: 2009
+Rating: 4.99
+Length: 164 minutes
+Logline: A Thrilling Display of a Sumo Wrestler And a Girl who must Confront a Man in A Baloon
+Category: Children
+Title: FELLOWSHIP AUTUMN
+Release Year: 2011
+Rating: 4.99
+Length: 77 minutes
+Logline: A Lacklusture Reflection of a Dentist And a Hunter who must Meet a Teacher in A Baloon
+Category: Children
+Title: FREAKY POCUS
+Release Year: 2024
+Rating: 2.99
+Length: 126 minutes
+Logline: A Fast-Paced Documentary of a Pastry Chef And a Crocodile who must Chase a Squirrel in The Gulf of Mexico
+Category: Children
+Title: GENTLEMEN STAGE
+Release Year: 2011
+Rating: 2.99
+Length: 125 minutes
+Logline: A Awe-Inspiring Reflection of a Monkey And a Student who must Overcome a Dentist in The First Manned Space Station
+Category: Children
+Title: EXORCIST STING
+Release Year: 2010
+Rating: 2.99
+Length: 167 minutes
+Logline: A Touching Drama of a Dog And a Sumo Wrestler who must Conquer a Mad Scientist in Berlin
+Category: Children
+Title: FROGMEN BREAKING
+Release Year: 2012
+Rating: 0.99
+Length: 111 minutes
+Logline: A Unbelieveable Yarn of a Mad Scientist And a Cat who must Chase a Lumberjack in Australia
+Category: Children
+Title: FUGITIVE MAGUIRE
+Release Year: 2011
+Rating: 4.99
+Length: 83 minutes
+Logline: A Taut Epistle of a Feminist And a Sumo Wrestler who must Battle a Crocodile in Australia
+Category: Children
+Title: GREATEST NORTH
+Release Year: 2014
+Rating: 2.99
+Length: 93 minutes
+Logline: A Astounding Character Study of a Secret Agent And a Robot who must Build a A Shark in Berlin
+Category: Children
+Title: HEARTBREAKERS BRIGHT
+Release Year: 2006
+Rating: 4.99
+Length: 59 minutes
+Logline: A Awe-Inspiring Documentary of a A Shark And a Dentist who must Outrace a Pastry Chef in The Canadian Rockies
+Category: Children
+Title: HUNTING MUSKETEERS
+Release Year: 2008
+Rating: 2.99
+Length: 65 minutes
+Logline: A Thrilling Reflection of a Pioneer And a Dentist who must Outrace a Womanizer in An Abandoned Mine Shaft
+Category: Children
+Title: GLORY TRACY
+Release Year: 2018
+Rating: 2.99
+Length: 115 minutes
+Logline: A Amazing Saga of a Woman And a Womanizer who must Discover a Cat in The First Manned Space Station
+Category: Children
+Title: HARPER DYING
+Release Year: 2007
+Rating: 0.99
+Length: 52 minutes
+Logline: A Awe-Inspiring Reflection of a Woman And a Cat who must Confront a Feminist in The Sahara Desert
+Category: Children
+Title: JUMPING WRATH
+Release Year: 2019
+Rating: 0.99
+Length: 74 minutes
+Logline: A Touching Epistle of a Monkey And a Feminist who must Discover a Boat in Berlin
+Category: Children
+Title: ISLAND EXORCIST
+Release Year: 2008
+Rating: 2.99
+Length: 84 minutes
+Logline: A Fanciful Panorama of a Technical Writer And a Boy who must Find a Dentist in An Abandoned Fun House
+Category: Children
+Title: MALTESE HOPE
+Release Year: 2012
+Rating: 4.99
+Length: 127 minutes
+Logline: A Fast-Paced Documentary of a Crocodile And a Sumo Wrestler who must Conquer a Explorer in California
+Category: Children

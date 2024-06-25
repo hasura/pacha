@@ -1,0 +1,45 @@
+=== INPUT ===
+which of my customers have birthdays this month
+
+=== OUTPUT ===
+
+=== QUERY PLAN ===
+To add context to this conversation, I need to retrieve the customers' birthdates from the database. 
+
+```
+import datetime
+
+current_month = datetime.datetime.now().month
+data = executor.get_from_database("SELECT given_name, surname, email_addr FROM patron WHERE EXTRACT(MONTH FROM birthdate) = %s" % current_month)
+
+if len(data) == 0:
+  executor.output('No customers have birthdays this month')
+else:
+  for customer in data:
+    executor.output(f'Customer {customer["given_name"]} {customer["surname"]} with email {customer["email_addr"]} has a birthday this month')
+```
+=== EXECUTION RESULT ===
+
+Traceback (most recent call last):
+  File "<string>", line 4, in <module>
+  File "/Users/abhg/hasura/ai-engine/pacha/query_planner/query_planner.py", line 40, in get_from_database
+    data = self.data_engine.execute_sql(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abhg/hasura/ai-engine/pacha/data_engine/data_engine.py", line 37, in execute_sql
+    cursor.execute(f"SELECT json_agg(t) FROM ({sql.strip(";")}) AS t")
+psycopg2.errors.UndefinedColumn: column "birthdate" does not exist
+LINE 1: ..., email_addr FROM patron WHERE EXTRACT(MONTH FROM birthdate)...
+                                                             ^
+
+
+=== RETRY ===
+
+=== QUERY PLAN ===
+The error message indicates that the column "birthdate" does not exist in the "patron" table. 
+
+Upon reviewing the database schema, I realize that the "patron" table does not have a "birthdate" column. 
+
+To fix this, I need to know where the birthdate information is stored in the database. Unfortunately, the provided schema does not seem to have a birthdate column in any table. 
+
+If the birthdate information is not available in the database, I cannot retrieve it.
+=== EXECUTION RESULT ===
