@@ -1,0 +1,186 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: TopologyLayer
+  fields:
+    - name: childId
+      type: Int4
+    - name: featureColumn
+      type: Varchar!
+    - name: featureType
+      type: Int4!
+    - name: layerId
+      type: Int4!
+    - name: level
+      type: Int4!
+    - name: schemaName
+      type: Varchar!
+    - name: tableName
+      type: Varchar!
+    - name: topologyId
+      type: Int4!
+  graphql:
+    typeName: Default_TopologyLayer
+    inputTypeName: Default_TopologyLayerInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: pg
+      dataConnectorObjectType: topology_layer
+      fieldMapping:
+        childId:
+          column:
+            name: child_id
+        featureColumn:
+          column:
+            name: feature_column
+        featureType:
+          column:
+            name: feature_type
+        layerId:
+          column:
+            name: layer_id
+        level:
+          column:
+            name: level
+        schemaName:
+          column:
+            name: schema_name
+        tableName:
+          column:
+            name: table_name
+        topologyId:
+          column:
+            name: topology_id
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: TopologyLayer
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - childId
+          - featureColumn
+          - featureType
+          - layerId
+          - level
+          - schemaName
+          - tableName
+          - topologyId
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: TopologyLayerBoolExp
+  objectType: TopologyLayer
+  dataConnectorName: pg
+  dataConnectorObjectType: topology_layer
+  comparableFields:
+    - fieldName: childId
+      operators:
+        enableAll: true
+    - fieldName: featureColumn
+      operators:
+        enableAll: true
+    - fieldName: featureType
+      operators:
+        enableAll: true
+    - fieldName: layerId
+      operators:
+        enableAll: true
+    - fieldName: level
+      operators:
+        enableAll: true
+    - fieldName: schemaName
+      operators:
+        enableAll: true
+    - fieldName: tableName
+      operators:
+        enableAll: true
+    - fieldName: topologyId
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_TopologyLayerBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: TopologyLayer
+  objectType: TopologyLayer
+  source:
+    dataConnectorName: pg
+    collection: topology_layer
+  filterExpressionType: TopologyLayerBoolExp
+  orderableFields:
+    - fieldName: childId
+      orderByDirections:
+        enableAll: true
+    - fieldName: featureColumn
+      orderByDirections:
+        enableAll: true
+    - fieldName: featureType
+      orderByDirections:
+        enableAll: true
+    - fieldName: layerId
+      orderByDirections:
+        enableAll: true
+    - fieldName: level
+      orderByDirections:
+        enableAll: true
+    - fieldName: schemaName
+      orderByDirections:
+        enableAll: true
+    - fieldName: tableName
+      orderByDirections:
+        enableAll: true
+    - fieldName: topologyId
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_topologyLayer
+    selectUniques:
+      - queryRootField: default_topologyLayerByLayerPkey
+        uniqueIdentifier:
+          - layerId
+          - topologyId
+      - queryRootField: default_topologyLayerByLayerSchemaNameTableNameFeatureColumnKey
+        uniqueIdentifier:
+          - featureColumn
+          - schemaName
+          - tableName
+    orderByExpressionType: Default_TopologyLayerOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: TopologyLayer
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: topologyTopology
+  sourceType: TopologyLayer
+  target:
+    model:
+      name: TopologyTopology
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: topologyId
+      target:
+        modelField:
+          - fieldName: id
+

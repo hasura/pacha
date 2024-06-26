@@ -1,0 +1,234 @@
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Text
+  graphql:
+    typeName: Default_Text
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Int4
+  graphql:
+    typeName: Default_Int4
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Timestamptz
+  graphql:
+    typeName: Default_Timestamptz
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: text
+  representation: Text
+  graphql:
+    comparisonExpressionTypeName: Default_TextComparisonExp
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: int4
+  representation: Int4
+  graphql:
+    comparisonExpressionTypeName: Default_Int4ComparisonExp
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: timestamptz
+  representation: Timestamptz
+  graphql:
+    comparisonExpressionTypeName: Default_TimestamptzComparisonExp
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Varchar
+  graphql:
+    typeName: Default_Varchar
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: varchar
+  representation: Varchar
+  graphql:
+    comparisonExpressionTypeName: Default_VarcharComparisonExp
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Int2
+  graphql:
+    typeName: Default_Int2
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Numeric
+  graphql:
+    typeName: Default_Numeric
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: MpaaRating
+  graphql:
+    typeName: Default_MpaaRating
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Year
+  graphql:
+    typeName: Default_Year
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: int2
+  representation: Int2
+  graphql:
+    comparisonExpressionTypeName: Default_Int2ComparisonExp
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: numeric
+  representation: Numeric
+  graphql:
+    comparisonExpressionTypeName: Default_NumericComparisonExp
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: mpaa_rating
+  representation: MpaaRating
+  graphql:
+    comparisonExpressionTypeName: Default_MpaaRatingComparisonExp
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: year
+  representation: Year
+  graphql:
+    comparisonExpressionTypeName: Default_YearComparisonExp
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Vector
+  graphql:
+    typeName: Default_Vector
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: vector
+  representation: Vector
+  graphql:
+    comparisonExpressionTypeName: Default_VectorComparisonExp
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Bool
+  graphql:
+    typeName: Default_Bool
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Date
+  graphql:
+    typeName: Default_Date
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: bool
+  representation: Bool
+  graphql:
+    comparisonExpressionTypeName: Default_BoolComparisonExp
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: date
+  representation: Date
+  graphql:
+    comparisonExpressionTypeName: Default_DateComparisonExp
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Bytea
+  graphql:
+    typeName: Default_Bytea
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: bytea
+  representation: Bytea
+  graphql:
+    comparisonExpressionTypeName: Default_ByteaComparisonExp
+
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Float8
+  graphql:
+    typeName: Default_Float8
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: pg
+  dataConnectorScalarType: float8
+  representation: Float8
+  graphql:
+    comparisonExpressionTypeName: Default_Float8ComparisonExp
+

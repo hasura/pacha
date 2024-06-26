@@ -50,6 +50,9 @@ class PythonToolOutput(ToolOutput):
         if self.error is not None:
             response += self.error
         return response
+    
+    def get_error(self) -> Optional[str]:
+        return self.error
 
 
 @dataclass

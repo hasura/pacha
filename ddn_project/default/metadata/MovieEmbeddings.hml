@@ -1,0 +1,130 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: MovieEmbeddings
+  description: Contains vector embeddings of movies in the "movie" table based
+    their description. Use this table for semantic queries about movies which
+    can be answered based on movie descriptions.
+  fields:
+    - name: embedding
+      type: Vector
+      description: Vector embedding based on movie description or logline. If
+        searching for movies based on this embedding, also select the movie
+        description/logline as context of why the movie was considered
+        similar/relevant.
+    - name: id
+      type: Int4!
+    - name: movieId
+      type: Int4
+  graphql:
+    typeName: Default_MovieEmbeddings
+    inputTypeName: Default_MovieEmbeddingsInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: pg
+      dataConnectorObjectType: movie_embeddings
+      fieldMapping:
+        embedding:
+          column:
+            name: embedding
+        id:
+          column:
+            name: id
+        movieId:
+          column:
+            name: movie_id
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: MovieEmbeddings
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - embedding
+          - id
+          - movieId
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: MovieEmbeddingsBoolExp
+  objectType: MovieEmbeddings
+  dataConnectorName: pg
+  dataConnectorObjectType: movie_embeddings
+  comparableFields:
+    - fieldName: embedding
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: movieId
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_MovieEmbeddingsBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: MovieEmbeddings
+  objectType: MovieEmbeddings
+  source:
+    dataConnectorName: pg
+    collection: movie_embeddings
+  filterExpressionType: MovieEmbeddingsBoolExp
+  orderableFields:
+    - fieldName: embedding
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: movieId
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_movieEmbeddings
+    selectUniques:
+      - queryRootField: default_movieEmbeddingsById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_MovieEmbeddingsOrderBy
+  description: Contains vector embeddings of movies in the "movie" table based
+    their description. Use this table for semantic queries about movies which
+    can be answered based on movie descriptions.
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: MovieEmbeddings
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: movie
+  sourceType: MovieEmbeddings
+  target:
+    model:
+      name: Movie
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: movieId
+      target:
+        modelField:
+          - fieldName: id
+

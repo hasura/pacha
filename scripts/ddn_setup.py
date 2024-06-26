@@ -15,7 +15,6 @@ CONNECTOR_PORT = 8082
 CONNECTOR_DOCKER_COMPOSE_PATH = f'{
     CONNECTOR_PATH}/docker-compose.{CONNECTOR_NAME}.yaml'
 HASURA_DOCKER_COMPOSE_PATH = 'docker-compose.hasura.yaml'
-HASURA_IMAGE = 'ghcr.io/hasura/v3-engine-with-sql-interface:v1' # 'ghcr.io/hasura/v3-engine:8d5ffade9c5a7dfb30cf86df882ffe45c11afa84'
 
 def sh(cmd):
     print()
@@ -30,10 +29,6 @@ def update_hasura_docker_compose():
     # Add include for python
     data.setdefault('include', []).append(
         {'path': CONNECTOR_DOCKER_COMPOSE_PATH})
-
-    dockerfile = data['services']['engine']['build']['dockerfile_inline']
-    dockerfile = dockerfile.replace('ghcr.io/hasura/v3-engine', HASURA_IMAGE)
-    data['services']['engine']['build']['dockerfile_inline'] = dockerfile
 
     with open(HASURA_DOCKER_COMPOSE_PATH, 'w') as file:
         yaml.dump(data, file)

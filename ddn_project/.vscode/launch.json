@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "cwd": "${workspaceFolder}",
+      "name": "DDN Dev",
+      "preLaunchTask": "dev",
+      "program": "${workspaceFolder}",
+      "request": "launch",
+      "type": "node"
+    }
+  ],
+  "version": "0.2.0"
+}

@@ -1,0 +1,2558 @@
+kind: DataConnectorLink
+version: v1
+definition:
+  name: pg
+  url:
+    readWriteUrls:
+      read:
+        valueFromEnv: DEFAULT_PG_READ_URL
+      write:
+        valueFromEnv: DEFAULT_PG_WRITE_URL
+  schema:
+    version: v0.1
+    schema:
+      scalar_types:
+        bool:
+          representation:
+            type: boolean
+          aggregate_functions:
+            bool_and:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: bool
+            bool_or:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: bool
+            every:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: bool
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: bool
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: bool
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: bool
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: bool
+        bytea:
+          aggregate_functions: {}
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: bytea
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: bytea
+            _in:
+              type: in
+            _like:
+              type: custom
+              argument_type:
+                type: named
+                name: bytea
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: bytea
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: bytea
+            _nlike:
+              type: custom
+              argument_type:
+                type: named
+                name: bytea
+        date:
+          representation:
+            type: date
+          aggregate_functions:
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: date
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: date
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: date
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: date
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: date
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: date
+        float8:
+          representation:
+            type: float64
+          aggregate_functions:
+            avg:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            stddev:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            stddev_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            stddev_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            sum:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            var_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            var_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+            variance:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: float8
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: float8
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: float8
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: float8
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: float8
+        int2:
+          representation:
+            type: int16
+          aggregate_functions:
+            avg:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            bit_and:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int2
+            bit_or:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int2
+            bit_xor:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int2
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int2
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int2
+            stddev:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            sum:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int8
+            var_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            var_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            variance:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: int2
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: int2
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: int2
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: int2
+        int4:
+          representation:
+            type: int32
+          aggregate_functions:
+            avg:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            bit_and:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            bit_or:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            bit_xor:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            stddev:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            sum:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int8
+            var_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            var_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            variance:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: int4
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: int4
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: int4
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: int4
+        int8:
+          representation:
+            type: int64
+          aggregate_functions:
+            avg:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            bit_and:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int8
+            bit_or:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int8
+            bit_xor:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int8
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int8
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int8
+            stddev:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            sum:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            var_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            var_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            variance:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: int8
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: int8
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: int8
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: int8
+        mpaa_rating:
+          representation:
+            type: enum
+            one_of:
+              - G
+              - PG
+              - PG-13
+              - R
+              - NC-17
+          aggregate_functions:
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: mpaa_rating
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: mpaa_rating
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: mpaa_rating
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: mpaa_rating
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: mpaa_rating
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: mpaa_rating
+            _neq:
+              type: custom
+              argument_type:
+                type: named
+                name: mpaa_rating
+        numeric:
+          representation:
+            type: bigdecimal
+          aggregate_functions:
+            avg:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            sum:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            var_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            var_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            variance:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: numeric
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: numeric
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: numeric
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: numeric
+        text:
+          representation:
+            type: string
+          aggregate_functions:
+            group_concat:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _ilike:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _in:
+              type: in
+            _iregex:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _like:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _nilike:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _niregex:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _nlike:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _nregex:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            _regex:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            st_coveredby:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            st_covers:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            st_intersects:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            st_relatematch:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            starts_with:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+            ts_match_tt:
+              type: custom
+              argument_type:
+                type: named
+                name: text
+        timestamptz:
+          representation:
+            type: timestamptz
+          aggregate_functions:
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: timestamptz
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: timestamptz
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: timestamptz
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: timestamptz
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: timestamptz
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: timestamptz
+        varchar:
+          representation:
+            type: string
+          aggregate_functions:
+            group_concat:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _ilike:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _in:
+              type: in
+            _iregex:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _like:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _nilike:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _niregex:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _nlike:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _nregex:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            _regex:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            st_coveredby:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            st_covers:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            st_intersects:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            st_relatematch:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            starts_with:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+            ts_match_tt:
+              type: custom
+              argument_type:
+                type: named
+                name: varchar
+        vector:
+          aggregate_functions:
+            avg:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: vector
+            sum:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: vector
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: vector
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: vector
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: vector
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: vector
+        year:
+          representation:
+            type: int32
+          aggregate_functions:
+            avg:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            bit_and:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            bit_or:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            bit_xor:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            max:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            min:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            stddev:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            stddev_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            sum:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int8
+            var_pop:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            var_samp:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            variance:
+              result_type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+          comparison_operators:
+            _eq:
+              type: equal
+            _gt:
+              type: custom
+              argument_type:
+                type: named
+                name: year
+            _gte:
+              type: custom
+              argument_type:
+                type: named
+                name: year
+            _in:
+              type: in
+            _lt:
+              type: custom
+              argument_type:
+                type: named
+                name: year
+            _lte:
+              type: custom
+              argument_type:
+                type: named
+                name: year
+      object_types:
+        castmember:
+          fields:
+            given_name:
+              type:
+                type: named
+                name: text
+            id:
+              type:
+                type: named
+                name: int4
+            surname:
+              type:
+                type: named
+                name: text
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        cat:
+          description: film category
+          fields:
+            id:
+              type:
+                type: named
+                name: int4
+            name:
+              type:
+                type: named
+                name: text
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        catalog:
+          description: inventory of copies
+          fields:
+            film_id:
+              type:
+                type: named
+                name: int4
+            inventory_id:
+              type:
+                type: named
+                name: int4
+            store_id:
+              type:
+                type: named
+                name: int4
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        cm_info:
+          fields:
+            film_info:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            given_name:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            id:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            surname:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+        country:
+          fields:
+            country:
+              description: country name
+              type:
+                type: named
+                name: text
+            id:
+              type:
+                type: named
+                name: int4
+            updated:
+              description: When the row was most recently created/updated
+              type:
+                type: named
+                name: timestamptz
+        franchise_unit:
+          description: All store locations. staff and customers may have a home store
+          fields:
+            address_id:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            manager:
+              type:
+                type: named
+                name: int4
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        lang:
+          description: language, capitalized like 'French', 'English', etc
+          fields:
+            lang:
+              type:
+                type: named
+                name: varchar
+            language_id:
+              type:
+                type: named
+                name: int4
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        loc:
+          description: 'address information (TODO: better model name?)'
+          fields:
+            addr1:
+              type:
+                type: named
+                name: text
+            addr2:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            city_id:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            phone_num:
+              type:
+                type: named
+                name: text
+            state_distr:
+              description: The region of an address; e.g. province, state, prefecture
+              type:
+                type: named
+                name: text
+            updated:
+              type:
+                type: named
+                name: timestamptz
+            zip:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+        movie:
+          description: movies in the catalog, not necessarily in stock
+          fields:
+            due_back_duration:
+              description: length of the rental period (days)
+              type:
+                type: named
+                name: int2
+            id:
+              type:
+                type: named
+                name: int4
+            language_id:
+              type:
+                type: named
+                name: int4
+            language_orig:
+              description: original language of the film, if dubbed
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            length:
+              description: (in minutes)
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int2
+            logline:
+              description: log line / blurb
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            rate:
+              description: cost to rent for a rental duration
+              type:
+                type: named
+                name: numeric
+            rated:
+              description: 'possible values are: ''NC-17'', ''R'', ''PG-13'', ''G'', ''PG'''
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: mpaa_rating
+            release_year:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: year
+            replacement:
+              description: charge to cust if lost/damaged
+              type:
+                type: named
+                name: numeric
+            special_features:
+              description: 'Can be: Trailers, Commentaries, Deleted Scenes, Behind the Scenes.'
+              type:
+                type: nullable
+                underlying_type:
+                  type: array
+                  element_type:
+                    type: named
+                    name: text
+            title:
+              description: stored all caps
+              type:
+                type: named
+                name: text
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        movie_cat:
+          fields:
+            category_id:
+              type:
+                type: named
+                name: int4
+            film_id:
+              type:
+                type: named
+                name: int4
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        movie_cm:
+          fields:
+            film_id:
+              type:
+                type: named
+                name: int4
+            id:
+              description: actor id
+              type:
+                type: named
+                name: int4
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        movie_embeddings:
+          description: Contains vector embeddings of movies in the "movie" table based their description. Use this table for semantic queries about movies which can be answered based on movie descriptions.
+          fields:
+            embedding:
+              description: Vector embedding based on movie description or logline. If searching for movies based on this embedding, also select the movie description/logline as context of why the movie was considered similar/relevant.
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: vector
+            id:
+              type:
+                type: named
+                name: int4
+            movie_id:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+        movie_list:
+          fields:
+            actors:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            category:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            fid:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            length:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int2
+            logline:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            price:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            rating:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: mpaa_rating
+            title:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+        muni:
+          description: city/municipality
+          fields:
+            city:
+              type:
+                type: named
+                name: text
+            country_id:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            updated:
+              type:
+                type: named
+                name: timestamptz
+        nicer_but_slower_film_list:
+          fields:
+            actors:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            category:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            fid:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            length:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int2
+            logline:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            price:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+            rating:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: mpaa_rating
+            title:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+        patron:
+          description: all customers
+          fields:
+            active:
+              description: false is equivalent to deleting a customer
+              type:
+                type: named
+                name: bool
+            address_id:
+              type:
+                type: named
+                name: int4
+            create_date:
+              type:
+                type: named
+                name: date
+            email_addr:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            given_name:
+              type:
+                type: named
+                name: text
+            id:
+              type:
+                type: named
+                name: int4
+            store_id:
+              type:
+                type: named
+                name: int4
+            surname:
+              type:
+                type: named
+                name: text
+            updated:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: timestamptz
+        patron_list:
+          fields:
+            address:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            city:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            country:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            id:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            name:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            notes:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            phone:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            sid:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            zip code:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+        paymant:
+          description: Each payment made by a customer
+          fields:
+            amount:
+              type:
+                type: named
+                name: numeric
+            customer_id:
+              type:
+                type: named
+                name: int4
+            handled_by:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            payment_date:
+              description: a postgres 'timestamptz'
+              type:
+                type: named
+                name: timestamptz
+            rental_id:
+              description: optional if e.g. for an outstanding fee
+              type:
+                type: named
+                name: int4
+        payment_p2022_01:
+          fields:
+            amount:
+              type:
+                type: named
+                name: numeric
+            customer_id:
+              type:
+                type: named
+                name: int4
+            handled_by:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            payment_date:
+              type:
+                type: named
+                name: timestamptz
+            rental_id:
+              type:
+                type: named
+                name: int4
+        payment_p2022_02:
+          fields:
+            amount:
+              type:
+                type: named
+                name: numeric
+            customer_id:
+              type:
+                type: named
+                name: int4
+            handled_by:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            payment_date:
+              type:
+                type: named
+                name: timestamptz
+            rental_id:
+              type:
+                type: named
+                name: int4
+        payment_p2022_03:
+          fields:
+            amount:
+              type:
+                type: named
+                name: numeric
+            customer_id:
+              type:
+                type: named
+                name: int4
+            handled_by:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            payment_date:
+              type:
+                type: named
+                name: timestamptz
+            rental_id:
+              type:
+                type: named
+                name: int4
+        payment_p2022_04:
+          fields:
+            amount:
+              type:
+                type: named
+                name: numeric
+            customer_id:
+              type:
+                type: named
+                name: int4
+            handled_by:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            payment_date:
+              type:
+                type: named
+                name: timestamptz
+            rental_id:
+              type:
+                type: named
+                name: int4
+        payment_p2022_05:
+          fields:
+            amount:
+              type:
+                type: named
+                name: numeric
+            customer_id:
+              type:
+                type: named
+                name: int4
+            handled_by:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            payment_date:
+              type:
+                type: named
+                name: timestamptz
+            rental_id:
+              type:
+                type: named
+                name: int4
+        payment_p2022_06:
+          fields:
+            amount:
+              type:
+                type: named
+                name: numeric
+            customer_id:
+              type:
+                type: named
+                name: int4
+            handled_by:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            payment_date:
+              type:
+                type: named
+                name: timestamptz
+            rental_id:
+              type:
+                type: named
+                name: int4
+        payment_p2022_07:
+          fields:
+            amount:
+              type:
+                type: named
+                name: numeric
+            customer_id:
+              type:
+                type: named
+                name: int4
+            handled_by:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            payment_date:
+              type:
+                type: named
+                name: timestamptz
+            rental_id:
+              type:
+                type: named
+                name: int4
+        rental_by_category:
+          fields:
+            category:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            total_sales:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+        sales_by_cat:
+          fields:
+            category:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            total_sales:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+        sales_by_store:
+          fields:
+            manager:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            store:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            total_sales:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: numeric
+        spatial_ref_sys:
+          fields:
+            auth_name:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: varchar
+            auth_srid:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            proj4text:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: varchar
+            srid:
+              type:
+                type: named
+                name: int4
+            srtext:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: varchar
+        team:
+          description: staff members
+          fields:
+            active:
+              type:
+                type: named
+                name: bool
+            address_id:
+              type:
+                type: named
+                name: int4
+            email:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            first_name:
+              type:
+                type: named
+                name: text
+            id:
+              type:
+                type: named
+                name: int4
+            last_name:
+              type:
+                type: named
+                name: text
+            pass_md5_no_salt:
+              description: password, stored with MD5()
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            picture:
+              description: jpg
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: bytea
+            store_id:
+              type:
+                type: named
+                name: int4
+            updated:
+              type:
+                type: named
+                name: timestamptz
+            username:
+              type:
+                type: named
+                name: text
+        team_list:
+          fields:
+            address:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            city:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            country:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            id:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            name:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            phone:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+            sid:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            zip code:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: text
+        topology_layer:
+          fields:
+            child_id:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: int4
+            feature_column:
+              type:
+                type: named
+                name: varchar
+            feature_type:
+              type:
+                type: named
+                name: int4
+            layer_id:
+              type:
+                type: named
+                name: int4
+            level:
+              type:
+                type: named
+                name: int4
+            schema_name:
+              type:
+                type: named
+                name: varchar
+            table_name:
+              type:
+                type: named
+                name: varchar
+            topology_id:
+              type:
+                type: named
+                name: int4
+        topology_topology:
+          fields:
+            hasz:
+              type:
+                type: named
+                name: bool
+            id:
+              type:
+                type: named
+                name: int4
+            name:
+              type:
+                type: named
+                name: varchar
+            precision:
+              type:
+                type: named
+                name: float8
+            srid:
+              type:
+                type: named
+                name: int4
+        trans:
+          description: 'a customer transaction (B.M.S.: these are now only rentals. this table name should probably change)'
+          fields:
+            customer_id:
+              type:
+                type: named
+                name: int4
+            id:
+              type:
+                type: named
+                name: int4
+            inventory_id:
+              type:
+                type: named
+                name: int4
+            rental_date:
+              type:
+                type: named
+                name: timestamptz
+            return_date:
+              type:
+                type: nullable
+                underlying_type:
+                  type: named
+                  name: timestamptz
+            staff_id:
+              type:
+                type: named
+                name: int4
+            updated:
+              type:
+                type: named
+                name: timestamptz
+      collections:
+        - name: castmember
+          arguments: {}
+          type: castmember
+          uniqueness_constraints:
+            actor_pkey:
+              unique_columns:
+                - id
+          foreign_keys: {}
+        - name: cat
+          description: film category
+          arguments: {}
+          type: cat
+          uniqueness_constraints:
+            category_pkey:
+              unique_columns:
+                - id
+          foreign_keys: {}
+        - name: catalog
+          description: inventory of copies
+          arguments: {}
+          type: catalog
+          uniqueness_constraints:
+            inventory_pkey:
+              unique_columns:
+                - inventory_id
+          foreign_keys:
+            inventory_film_id_fkey:
+              column_mapping:
+                film_id: id
+              foreign_collection: movie
+            inventory_store_id_fkey:
+              column_mapping:
+                store_id: id
+              foreign_collection: franchise_unit
+        - name: cm_info
+          arguments: {}
+          type: cm_info
+          uniqueness_constraints: {}
+          foreign_keys: {}
+        - name: country
+          arguments: {}
+          type: country
+          uniqueness_constraints:
+            country_pkey:
+              unique_columns:
+                - id
+          foreign_keys: {}
+        - name: franchise_unit
+          description: All store locations. staff and customers may have a home store
+          arguments: {}
+          type: franchise_unit
+          uniqueness_constraints:
+            store_pkey:
+              unique_columns:
+                - id
+          foreign_keys:
+            store_address_id_fkey:
+              column_mapping:
+                address_id: id
+              foreign_collection: loc
+        - name: lang
+          description: language, capitalized like 'French', 'English', etc
+          arguments: {}
+          type: lang
+          uniqueness_constraints:
+            language_pkey:
+              unique_columns:
+                - language_id
+          foreign_keys: {}
+        - name: loc
+          description: 'address information (TODO: better model name?)'
+          arguments: {}
+          type: loc
+          uniqueness_constraints:
+            address_pkey:
+              unique_columns:
+                - id
+          foreign_keys:
+            address_city_id_fkey:
+              column_mapping:
+                city_id: id
+              foreign_collection: muni
+        - name: movie
+          description: movies in the catalog, not necessarily in stock
+          arguments: {}
+          type: movie
+          uniqueness_constraints:
+            film_pkey:
+              unique_columns:
+                - id
+          foreign_keys:
+            film_language_id_fkey:
+              column_mapping:
+                language_id: language_id
+              foreign_collection: lang
+            film_original_language_id_fkey:
+              column_mapping:
+                language_orig: language_id
+              foreign_collection: lang
+        - name: movie_cat
+          arguments: {}
+          type: movie_cat
+          uniqueness_constraints:
+            film_category_pkey:
+              unique_columns:
+                - category_id
+                - film_id
+          foreign_keys:
+            film_category_category_id_fkey:
+              column_mapping:
+                category_id: id
+              foreign_collection: cat
+            film_category_film_id_fkey:
+              column_mapping:
+                film_id: id
+              foreign_collection: movie
+        - name: movie_cm
+          arguments: {}
+          type: movie_cm
+          uniqueness_constraints:
+            film_actor_pkey:
+              unique_columns:
+                - film_id
+                - id
+          foreign_keys:
+            film_actor_actor_id_fkey:
+              column_mapping:
+                id: id
+              foreign_collection: castmember
+            film_actor_film_id_fkey:
+              column_mapping:
+                film_id: id
+              foreign_collection: movie
+        - name: movie_embeddings
+          description: Contains vector embeddings of movies in the "movie" table based their description. Use this table for semantic queries about movies which can be answered based on movie descriptions.
+          arguments: {}
+          type: movie_embeddings
+          uniqueness_constraints:
+            movie_embeddings_pkey:
+              unique_columns:
+                - id
+          foreign_keys:
+            movie_embeddings_movie_id_fkey:
+              column_mapping:
+                movie_id: id
+              foreign_collection: movie
+        - name: movie_list
+          arguments: {}
+          type: movie_list
+          uniqueness_constraints: {}
+          foreign_keys: {}
+        - name: muni
+          description: city/municipality
+          arguments: {}
+          type: muni
+          uniqueness_constraints:
+            city_pkey:
+              unique_columns:
+                - id
+          foreign_keys:
+            city_country_id_fkey:
+              column_mapping:
+                country_id: id
+              foreign_collection: country
+        - name: nicer_but_slower_film_list
+          arguments: {}
+          type: nicer_but_slower_film_list
+          uniqueness_constraints: {}
+          foreign_keys: {}
+        - name: patron
+          description: all customers
+          arguments: {}
+          type: patron
+          uniqueness_constraints:
+            customer_pkey:
+              unique_columns:
+                - id
+          foreign_keys:
+            customer_address_id_fkey:
+              column_mapping:
+                address_id: id
+              foreign_collection: loc
+            customer_store_id_fkey:
+              column_mapping:
+                store_id: id
+              foreign_collection: franchise_unit
+        - name: patron_list
+          arguments: {}
+          type: patron_list
+          uniqueness_constraints: {}
+          foreign_keys: {}
+        - name: paymant
+          description: Each payment made by a customer
+          arguments: {}
+          type: paymant
+          uniqueness_constraints:
+            payment_pkey:
+              unique_columns:
+                - id
+                - payment_date
+          foreign_keys: {}
+        - name: payment_p2022_01
+          arguments: {}
+          type: payment_p2022_01
+          uniqueness_constraints:
+            payment_p2022_01_pkey:
+              unique_columns:
+                - id
+                - payment_date
+          foreign_keys:
+            payment_p2022_01_customer_id_fkey:
+              column_mapping:
+                customer_id: id
+              foreign_collection: patron
+            payment_p2022_01_rental_id_fkey:
+              column_mapping:
+                rental_id: id
+              foreign_collection: trans
+            payment_p2022_01_staff_id_fkey:
+              column_mapping:
+                handled_by: id
+              foreign_collection: team
+        - name: payment_p2022_02
+          arguments: {}
+          type: payment_p2022_02
+          uniqueness_constraints:
+            payment_p2022_02_pkey:
+              unique_columns:
+                - id
+                - payment_date
+          foreign_keys:
+            payment_p2022_02_customer_id_fkey:
+              column_mapping:
+                customer_id: id
+              foreign_collection: patron
+            payment_p2022_02_rental_id_fkey:
+              column_mapping:
+                rental_id: id
+              foreign_collection: trans
+            payment_p2022_02_staff_id_fkey:
+              column_mapping:
+                handled_by: id
+              foreign_collection: team
+        - name: payment_p2022_03
+          arguments: {}
+          type: payment_p2022_03
+          uniqueness_constraints:
+            payment_p2022_03_pkey:
+              unique_columns:
+                - id
+                - payment_date
+          foreign_keys:
+            payment_p2022_03_customer_id_fkey:
+              column_mapping:
+                customer_id: id
+              foreign_collection: patron
+            payment_p2022_03_rental_id_fkey:
+              column_mapping:
+                rental_id: id
+              foreign_collection: trans
+            payment_p2022_03_staff_id_fkey:
+              column_mapping:
+                handled_by: id
+              foreign_collection: team
+        - name: payment_p2022_04
+          arguments: {}
+          type: payment_p2022_04
+          uniqueness_constraints:
+            payment_p2022_04_pkey:
+              unique_columns:
+                - id
+                - payment_date
+          foreign_keys:
+            payment_p2022_04_customer_id_fkey:
+              column_mapping:
+                customer_id: id
+              foreign_collection: patron
+            payment_p2022_04_rental_id_fkey:
+              column_mapping:
+                rental_id: id
+              foreign_collection: trans
+            payment_p2022_04_staff_id_fkey:
+              column_mapping:
+                handled_by: id
+              foreign_collection: team
+        - name: payment_p2022_05
+          arguments: {}
+          type: payment_p2022_05
+          uniqueness_constraints:
+            payment_p2022_05_pkey:
+              unique_columns:
+                - id
+                - payment_date
+          foreign_keys:
+            payment_p2022_05_customer_id_fkey:
+              column_mapping:
+                customer_id: id
+              foreign_collection: patron
+            payment_p2022_05_rental_id_fkey:
+              column_mapping:
+                rental_id: id
+              foreign_collection: trans
+            payment_p2022_05_staff_id_fkey:
+              column_mapping:
+                handled_by: id
+              foreign_collection: team
+        - name: payment_p2022_06
+          arguments: {}
+          type: payment_p2022_06
+          uniqueness_constraints:
+            payment_p2022_06_pkey:
+              unique_columns:
+                - id
+                - payment_date
+          foreign_keys:
+            payment_p2022_06_customer_id_fkey:
+              column_mapping:
+                customer_id: id
+              foreign_collection: patron
+            payment_p2022_06_rental_id_fkey:
+              column_mapping:
+                rental_id: id
+              foreign_collection: trans
+            payment_p2022_06_staff_id_fkey:
+              column_mapping:
+                handled_by: id
+              foreign_collection: team
+        - name: payment_p2022_07
+          arguments: {}
+          type: payment_p2022_07
+          uniqueness_constraints:
+            payment_p2022_07_pkey:
+              unique_columns:
+                - id
+                - payment_date
+          foreign_keys: {}
+        - name: rental_by_category
+          arguments: {}
+          type: rental_by_category
+          uniqueness_constraints: {}
+          foreign_keys: {}
+        - name: sales_by_cat
+          arguments: {}
+          type: sales_by_cat
+          uniqueness_constraints: {}
+          foreign_keys: {}
+        - name: sales_by_store
+          arguments: {}
+          type: sales_by_store
+          uniqueness_constraints: {}
+          foreign_keys: {}
+        - name: spatial_ref_sys
+          arguments: {}
+          type: spatial_ref_sys
+          uniqueness_constraints:
+            spatial_ref_sys_pkey:
+              unique_columns:
+                - srid
+          foreign_keys: {}
+        - name: team
+          description: staff members
+          arguments: {}
+          type: team
+          uniqueness_constraints:
+            staff_pkey:
+              unique_columns:
+                - id
+          foreign_keys:
+            staff_address_id_fkey:
+              column_mapping:
+                address_id: id
+              foreign_collection: loc
+            staff_store_id_fkey:
+              column_mapping:
+                store_id: id
+              foreign_collection: franchise_unit
+        - name: team_list
+          arguments: {}
+          type: team_list
+          uniqueness_constraints: {}
+          foreign_keys: {}
+        - name: topology_layer
+          arguments: {}
+          type: topology_layer
+          uniqueness_constraints:
+            layer_pkey:
+              unique_columns:
+                - layer_id
+                - topology_id
+            layer_schema_name_table_name_feature_column_key:
+              unique_columns:
+                - feature_column
+                - schema_name
+                - table_name
+          foreign_keys:
+            layer_topology_id_fkey:
+              column_mapping:
+                topology_id: id
+              foreign_collection: topology_topology
+        - name: topology_topology
+          arguments: {}
+          type: topology_topology
+          uniqueness_constraints:
+            topology_name_key:
+              unique_columns:
+                - name
+            topology_pkey:
+              unique_columns:
+                - id
+          foreign_keys: {}
+        - name: trans
+          description: 'a customer transaction (B.M.S.: these are now only rentals. this table name should probably change)'
+          arguments: {}
+          type: trans
+          uniqueness_constraints:
+            rental_pkey:
+              unique_columns:
+                - id
+          foreign_keys:
+            rental_customer_id_fkey:
+              column_mapping:
+                customer_id: id
+              foreign_collection: patron
+            rental_inventory_id_fkey:
+              column_mapping:
+                inventory_id: inventory_id
+              foreign_collection: catalog
+            rental_staff_id_fkey:
+              column_mapping:
+                staff_id: id
+              foreign_collection: team
+      functions: []
+      procedures: []
+    capabilities:
+      version: 0.1.4
+      capabilities:
+        query:
+          aggregates: {}
+          variables: {}
+          explain: {}
+        mutation:
+          transactional: {}
+          explain: {}
+        relationships:
+          relation_comparisons: {}
+          order_by_aggregate: {}

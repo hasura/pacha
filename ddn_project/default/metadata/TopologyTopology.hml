@@ -1,0 +1,131 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: TopologyTopology
+  fields:
+    - name: hasz
+      type: Bool!
+    - name: id
+      type: Int4!
+    - name: name
+      type: Varchar!
+    - name: precision
+      type: Float8!
+    - name: srid
+      type: Int4!
+  graphql:
+    typeName: Default_TopologyTopology
+    inputTypeName: Default_TopologyTopologyInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: pg
+      dataConnectorObjectType: topology_topology
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: TopologyTopology
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - hasz
+          - id
+          - name
+          - precision
+          - srid
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: TopologyTopologyBoolExp
+  objectType: TopologyTopology
+  dataConnectorName: pg
+  dataConnectorObjectType: topology_topology
+  comparableFields:
+    - fieldName: hasz
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: name
+      operators:
+        enableAll: true
+    - fieldName: precision
+      operators:
+        enableAll: true
+    - fieldName: srid
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_TopologyTopologyBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: TopologyTopology
+  objectType: TopologyTopology
+  source:
+    dataConnectorName: pg
+    collection: topology_topology
+  filterExpressionType: TopologyTopologyBoolExp
+  orderableFields:
+    - fieldName: hasz
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: name
+      orderByDirections:
+        enableAll: true
+    - fieldName: precision
+      orderByDirections:
+        enableAll: true
+    - fieldName: srid
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_topologyTopology
+    selectUniques:
+      - queryRootField: default_topologyTopologyByName
+        uniqueIdentifier:
+          - name
+      - queryRootField: default_topologyTopologyById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_TopologyTopologyOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: TopologyTopology
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: topologyLayers
+  sourceType: TopologyTopology
+  target:
+    model:
+      name: TopologyLayer
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: topologyId
+

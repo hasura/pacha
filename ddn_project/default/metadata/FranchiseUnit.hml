@@ -1,0 +1,188 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: FranchiseUnit
+  description: All store locations. staff and customers may have a home store
+  fields:
+    - name: addressId
+      type: Int4!
+    - name: id
+      type: Int4!
+    - name: manager
+      type: Int4!
+    - name: updated
+      type: Timestamptz!
+  graphql:
+    typeName: Default_FranchiseUnit
+    inputTypeName: Default_FranchiseUnitInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: pg
+      dataConnectorObjectType: franchise_unit
+      fieldMapping:
+        addressId:
+          column:
+            name: address_id
+        id:
+          column:
+            name: id
+        manager:
+          column:
+            name: manager
+        updated:
+          column:
+            name: updated
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: FranchiseUnit
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - addressId
+          - id
+          - manager
+          - updated
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: FranchiseUnitBoolExp
+  objectType: FranchiseUnit
+  dataConnectorName: pg
+  dataConnectorObjectType: franchise_unit
+  comparableFields:
+    - fieldName: addressId
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: manager
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_FranchiseUnitBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: FranchiseUnit
+  objectType: FranchiseUnit
+  source:
+    dataConnectorName: pg
+    collection: franchise_unit
+  filterExpressionType: FranchiseUnitBoolExp
+  orderableFields:
+    - fieldName: addressId
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: manager
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_franchiseUnit
+    selectUniques:
+      - queryRootField: default_franchiseUnitById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_FranchiseUnitOrderBy
+  description: All store locations. staff and customers may have a home store
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: FranchiseUnit
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: catalogs
+  sourceType: FranchiseUnit
+  target:
+    model:
+      name: Catalog
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: storeId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: loc
+  sourceType: FranchiseUnit
+  target:
+    model:
+      name: Loc
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: addressId
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: patrons
+  sourceType: FranchiseUnit
+  target:
+    model:
+      name: Patron
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: storeId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: teams
+  sourceType: FranchiseUnit
+  target:
+    model:
+      name: Team
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: storeId
+

@@ -1,0 +1,341 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Movie
+  description: movies in the catalog, not necessarily in stock
+  fields:
+    - name: dueBackDuration
+      type: Int2!
+      description: length of the rental period (days)
+    - name: id
+      type: Int4!
+    - name: languageId
+      type: Int4!
+    - name: languageOrig
+      type: Int4
+      description: original language of the film, if dubbed
+    - name: length
+      type: Int2
+      description: (in minutes)
+    - name: logline
+      type: Text
+      description: log line / blurb
+    - name: rate
+      type: Numeric!
+      description: cost to rent for a rental duration
+    - name: rated
+      type: MpaaRating
+      description: "possible values are: 'NC-17', 'R', 'PG-13', 'G', 'PG'"
+    - name: releaseYear
+      type: Year
+    - name: replacement
+      type: Numeric!
+      description: charge to cust if lost/damaged
+    - name: specialFeatures
+      type: "[Text!]"
+      description: "Can be: Trailers, Commentaries, Deleted Scenes, Behind the Scenes."
+    - name: title
+      type: Text!
+      description: stored all caps
+    - name: updated
+      type: Timestamptz!
+  graphql:
+    typeName: Default_Movie
+    inputTypeName: Default_MovieInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: pg
+      dataConnectorObjectType: movie
+      fieldMapping:
+        dueBackDuration:
+          column:
+            name: due_back_duration
+        id:
+          column:
+            name: id
+        languageId:
+          column:
+            name: language_id
+        languageOrig:
+          column:
+            name: language_orig
+        length:
+          column:
+            name: length
+        logline:
+          column:
+            name: logline
+        rate:
+          column:
+            name: rate
+        rated:
+          column:
+            name: rated
+        releaseYear:
+          column:
+            name: release_year
+        replacement:
+          column:
+            name: replacement
+        specialFeatures:
+          column:
+            name: special_features
+        title:
+          column:
+            name: title
+        updated:
+          column:
+            name: updated
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Movie
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - dueBackDuration
+          - id
+          - languageId
+          - languageOrig
+          - length
+          - logline
+          - rate
+          - rated
+          - releaseYear
+          - replacement
+          - specialFeatures
+          - title
+          - updated
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: MovieBoolExp
+  objectType: Movie
+  dataConnectorName: pg
+  dataConnectorObjectType: movie
+  comparableFields:
+    - fieldName: dueBackDuration
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: languageId
+      operators:
+        enableAll: true
+    - fieldName: languageOrig
+      operators:
+        enableAll: true
+    - fieldName: length
+      operators:
+        enableAll: true
+    - fieldName: logline
+      operators:
+        enableAll: true
+    - fieldName: rate
+      operators:
+        enableAll: true
+    - fieldName: rated
+      operators:
+        enableAll: true
+    - fieldName: releaseYear
+      operators:
+        enableAll: true
+    - fieldName: replacement
+      operators:
+        enableAll: true
+    - fieldName: specialFeatures
+      operators:
+        enableAll: true
+    - fieldName: title
+      operators:
+        enableAll: true
+    - fieldName: updated
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_MovieBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Movie
+  objectType: Movie
+  source:
+    dataConnectorName: pg
+    collection: movie
+  filterExpressionType: MovieBoolExp
+  orderableFields:
+    - fieldName: dueBackDuration
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: languageId
+      orderByDirections:
+        enableAll: true
+    - fieldName: languageOrig
+      orderByDirections:
+        enableAll: true
+    - fieldName: length
+      orderByDirections:
+        enableAll: true
+    - fieldName: logline
+      orderByDirections:
+        enableAll: true
+    - fieldName: rate
+      orderByDirections:
+        enableAll: true
+    - fieldName: rated
+      orderByDirections:
+        enableAll: true
+    - fieldName: releaseYear
+      orderByDirections:
+        enableAll: true
+    - fieldName: replacement
+      orderByDirections:
+        enableAll: true
+    - fieldName: specialFeatures
+      orderByDirections:
+        enableAll: true
+    - fieldName: title
+      orderByDirections:
+        enableAll: true
+    - fieldName: updated
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_movie
+    selectUniques:
+      - queryRootField: default_movieById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: Default_MovieOrderBy
+  description: movies in the catalog, not necessarily in stock
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Movie
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: catalogs
+  sourceType: Movie
+  target:
+    model:
+      name: Catalog
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: filmId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: lang
+  sourceType: Movie
+  target:
+    model:
+      name: Lang
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: languageId
+      target:
+        modelField:
+          - fieldName: languageId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: langByLanguageOrig
+  sourceType: Movie
+  target:
+    model:
+      name: Lang
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: languageOrig
+      target:
+        modelField:
+          - fieldName: languageId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: movieCats
+  sourceType: Movie
+  target:
+    model:
+      name: MovieCat
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: filmId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: movieCms
+  sourceType: Movie
+  target:
+    model:
+      name: MovieCm
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: filmId
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: movieEmbeddings
+  sourceType: Movie
+  target:
+    model:
+      name: MovieEmbeddings
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: movieId
+

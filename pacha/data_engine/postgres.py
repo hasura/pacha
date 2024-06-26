@@ -98,7 +98,7 @@ def create_catalog_from_introspection(introspection) -> Catalog:
 @dataclass
 class PostgresDataEngine(DataEngine):
     connection_string: str
-    enable_semantic_search: bool = True
+    enable_semantic_search: bool = False
     included_schemas: list[str] = field(default_factory=lambda: ["public"])
 
     def get_catalog(self) -> Catalog:

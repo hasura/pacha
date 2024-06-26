@@ -1,0 +1,35 @@
+exporters:
+  otlp:
+    endpoint: https://gateway.otlp.hasura.io:443
+    headers:
+      Authorization: pat ${env:HASURA_DDN_PAT}
+processors:
+  batch: {}
+receivers:
+  otlp:
+    protocols:
+      grpc: {}
+      http: {}
+service:
+  pipelines:
+    logs:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp
+    metrics:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp
+    traces:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp

@@ -6,6 +6,8 @@ class ToolOutput(abc.ABC):
     def get_response(self) -> str:
         ...
 
+    def get_error(self) -> str:
+        ...
 
 class Tool(abc.ABC):
     def execute(self, input) -> ToolOutput:

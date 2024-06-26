@@ -14,10 +14,7 @@ You would use Pacha with your favourite LLMs to generate grounded responses in y
 ### Prerequisites
 
 - Atleast Python version 3.12
-- Access to Llama. There are three options
-  - A [Together](api.together.xyz) API key. This is what the rest of the README assumes.
-  - A Replicate API key. The LLM class in use in the example will need to be changed to Replicate instead of Together.
-  - An Ollama instance. Again, the LLM class in use in the example will need to be changed to Ollama instead of Together
+- Access to OpenAI or Anthropic.
 - A postgres database you want to try Pacha out on.
 
 ### Install Python Dependencies
@@ -42,15 +39,20 @@ docker compose -f ddn_project/docker-compose.hasura.yaml up -d
 
 ### Running Pacha
 
-`examples/chat_with_tool.py` is a CLI chat interface that uses Pacha with OpenAI.
+`examples/chat_with_tool.py` is a CLI chat interface that uses Pacha with Anthropic.
 
 ```bash
-OPENAI_API_KEY=<api-key> TOGETHER_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u <DDN SQL URL> -H <header to pass to DDN> 
+ANTHROPIC_API_KEY=<api-key> poetry run chat_with_anthropic -d ddn -u <DDN SQL URL> -H <header to pass to DDN> 
 ```
 
 Example:
 ```bash
-OPENAI_API_KEY=<api-key> TOGETHER_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u http://localhost:3000/v1/sql -H 'x-hasura-role: admin'
+ANTHROPIC_API_KEY=<api-key> poetry run chat_with_anthropic -d ddn -u http://localhost:3000/v1/sql -H 'x-hasura-role: admin'
+```
+
+You can also run Pacha with OpenAI:
+```bash
+OPENAI_API_KEY=<api-key> poetry run chat_with_openai -d ddn -u <DDN SQL URL> -H <header to pass to DDN>
 ```
 
 ## Customizing
@@ -63,6 +65,4 @@ You can see example Postgres implementation of DataEngine is in `pacha/data_engi
 
 ### Running against a custom LLM
 
-You can customize which LLM to use, both for query planning, and user-facing respones by implementing the `Llm` class in `pacha/utils/llm`.
-
-You can see example implementations of various Llama platforms and OpenAI in `pacha/utils/llm/llama` and `pacha/utils/llm/openai.py` respectively.
+You can run Pacha against any LLM that supports function/tool calling. You can see the examples in `examples/chat_with_tool_anthropic.py` and `examples/chat_with_tool_openai.py`.

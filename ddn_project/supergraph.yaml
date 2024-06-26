@@ -1,0 +1,18 @@
+kind: Supergraph
+version: v1
+definition:
+  supergraph_globals:
+    generator:
+      rootPath: ./supergraph_globals
+    envFile: ./supergraph_globals/.env.supergraph_globals
+    includePaths:
+      - ./supergraph_globals/auth-config.hml
+      - ./supergraph_globals/compatibility-config.hml
+      - ./supergraph_globals/graphql-config.hml
+  subgraphs:
+    default:
+      generator:
+        rootPath: default
+      envFile: default/.env.default
+      includePaths:
+        - default/metadata

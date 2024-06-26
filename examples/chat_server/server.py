@@ -7,10 +7,12 @@ from pacha.data_engine.data_engine import SqlOutput
 from pacha.query_planner import QueryPlanner
 from pacha.sdk.chat import PachaChat, PachaChatResponse
 import argparse
+from flask_cors import CORS
 
 from pacha.utils.llm.llama.together import LlamaOnTogether
 
 app = Flask(__name__)
+CORS(app)
 
 
 class DataFetch(TypedDict):

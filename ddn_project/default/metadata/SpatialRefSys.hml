@@ -1,0 +1,126 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: SpatialRefSys
+  fields:
+    - name: authName
+      type: Varchar
+    - name: authSrid
+      type: Int4
+    - name: proj4Text
+      type: Varchar
+    - name: srid
+      type: Int4!
+    - name: srtext
+      type: Varchar
+  graphql:
+    typeName: Default_SpatialRefSys
+    inputTypeName: Default_SpatialRefSysInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: pg
+      dataConnectorObjectType: spatial_ref_sys
+      fieldMapping:
+        authName:
+          column:
+            name: auth_name
+        authSrid:
+          column:
+            name: auth_srid
+        proj4Text:
+          column:
+            name: proj4text
+        srid:
+          column:
+            name: srid
+        srtext:
+          column:
+            name: srtext
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: SpatialRefSys
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - authName
+          - authSrid
+          - proj4Text
+          - srid
+          - srtext
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: SpatialRefSysBoolExp
+  objectType: SpatialRefSys
+  dataConnectorName: pg
+  dataConnectorObjectType: spatial_ref_sys
+  comparableFields:
+    - fieldName: authName
+      operators:
+        enableAll: true
+    - fieldName: authSrid
+      operators:
+        enableAll: true
+    - fieldName: proj4Text
+      operators:
+        enableAll: true
+    - fieldName: srid
+      operators:
+        enableAll: true
+    - fieldName: srtext
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Default_SpatialRefSysBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: SpatialRefSys
+  objectType: SpatialRefSys
+  source:
+    dataConnectorName: pg
+    collection: spatial_ref_sys
+  filterExpressionType: SpatialRefSysBoolExp
+  orderableFields:
+    - fieldName: authName
+      orderByDirections:
+        enableAll: true
+    - fieldName: authSrid
+      orderByDirections:
+        enableAll: true
+    - fieldName: proj4Text
+      orderByDirections:
+        enableAll: true
+    - fieldName: srid
+      orderByDirections:
+        enableAll: true
+    - fieldName: srtext
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: default_spatialRefSys
+    selectUniques:
+      - queryRootField: default_spatialRefSysBySrid
+        uniqueIdentifier:
+          - srid
+    orderByExpressionType: Default_SpatialRefSysOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: SpatialRefSys
+  permissions:
+    - role: admin
+      select:
+        filter: null
+
