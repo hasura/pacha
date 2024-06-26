@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "pacha"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+replicate = "^0.26.0"
+psycopg2 = "^2.9.9"
+openai = "^1.33.0"
+together = "^1.2.1"
+ollama = "^0.2.1"
+flask = "^3.0.3"
+pyyaml = "^6.0.1"
+
+[tool.poetry.scripts]
+chat = "examples.chat:main"
+chat_with_tool = "examples.chat_with_tool:main"
+eval = "eval.run_eval:main"
+chat_server = "examples.chat_server.server:main"
+ddn_setup = "scripts.ddn_setup:main"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.25.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
