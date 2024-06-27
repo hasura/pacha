@@ -1,8 +1,0 @@
-kind: Connector
-version: v1
-definition:
-  name: pg
-  subgraph: default
-  source: hasura/postgres:v0.7.1
-  context: .
-  envFile: .env.local
