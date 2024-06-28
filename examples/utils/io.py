@@ -62,6 +62,10 @@ def output_sql_response(data: SqlOutput):
            str(data)[:MAX_SQL_OUTPUT_LENGTH])
 
 
+def output_python_code(code: str):
+    output("Python Code", QUERY_PLAN_COLOR, '\n' + code)
+
+
 def output_query_plan_execution_result(data_context: DataContext):
     if data_context.data is None:
         execution_output = "None"
@@ -83,7 +87,8 @@ def get_query_planner_hooks_for_rendering_to_stdout() -> QueryPlannerHooks:
 
 
 def get_python_executor_hooks_for_rendering_to_stdout() -> PythonExecutorHooks:
-    return PythonExecutorHooks(sql=get_sql_hooks_for_rendering_to_stdout())
+    return PythonExecutorHooks(sql=get_sql_hooks_for_rendering_to_stdout(),
+                               on_python_execute=output_python_code)
 
 
 def get_sql_hooks_for_rendering_to_stdout() -> SqlHooks:

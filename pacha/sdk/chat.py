@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from pacha.query_planner.data_context import DataContext
-from pacha.utils.llm import Turn, TurnType, Chat, Llm
+from pacha.utils.llm import Turn, UserTurn, Chat, Llm
 from pacha.query_planner import input, query_planner
 from pacha.utils.logging import get_logger
 
@@ -44,7 +44,7 @@ class PachaChat:
         if chat_llm_instructions is None:
             chat_llm_instructions = "You are a helpful assistant."
         self.assistant_chat = Chat(
-            [Turn(TurnType.SYSTEM, SYSTEM_PROMPT_TEMPLATE.format(instructions=chat_llm_instructions))])
+            system_prompt=SYSTEM_PROMPT_TEMPLATE.format(instructions=chat_llm_instructions))
 
     def chat(self, user_query: str) -> PachaChatResponse:
         self.planer_input.turns.append(input.UserTurn(user_query))
@@ -59,11 +59,12 @@ class PachaChat:
             user_prompt = USER_PROMPT_TEMPLATE.format(
                 user_query=user_query, output=data_context.data.output[:MAX_DATA_CONTEXT_LENGTH])
 
-        self.assistant_chat.add_turn(Turn(TurnType.USER, user_prompt))
+        self.assistant_chat.add_turn(UserTurn(text=user_prompt))
 
         get_logger().info("Calling Assistant...")
-        assistant_turn = self.chat_llm.chat(self.assistant_chat)
+        assistant_turn = self.chat_llm.get_assistant_turn(self.assistant_chat)
         self.assistant_chat.add_turn(assistant_turn)
+        assert (assistant_turn.text is not None)
         self.planer_input.turns.append(
             input.AssistantTurn(assistant_turn.text))
         return PachaChatResponse(data_context, assistant_turn.text)

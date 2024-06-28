@@ -42,17 +42,17 @@ docker compose -f ddn_project/docker-compose.hasura.yaml up -d
 `examples/chat_with_tool.py` is a CLI chat interface that uses Pacha with Anthropic.
 
 ```bash
-ANTHROPIC_API_KEY=<api-key> poetry run chat_with_anthropic -d ddn -u <DDN SQL URL> -H <header to pass to DDN> 
+ANTHROPIC_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u <DDN SQL URL> -H <header to pass to DDN> --llm anthropic
 ```
 
 Example:
 ```bash
-ANTHROPIC_API_KEY=<api-key> poetry run chat_with_anthropic -d ddn -u http://localhost:3000/v1/sql -H 'x-hasura-role: admin'
+ANTHROPIC_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u http://localhost:3000/v1/sql -H 'x-hasura-role: admin' --llm anthropic
 ```
 
 You can also run Pacha with OpenAI:
 ```bash
-OPENAI_API_KEY=<api-key> poetry run chat_with_openai -d ddn -u <DDN SQL URL> -H <header to pass to DDN>
+OPENAI_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u <DDN SQL URL> -H <header to pass to DDN> --llm openai
 ```
 
 ## Customizing
@@ -65,4 +65,4 @@ You can see example Postgres implementation of DataEngine is in `pacha/data_engi
 
 ### Running against a custom LLM
 
-You can run Pacha against any LLM that supports function/tool calling. You can see the examples in `examples/chat_with_tool_anthropic.py` and `examples/chat_with_tool_openai.py`.
+You can run Pacha against any LLM that supports function/tool calling by using the Pacha tool directly from `pacha/sdk/tools`.

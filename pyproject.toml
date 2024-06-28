@@ -18,8 +18,7 @@ flask-cors = "^4.0.1"
 anthropic = "^0.29.0"
 
 [tool.poetry.scripts]
-chat_with_openai = "examples.chat_with_tool_openai:main"
-chat_with_anthropic = "examples.chat_with_tool_anthropic:main"
+chat_with_tool = "examples.chat_with_tool:main"
 eval = "eval.run_eval:main"
 chat_server = "examples.chat_server.server:main"
 ddn_setup = "scripts.ddn_setup:main"

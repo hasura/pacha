@@ -1,8 +1,6 @@
-import abc
 from dataclasses import dataclass
-from pacha.data_engine.data_engine import DataEngine
 from pacha.query_planner import QueryPlanner, QueryPlanningInput, UserTurn
-from pacha.sdk.tools.tool import Tool
+from pacha.utils.tool import Tool
 
 QUERY_ARGUMENT_NAME = "query"
 
@@ -10,6 +8,9 @@ QUERY_ARGUMENT_NAME = "query"
 @dataclass
 class PachaNlTool(Tool):
     query_planner: QueryPlanner
+
+    def name(self) -> str:
+        return 'pacha'
 
     def execute(self, input) -> str:
         input_query = input[QUERY_ARGUMENT_NAME]
@@ -32,5 +33,5 @@ class PachaNlTool(Tool):
     def description(self) -> str:
         return "Use this tool to retrieve any contextual data relevant to the conversation."
 
-    def system_prompt_fragment(self, tool_name: str) -> str:
+    def system_prompt_fragment(self) -> str:
         return ""

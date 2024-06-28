@@ -18,6 +18,8 @@ def noop(*args, **kwargs):
 
 @dataclass
 class PythonExecutorHooks:
+    on_python_execute: Callable[[str], None] = noop
+    on_python_output: Callable[[str], None] = noop
     sql: SqlHooks = field(default_factory=SqlHooks)
 
 
@@ -42,7 +44,9 @@ class PythonExecutor:
     def exec_code(self, code: str):
         try:
             # TODO: This is not safe. Sandbox this.
+            self.hooks.on_python_execute(code)
             exec(code, {"executor": self})
+            self.hooks.on_python_output(self.output_text)
         except Exception as e:
             limit = 1 - len(traceback.extract_tb(e.__traceback__))
             self.error = traceback.format_exc(limit)

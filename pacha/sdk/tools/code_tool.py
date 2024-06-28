@@ -1,13 +1,11 @@
-import abc
 from dataclasses import dataclass, field
 from typing import Optional
-from pacha.data_engine.catalog import Catalog, render_catalog
+from pacha.data_engine.catalog import Catalog
 from pacha.data_engine.data_engine import DataEngine
-from pacha.query_planner import QueryPlanner, QueryPlanningInput, UserTurn
 from pacha.query_planner.data_context import SqlStatement
 from pacha.query_planner.python_executor import PythonExecutor, PythonExecutorHooks
 from pacha.sdk.tools.sql_tool import SYSTEM_PROMPT_FRAGMENT_TEMPLATE
-from pacha.sdk.tools.tool import Tool, ToolOutput
+from pacha.utils.tool import Tool, ToolOutput
 
 CODE_ARGUMENT_NAME = "python_code"
 
@@ -50,7 +48,7 @@ class PythonToolOutput(ToolOutput):
         if self.error is not None:
             response += self.error
         return response
-    
+
     def get_error(self) -> Optional[str]:
         return self.error
 
@@ -63,6 +61,9 @@ class PachaPythonTool(Tool):
 
     def __post_init__(self):
         self.catalog = self.data_engine.get_catalog()
+
+    def name(self) -> str:
+        return 'pacha'
 
     def execute(self, input) -> PythonToolOutput:
         input_code = input[CODE_ARGUMENT_NAME]
@@ -86,5 +87,5 @@ class PachaPythonTool(Tool):
     def description(self) -> str:
         return TOOL_DESCRIPTION
 
-    def system_prompt_fragment(self, tool_name: str) -> str:
-        return SYSTEM_PROMPT_FRAGMENT_TEMPLATE.format(tool_name=tool_name, catalog=self.catalog.render_for_prompt())
+    def system_prompt_fragment(self) -> str:
+        return SYSTEM_PROMPT_FRAGMENT_TEMPLATE.format(tool_name=self.name(), catalog=self.catalog.render_for_prompt())

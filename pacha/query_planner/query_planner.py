@@ -39,8 +39,8 @@ def get_previous_turns(data_context: Optional[DataContext]) -> list[llm.Turn]:
     if data_context is None or data_context.data is None or data_context.data.error is None:
         return []
     turns = get_previous_turns(data_context.previous_try)
-    turns.append(llm.Turn(llm.TurnType.ASSISTANT, data_context.query_plan.raw))
-    turns.append(llm.Turn(llm.TurnType.USER,
+    turns.append(llm.AssistantTurn(text=data_context.query_plan.raw))
+    turns.append(llm.UserTurn(text=
                  f'Your script generated the following error. Fix it.\n {data_context.data.error}'))
 
     return turns
@@ -82,19 +82,29 @@ class QueryPlanner:
 
         turns = get_previous_turns(previous_try)
 
+        previous_turns_length = 0
+        for turn in turns:
+            if isinstance(turn, llm.UserTurn):
+                previous_turns_length += len(turn.text)
+            elif isinstance(turn, llm.AssistantTurn) and turn.text is not None:
+                previous_turns_length += len(turn.text)
+
         user_prompt_limit = TOTAL_PROMPT_LIMIT - \
             len(query_planner_system_prompt) - \
-            sum([len(turn.text) for turn in turns])
+            previous_turns_length
 
         user_prompt = input.as_user_prompt(
             user_prompt_limit, MAX_CONVERSATION_HISTORY_TURNS)
 
         turns = [
-            llm.Turn(llm.TurnType.SYSTEM, query_planner_system_prompt),
-            llm.Turn(llm.TurnType.USER, user_prompt)
+            llm.UserTurn(text=user_prompt)
         ] + turns
 
-        return self.planner_llm.chat(llm.Chat(turns), temperature=0).text
+        output = self.planner_llm.get_assistant_turn(
+            llm.Chat(system_prompt=query_planner_system_prompt, turns=turns),
+            temperature=0).text
+        assert(output is not None)
+        return output
 
     def get_query_plan(self, input: QueryPlanningInput, previous_try: Optional[DataContext]) -> QueryPlan:
         model_output = self.get_model_output(input, previous_try)

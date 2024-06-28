@@ -1,27 +1,42 @@
 import replicate
 
 from pacha.utils.logging import get_logger
-from pacha.utils.llm import Turn, TurnType, Chat, Llm
+from pacha.utils.llm.types import AssistantTurn, LlmException, Turn, Chat, Llm, UserTurn
 
 LLAMA_MODEL_REPLICATE = "meta/meta-llama-3-70b-instruct"
 
 
-def render_prompt_for_turn(turn: Turn, eot=True) -> str:
-    prompt = f"<|start_header_id|>{turn.type.name.lower()}<|end_header_id|>\n\n{
-        turn.text}"
+def render_prompt(turn_type: str, text: str, eot=True) -> str:
+    prompt = f"<|start_header_id|>{turn_type}<|end_header_id|>\n\n{
+        text}"
     if eot:
         prompt += "<|eot_id|>"
     return prompt
 
 
+def render_prompt_for_turn(turn: Turn, eot=True) -> str:
+    if isinstance(turn, UserTurn):
+        return render_prompt(turn_type="user", text=turn.text)
+    elif isinstance(turn, AssistantTurn):
+        if len(turn.tool_calls) != 0:
+            raise LlmException("Llama does not support tool calls")
+        assert (turn.text is not None)
+        return render_prompt(turn_type="assistant", text=turn.text)
+    raise TypeError("Invalid turn type")
+
+
 def render_prompt_for_chat(chat: Chat) -> str:
     prompt = "<|begin_of_text|>"
+    system_prompt = chat.get_system_prompt()
+    if system_prompt is not None:
+        prompt += render_prompt(turn_type="system", text=system_prompt)
     for turn in chat.turns[:-1]:
         prompt += render_prompt_for_turn(turn)
+
     ends_with_assistant = False
     if len(chat.turns) > 0:
         last_turn = chat.turns[-1]
-        if last_turn.type == TurnType.ASSISTANT:
+        if isinstance(last_turn, AssistantTurn):
             ends_with_assistant = True
         prompt += render_prompt_for_turn(last_turn,
                                          eot=not ends_with_assistant)
@@ -35,7 +50,7 @@ class LlamaOnReplicate(Llm):
     def __init__(self, *args, **kwargs):
         self.client = replicate.Client(*args, **kwargs)
 
-    def chat(self, chat: Chat, temperature=None) -> Turn:
+    def get_assistant_turn(self, chat: Chat, temperature=None) -> AssistantTurn:
         prompt = render_prompt_for_chat(chat)
         get_logger().debug(f"Llama Prompt: {prompt}")
 
@@ -45,5 +60,4 @@ class LlamaOnReplicate(Llm):
 
         if temperature is not None:
             input["temperature"] = temperature
-        response = ''.join(self.client.run(LLAMA_MODEL_REPLICATE, input=input))
-        return Turn(TurnType.ASSISTANT, response)
+        return AssistantTurn(text=''.join(self.client.run(LLAMA_MODEL_REPLICATE, input=input)))

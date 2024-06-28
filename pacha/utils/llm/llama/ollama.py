@@ -1,31 +1,35 @@
 import ollama
 
 from pacha.utils.logging import get_logger
-from pacha.utils.llm import Turn, TurnType, Chat, Llm
+from pacha.utils.llm.types import Turn, UserTurn, AssistantTurn, LlmException, Chat, Llm
 
 LLAMA_MODEL_OLLAMA = "llama3:70b"
 
 
-def to_message_role(turn_type: TurnType):
-    match turn_type:
-        case TurnType.SYSTEM:
-            return "system"
-        case TurnType.ASSISTANT:
-            return "assistant"
-        case TurnType.USER:
-            return "user"
-
-
 def to_message(turn: Turn) -> ollama.Message:
-    return ollama.Message(role=to_message_role(turn.type), content=turn.text)
+    if isinstance(turn, UserTurn):
+        return ollama.Message(role="user", content=turn.text)
+    elif isinstance(turn, AssistantTurn):
+        if len(turn.tool_calls) != 0:
+            raise LlmException("Llama does not support tool calls")
+        assert (turn.text is not None)
+        return ollama.Message(role="assistant", content=turn.text)
+    raise TypeError("Invalid turn type")
 
 
 class LlamaOnOLlama(Llm):
     def __init__(self, *args, **kwargs):
         self.client = ollama.Client(*args, **kwargs)
 
-    def chat(self, chat: Chat, temperature=None) -> Turn:
-        messages = [to_message(turn) for turn in chat.turns]
+    def get_assistant_turn(self, chat: Chat, temperature=None) -> AssistantTurn:
+        messages = []
+        system_prompt = chat.get_system_prompt()
+        if system_prompt is not None:
+            messages.append(ollama.Message(
+                role='system', content=system_prompt))
+        for turn in chat.turns:
+            messages.append(to_message(turn))
+
         get_logger().debug(f"Llama Messages: {messages}")
 
         options: ollama.Options = {}

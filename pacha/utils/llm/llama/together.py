@@ -1,38 +1,41 @@
 from together import Together
-from together.types.chat_completions import ChatCompletionMessage, MessageRole
+from together.types.chat_completions import ChatCompletionMessage, MessageRole, ChatCompletionResponse
 
+from pacha.utils.llm.types import LlmException, Turn, Chat, Llm, AssistantTurn, UserTurn
 from pacha.utils.logging import get_logger
-from pacha.utils.llm import Turn, TurnType, Chat, Llm
 
 LLAMA_MODEL_TOGETHER = "meta-llama/Llama-3-70b-chat-hf"
 
 
-def to_message_role(turn_type: TurnType):
-    match turn_type:
-        case TurnType.SYSTEM:
-            return MessageRole.SYSTEM
-        case TurnType.ASSISTANT:
-            return MessageRole.ASSISTANT
-        case TurnType.USER:
-            return MessageRole.USER
-
-
 def to_message(turn: Turn) -> ChatCompletionMessage:
-    return ChatCompletionMessage(role=to_message_role(turn.type), content=turn.text)
+    if isinstance(turn, UserTurn):
+        return ChatCompletionMessage(role=MessageRole.USER, content=turn.text)
+    elif isinstance(turn, AssistantTurn):
+        if len(turn.tool_calls) != 0:
+            raise LlmException("Llama does not support tool calls")
+        return ChatCompletionMessage(role=MessageRole.ASSISTANT, content=turn.text)
+    raise TypeError("Invalid turn type")
 
 
 class LlamaOnTogether(Llm):
     def __init__(self, *args, **kwargs):
         self.client = Together(*args, **kwargs)
 
-    def chat(self, chat: Chat, temperature=None) -> Turn:
-        messages = [to_message(turn).model_dump() for turn in chat.turns]
+    def get_assistant_turn(self, chat: Chat, temperature=None) -> AssistantTurn:
+        messages = []
+        system_prompt = chat.get_system_prompt()
+        if system_prompt is not None:
+            messages.append(ChatCompletionMessage(
+                role=MessageRole.SYSTEM, content=system_prompt))
+        messages.extend([to_message(turn).model_dump() for turn in chat.turns])
         get_logger().debug(f"Llama Messages: {messages}")
         response = self.client.chat.completions.create(
             model=LLAMA_MODEL_TOGETHER,
             messages=messages,
             temperature=temperature
         )
-        get_logger().info(f"Token Usage: {response.usage}")  # type: ignore
-        text = response.choices[0].message.content  # type: ignore
-        return Turn(TurnType.ASSISTANT, text)  # type: ignore
+        assert (isinstance(response, ChatCompletionResponse))
+        get_logger().info(f"Token Usage: {response.usage}")
+        assert (response.choices is not None)
+        assert (response.choices[0].message is not None)
+        return AssistantTurn(text=response.choices[0].message.content)

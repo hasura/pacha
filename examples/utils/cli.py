@@ -8,7 +8,8 @@ from pacha.query_planner.query_planner import QueryPlanner
 from pacha.sdk.tools.code_tool import PachaPythonTool
 from pacha.sdk.tools.nl_tool import PachaNlTool
 from pacha.sdk.tools.sql_tool import PachaSqlTool
-from pacha.sdk.tools.tool import Tool
+from pacha.utils.llm import Llm, openai, anthropic
+from pacha.utils.tool import Tool
 
 
 def add_data_engine_args(parser: argparse.ArgumentParser):
@@ -59,3 +60,16 @@ def get_pacha_tool(args) -> Tool:
     else:
         print("Invalid tool choice")
         exit(1)
+
+
+def add_llm_args(parser: argparse.ArgumentParser):
+    parser.add_argument('--llm', type=str,
+                        choices=['openai', 'anthropic'], default='anthropic')
+
+def get_llm(args) -> Llm:
+    if args.llm == 'openai':
+        return openai.OpenAI()
+    elif args.llm == 'anthropic':
+        return anthropic.Anthropic()
+    print("Invalid LLM choice")
+    exit(1)
