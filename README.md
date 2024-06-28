@@ -1,4 +1,4 @@
-# Patcha DDN
+# Pacha
 
 Connect realtime data to your AI
 
