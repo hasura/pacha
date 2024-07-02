@@ -24,10 +24,10 @@ You would use Pacha with your favourite LLMs to generate grounded responses in y
 
 ### Setup Hasura DDN
 
-Note: You can skip this step if running Pacha directly against Postgres instead of Hasura DDN.
+Note: You can skip this step if running Pacha directly against Postgres instead of Hasura DDN (jump to [Running Pacha](#running-pacha) instead).
 
-- Create a Hasura account at hasura.io/ddn
-- Scaffold a local Hasura setup on a postgres database like this:
+- Create a Hasura account at <a href="https://hasura.io/ddn" target="_blank">hasura.io/ddn</a>
+- Scaffold a local Hasura project on a postgres database like this:
 ```bash
 poetry run ddn_setup -c <postgres connection string> --dir ddn_project
 ```
