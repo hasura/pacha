@@ -13,9 +13,10 @@ You would use Pacha with your favourite LLMs to generate grounded responses in y
 
 ### Prerequisites
 
-- Atleast Python version 3.12
+- Python version 3.12 or later
+- Docker Compose version 2.22.0 or later
 - Access to OpenAI or Anthropic.
-- A postgres database you want to try Pacha out on.
+- A datasource available in [Hasura Connector Hub](https://hasura.io/connectors)
 
 ### Install Python Dependencies
 
@@ -24,13 +25,22 @@ You would use Pacha with your favourite LLMs to generate grounded responses in y
 
 ### Setup Hasura DDN
 
-Note: You can skip this step if running Pacha directly against Postgres instead of Hasura DDN (jump to [Running Pacha](#running-pacha) instead).
-
 - Create a Hasura account at <a href="https://hasura.io/ddn" target="_blank">hasura.io/ddn</a>
-- Scaffold a local Hasura project on a postgres database like this:
+- Scaffold a local Hasura project on a hub connector datasource like this:
 ```bash
-poetry run ddn_setup -c <postgres connection string> --dir ddn_project
+poetry run ddn_setup -hc <hub-connector-name> -c <connection string> --dir ddn_project
 ```
+
+Example (with Postgres):
+```bash
+poetry run ddn_setup -hc 'hasura/postgres' -c 'postgresql://postgres:postgres@localhost:5432/postgres' --dir ddn_project
+```
+
+Example (with SQL Server):
+```bash
+poetry run ddn_setup -hc 'hasura/sqlserver' -c 'Server=localhost,21433;Uid=SA;Database=sakila;Pwd=Password!;TrustServerCertificate=true' --dir ddn_project
+```
+
 - The above generated metadata is where you would configure row / column access control rules for your data.
 - Start a local Hasura engine with:
 ```bash
@@ -39,7 +49,7 @@ docker compose -f ddn_project/docker-compose.hasura.yaml up -d
 
 ### Running Pacha
 
-`examples/chat_with_tool.py` is a CLI chat interface that uses Pacha with Anthropic.
+`examples/chat_with_tool.py` is a CLI chat interface that uses Pacha as a tool provided to a supported LLM.
 
 ```bash
 ANTHROPIC_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u <DDN SQL URL> -H <header to pass to DDN> --llm anthropic
@@ -59,9 +69,9 @@ OPENAI_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u <DDN SQL URL> -H <h
 
 ### Running against a custom SQL backend
 
-If you want to run against a custom SQL backend that's not Hasura DDN or Postgres, you can implement the `DataEngine` class in `pacha/data_engine`, and pass that to the Pacha SDK. See usage [here](pacha/sdk/tools/code_tool.py#L57).
+If you want to run against a custom SQL backend that's not Hasura DDN, you can implement the `DataEngine` class in `pacha/data_engine`, and pass that to the Pacha SDK. See usage [here](pacha/sdk/tools/code_tool.py#L57).
 
-You can see example Postgres implementation of DataEngine is in `pacha/data_engine/postgres.py`.
+You can see example Postgres implementation of DataEngine in `pacha/data_engine/postgres.py`.
 
 ### Running against a custom LLM
 
