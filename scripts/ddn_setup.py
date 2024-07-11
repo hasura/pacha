@@ -9,11 +9,10 @@ import yaml
 import time
 
 SUBGRAPH_NAME = 'default'
-CONNECTOR_NAME = 'pg'
+CONNECTOR_NAME = 'my_db'
 CONNECTOR_PATH = f'{SUBGRAPH_NAME}/connector/{CONNECTOR_NAME}'
 CONNECTOR_PORT = 8082
-CONNECTOR_DOCKER_COMPOSE_PATH = f'{
-    CONNECTOR_PATH}/docker-compose.{CONNECTOR_NAME}.yaml'
+CONNECTOR_DOCKER_COMPOSE_PATH = f'{CONNECTOR_PATH}/docker-compose.{CONNECTOR_NAME}.yaml'
 HASURA_DOCKER_COMPOSE_PATH = 'docker-compose.hasura.yaml'
 
 def sh(cmd):
@@ -50,19 +49,35 @@ def main():
     parser.add_argument('-c', '--connection-string', type=str, required=True)
     parser.add_argument('--login', type=bool, default=True,
                         action=argparse.BooleanOptionalAction)
+    parser.add_argument('-hc', '--hub-connector', type=str, required=True
+                        , help='e.g. hasura/postgres, hasura/sqlserver')
     args = parser.parse_args()
 
     # Replace localhost in connection string with local.hasura.dev so that
     # we can point it to the host machine from within the docker container.
     connection_string = args.connection_string.replace(
         'localhost', 'local.hasura.dev').replace('127.0.0.1', 'local.hasura.dev')
+    connector = args.hub_connector
+    
+    database = connector.split('/', 2)[1]
+    
+    global CONNECTOR_NAME
+    CONNECTOR_NAME=database
+    global CONNECTOR_PATH
+    CONNECTOR_PATH = f'{SUBGRAPH_NAME}/connector/{CONNECTOR_NAME}'
+    global CONNECTOR_DOCKER_COMPOSE_PATH
+    CONNECTOR_DOCKER_COMPOSE_PATH = f'{CONNECTOR_PATH}/docker-compose.{CONNECTOR_NAME}.yaml'
 
     print(f"Changing working directory to {args.dir}")
     pathlib.Path(args.dir).mkdir(parents=True, exist_ok=True)
     os.chdir(args.dir)
 
     try:
-        psycopg2.connect(connection_string)
+       match database:
+            case 'postgres':
+                psycopg2.connect(connection_string)
+            case _:
+                print('skipping db connectivity check')
     except Exception as e:
         print(f'Could not connect to database: {e}', file=sys.stderr)
         exit(1)
@@ -77,7 +92,7 @@ def main():
     sh('ddn supergraph init --dir .')
     sh('ddn context set supergraph ./supergraph.yaml')
     sh(f'ddn subgraph init {SUBGRAPH_NAME}')
-    sh(f'ddn connector init {CONNECTOR_NAME} --subgraph {SUBGRAPH_NAME} --hub-connector hasura/postgres')
+    sh(f'ddn connector init {CONNECTOR_NAME} --subgraph {SUBGRAPH_NAME} --hub-connector {connector}')
     with open(f'{CONNECTOR_PATH}/.env.local', 'a') as file:
         file.write(f'\nCONNECTION_URI={connection_string}')
     sh(f'ddn connector introspect --connector {CONNECTOR_PATH}/connector.yaml')
