@@ -44,6 +44,9 @@ def add_tool_args(parser: argparse.ArgumentParser):
     add_data_engine_args(parser)
     parser.add_argument('-t', '--tool', type=str,
                         choices=['nl', 'sql', 'python'], default='python')
+    
+def add_auth_args(parser: argparse.ArgumentParser):
+    parser.add_argument('-k', '--secret-key', type=str)
 
 
 def get_pacha_tool(args) -> Tool:
