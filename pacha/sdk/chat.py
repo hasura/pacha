@@ -1,9 +1,15 @@
 from dataclasses import dataclass
 from typing import Optional
-from pacha.query_planner.data_context import DataContext
-from pacha.utils.llm import Turn, UserTurn, Chat, Llm
-from pacha.query_planner import input, query_planner
+from pacha.utils.llm import UserTurn, AssistantTurn, Chat, Llm
+from pacha.utils.llm.types import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
 from pacha.utils.logging import get_logger
+from pacha.utils.tool import Tool, ToolOutput
+
+from examples.utils.io import (
+    get_python_executor_hooks_for_rendering_to_stdout, output, multi_line_input, Colors, get_query_planner_hooks_for_rendering_to_stdout,
+    ASSISTANT_RESPONSE_COLOR, QUERY_PLAN_COLOR, USER_INPUT_COLOR
+)
+
 
 SYSTEM_PROMPT_TEMPLATE = """
 {instructions}
@@ -28,43 +34,60 @@ MAX_DATA_CONTEXT_LENGTH = 4000
 
 @dataclass
 class PachaChatResponse:
-    data_context: DataContext
+    # optional list of tool (input, output)
+    tool_responses: Optional[list[tuple[str, ToolOutput]]]
     llm_response: str
 
 
+@dataclass
 class PachaChat:
+    llm: Llm
+    tools: list[Tool]
+    chat: Chat
+    pacha_tool: Tool
+
     def __init__(self,
-                 query_planner: query_planner.QueryPlanner,
-                 chat_llm: Llm,
-                 chat_llm_instructions: Optional[str] = None):
-        self.query_planner = query_planner
-        self.planer_input = input.QueryPlanningInput()
+                 llm: Llm,
+                 system_prompt: Optional[str] = None,
+                 tools: list[Tool] = []):
+        self.llm = llm
+        self.tools = tools
+        if system_prompt is None:
+            system_prompt = "You are a helpful assistant."
+        self.chat = Chat(
+            system_prompt=SYSTEM_PROMPT_TEMPLATE.format(instructions=system_prompt))
+        self.pacha_tool = next(
+            (t for t in tools if t.name() == "pacha"), None)
 
-        self.chat_llm = chat_llm
-        if chat_llm_instructions is None:
-            chat_llm_instructions = "You are a helpful assistant."
-        self.assistant_chat = Chat(
-            system_prompt=SYSTEM_PROMPT_TEMPLATE.format(instructions=chat_llm_instructions))
-
-    def chat(self, user_query: str) -> PachaChatResponse:
-        self.planer_input.turns.append(input.UserTurn(user_query))
-
-        data_context = self.query_planner.get_data_context(self.planer_input)
-
-        self.planer_input.turns.append(input.QueryPlannerTurn(data_context))
-
-        if data_context.data is None:
-            user_prompt = user_query
-        else:
-            user_prompt = USER_PROMPT_TEMPLATE.format(
-                user_query=user_query, output=data_context.data.output[:MAX_DATA_CONTEXT_LENGTH])
-
-        self.assistant_chat.add_turn(UserTurn(text=user_prompt))
-
+    def process_chat(self, user_query: str) -> PachaChatResponse:
+        self.chat.add_turn(UserTurn(user_query))
         get_logger().info("Calling Assistant...")
-        assistant_turn = self.chat_llm.get_assistant_turn(self.assistant_chat)
-        self.assistant_chat.add_turn(assistant_turn)
+        assistant_turn = self.llm.get_assistant_turn(
+            self.chat, tools=self.tools, temperature=0)
+        self.chat.add_turn(assistant_turn)
+        tool_call_responses = []
+        tool_input_output = []  # list of tool (input, output)
+        if assistant_turn.text is not None:
+            output("Assistant", ASSISTANT_RESPONSE_COLOR, assistant_turn.text)
+        for tool_call in assistant_turn.tool_calls:
+            if tool_call.name == self.pacha_tool.name():
+                output("Pacha Input", QUERY_PLAN_COLOR, str(tool_call.input))
+                tool_output = self.pacha_tool.execute(tool_call.input)
+                output("Pacha Output", QUERY_PLAN_COLOR,
+                       tool_output.get_response())
+                tool_call_responses.append(ToolCallResponse(
+                    call_id=tool_call.call_id, output=tool_output))
+                tool_input_output.append((str(tool_call.input), tool_output))
+            else:
+                # TODO: handle non pacha tool call
+                output("Error", Colors.RED, "Invalid tool call")
+                raise Exception("Invalid tool call")
+
+        if len(tool_call_responses) > 0:
+            self.chat.add_turn(ToolResponseTurn(calls=tool_call_responses))
+            assistant_turn = self.llm.get_assistant_turn(
+                self.chat, tools=self.tools, temperature=0)
+            self.chat.add_turn(assistant_turn)
+
         assert (assistant_turn.text is not None)
-        self.planer_input.turns.append(
-            input.AssistantTurn(assistant_turn.text))
-        return PachaChatResponse(data_context, assistant_turn.text)
+        return PachaChatResponse(tool_input_output, assistant_turn.text)
