@@ -18,6 +18,13 @@ You would use Pacha with your favourite LLMs to generate grounded responses in y
 - Access to OpenAI or Anthropic.
 - A datasource available in [Hasura Connector Hub](https://hasura.io/connectors)
 
+### Clone the repo
+
+```bash
+git clone https://github.com/hasura/pacha.git
+cd pacha
+```
+
 ### Install Python Dependencies
 
 - Install [Poetry](https://python-poetry.org/docs/)

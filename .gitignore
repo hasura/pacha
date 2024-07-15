@@ -162,3 +162,15 @@ cython_debug/
 #.idea/
 
 ddn_project/
+
+.DS_Store
+docs/.DS_Store
+docs/docs/.DS_Store
+docs/src/.DS_Store
+ddn_project/.DS_Store
+ddn_project/default/.DS_Store
+pacha/.DS_Store
+examples/.DS_Store
+examples/chat_server/.DS_Store
+examples/utils/.DS_Store
+eval/.DS_Store
