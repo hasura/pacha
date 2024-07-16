@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from pacha.utils.llm import UserTurn, AssistantTurn, Chat, Llm
-from pacha.utils.llm.types import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
+from pacha.utils.llm.types import Chat, ToolCallResponse, ToolResponseTurn, UserTurn, Turn
 from pacha.utils.logging import get_logger
 from pacha.utils.tool import Tool, ToolOutput
 
@@ -9,6 +9,8 @@ from examples.utils.io import (
     get_python_executor_hooks_for_rendering_to_stdout, output, multi_line_input, Colors, get_query_planner_hooks_for_rendering_to_stdout,
     ASSISTANT_RESPONSE_COLOR, QUERY_PLAN_COLOR, USER_INPUT_COLOR
 )
+
+import json
 
 
 SYSTEM_PROMPT_TEMPLATE = """
@@ -49,13 +51,16 @@ class PachaChat:
     def __init__(self,
                  llm: Llm,
                  system_prompt: Optional[str] = None,
-                 tools: list[Tool] = []):
+                 tools: list[Tool] = [],
+                 previous_messages: Optional[list[Turn]] = None):
         self.llm = llm
         self.tools = tools
         if system_prompt is None:
             system_prompt = "You are a helpful assistant."
         self.chat = Chat(
             system_prompt=SYSTEM_PROMPT_TEMPLATE.format(instructions=system_prompt))
+        if previous_messages is not None:
+            self.chat.turns = json.loads(previous_messages, object_hook = as_payload)
         self.pacha_tool = next(
             (t for t in tools if t.name() == "pacha"), None)
 

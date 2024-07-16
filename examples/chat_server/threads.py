@@ -74,18 +74,14 @@ class ThreadMessage:
 class Thread:
     id: str
     chat: PachaChat
-    history: list[ThreadMessage] = field(default_factory=list)
 
     def send(self, message: str) -> ThreadMessage:
         pacha_response = self.chat.process_chat(message)
         thread_message = ThreadMessage(message, pacha_response)
-        self.history.append(thread_message)
         return thread_message
 
-    def to_json(self, include_history: bool = True) -> ThreadJson:
+    def to_json(self) -> ThreadJson:
         json: ThreadJson = {
             "thread_id": self.id
         }
-        if include_history:
-            json["history"] = [message.to_json() for message in self.history]
         return json

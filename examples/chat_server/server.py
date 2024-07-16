@@ -15,9 +15,6 @@ app = Flask(__name__)
 CORS(app)
 
 
-# In-memory storage for threads
-threads: dict[str, Thread] = {}
-
 # will be initialized in main
 SECRET_KEY = None
 LLM: Llm = None  # type: ignore
@@ -51,51 +48,23 @@ def authenticate():
         return jsonify({"error": "pacha token invalid or not found"}), 401
 
 
-@app.route('/threads', methods=['GET'])
-def get_threads():
-    return jsonify([thread.to_json(include_history=False) for thread in threads.values()]), 200
-
-
-@app.route('/threads/<thread_id>', methods=['GET'])
-def get_thread(thread_id):
-    thread = threads.get(thread_id)
-    if thread is None:
-        return jsonify({"error": "Thread not found"}), 404
-
-    return jsonify(thread.to_json()), 200
-
-
-@app.route('/threads', methods=['POST'])
+@app.route('/chat', methods=['POST'])
 def start_thread():
     data = request.json
-    thread_id = str(uuid.uuid4())
+    thread_id = data.get('thread_id')
+    previous_messages = data.get('previous_messages')
+    query = data.get('query')
+    if query is None:
+        return jsonify({"error": "no query given"}), 400
+    if thread_id is None:
+        thread_id = str(uuid.uuid4())
     thread = Thread(id=thread_id, chat=PachaChat(
-        llm=LLM, tools=[PACHA_TOOL], system_prompt=SYSTEM_PROMPT))
-    threads[thread_id] = thread
-    json_response: ThreadCreateResponseJson = {
+        llm=LLM, tools=[PACHA_TOOL], system_prompt=SYSTEM_PROMPT, previous_messages=previous_messages))
+    response: ThreadCreateResponseJson = {
         "thread_id": thread_id
     }
-    if isinstance(data, dict):
-        message = data.get('message')
-        if message is not None:
-            json_response["response"] = thread.send(message).response_to_json()
-
-    return jsonify(json_response), 201
-
-
-@app.route('/threads/<thread_id>', methods=['POST'])
-def send_message(thread_id):
-    thread = threads.get(thread_id)
-    if thread is None:
-        return jsonify({"error": "Thread not found"}), 404
-
-    data = request.json
-    if isinstance(data, dict):
-        message = data.get('message')
-        if message is not None:
-            return jsonify(thread.send(message).response_to_json()), 200
-
-    return jsonify({"error": "invalid input"}), 400
+    response["response"] = thread.send(query).response_to_json()
+    return jsonify(response), 200
 
 
 @app.route('/console', methods=['GET'])
