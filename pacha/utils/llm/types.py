@@ -4,11 +4,13 @@ from enum import Enum
 from typing import Any, Callable, Optional, cast, Union
 import copy
 from pacha.utils.tool import Tool, ToolOutput
+import json
 
 
 @dataclass
 class UserTurn:
     text: str
+    type: str = 'user_turn'
 
 
 @dataclass
@@ -17,23 +19,35 @@ class ToolCall:
     call_id: str
     input: Any
 
-
+  
 @dataclass
 class AssistantTurn:
     text: Optional[str]
     tool_calls: list[ToolCall] = field(default_factory=list)
+    type: str = 'assistant_turn'
 
 
 @dataclass
 class ToolCallResponse:
     call_id: str
-    output: ToolOutput
-
+    output: PythonToolOutput
+    
+    def from_dict(self, tool_call_response_dict: dict):
+        match tool_call_response_dict.get('type'):
+            case 'code':
+                pass
+            case 'sql':
+                pass
+            case _:
+                raise Exception('unknown tool output type')
+        
+    
 
 @dataclass
 class ToolResponseTurn:
     calls: list[ToolCallResponse]
-
+    type: str = 'tool_response_turn'
+    
 
 Turn = Union[UserTurn, AssistantTurn, ToolResponseTurn]
 
@@ -67,6 +81,25 @@ class Chat:
         chat.extend(delta)
         return chat
 
+    def add_turn_from_dict(self, turn_dict: dict) -> Turn:
+        match turn_dict.get('type'):
+            case 'user_turn':
+                return UserTurn(**turn_dict)
+            case 'assistant_turn':
+                # TODO: Use pydantic to avoid explicitly marshalling nested classes
+                tool_calls = [ToolCall(**tool_call) for tool_call in turn_dict.get('tool_calls', [])]
+    
+                return AssistantTurn(
+                    text=turn_dict.get('text'),
+                    tool_calls=tool_calls
+                )
+            case 'tool_response_turn':
+                # TODO: Use pydantic to avoid explicitly marshalling nested classes
+                calls = [ToolCallResponse.from_dict(**call) for call in turn_dict.get('calls', [])]
+ 
+                return ToolResponseTurn(**turn_dict)
+            case _:
+                raise Exception("Invalid turn")
 
 @dataclass
 class LlmException(Exception):

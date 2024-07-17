@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from pacha.utils.llm import UserTurn, AssistantTurn, Chat, Llm
-from pacha.utils.llm.types import Chat, ToolCallResponse, ToolResponseTurn, UserTurn, Turn
+from pacha.utils.llm.types import Llm, Chat, ToolCallResponse, ToolResponseTurn, UserTurn
 from pacha.utils.logging import get_logger
 from pacha.utils.tool import Tool, ToolOutput
 
@@ -10,7 +9,7 @@ from examples.utils.io import (
     ASSISTANT_RESPONSE_COLOR, QUERY_PLAN_COLOR, USER_INPUT_COLOR
 )
 
-import json
+from pprint import pp
 
 
 SYSTEM_PROMPT_TEMPLATE = """
@@ -52,19 +51,22 @@ class PachaChat:
                  llm: Llm,
                  system_prompt: Optional[str] = None,
                  tools: list[Tool] = [],
-                 previous_messages: Optional[list[Turn]] = None):
+                 previous_turns: Optional[list[dict]] = None):
         self.llm = llm
         self.tools = tools
         if system_prompt is None:
             system_prompt = "You are a helpful assistant."
         self.chat = Chat(
-            system_prompt=SYSTEM_PROMPT_TEMPLATE.format(instructions=system_prompt))
-        if previous_messages is not None:
-            self.chat.turns = json.loads(previous_messages, object_hook = as_payload)
+            system_prompt=SYSTEM_PROMPT_TEMPLATE.format(
+                instructions=system_prompt))
+        if previous_turns is not None:
+            self.chat.turns = list(
+                map(self.chat.add_turn_from_dict, previous_turns))
         self.pacha_tool = next(
             (t for t in tools if t.name() == "pacha"), None)
 
     def process_chat(self, user_query: str) -> PachaChatResponse:
+        pp(self.chat.turns)
         self.chat.add_turn(UserTurn(user_query))
         get_logger().info("Calling Assistant...")
         assistant_turn = self.llm.get_assistant_turn(
@@ -88,13 +90,11 @@ class PachaChat:
                 output("Error", Colors.RED, "Invalid tool call")
                 raise Exception("Invalid tool call")
 
-        if len(tool_call_responses) == 0:
-            self.chat.add_turn(UserTurn(text=user_query))
-        else:
+        if len(tool_call_responses) > 0:
             self.chat.add_turn(ToolResponseTurn(calls=tool_call_responses))
+            assistant_turn = self.llm.get_assistant_turn(
+                self.chat, tools=self.tools, temperature=0)
+            self.chat.add_turn(assistant_turn)
 
-        assistant_turn = self.llm.get_assistant_turn(
-            self.chat, tools=self.tools, temperature=0)
-        self.chat.add_turn(assistant_turn)
         assert (assistant_turn.text is not None)
         return PachaChatResponse(tool_input_output, assistant_turn.text)

@@ -4,6 +4,9 @@ from typing import Any, Optional
 
 
 class ToolOutput(ABC):
+    
+    output: str
+    
     @abstractmethod
     def get_response(self) -> str:
         ...
@@ -11,7 +14,13 @@ class ToolOutput(ABC):
     @abstractmethod
     def get_error(self) -> Optional[str]:
         ...
-
+        
+    def get_output(self) -> str:
+        response = self.get_response()
+        if self.get_error() is not None:
+            response += self.error
+        return response
+    
 
 class Tool(ABC):
     @abstractmethod

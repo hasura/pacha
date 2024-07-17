@@ -9,6 +9,7 @@ from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_t
 
 import uuid
 import argparse
+from pprint import pp
 
 
 app = Flask(__name__)
@@ -52,14 +53,15 @@ def authenticate():
 def start_thread():
     data = request.json
     thread_id = data.get('thread_id')
-    previous_messages = data.get('previous_messages')
+    previous_turns = data.get('turns')
     query = data.get('query')
     if query is None:
         return jsonify({"error": "no query given"}), 400
     if thread_id is None:
         thread_id = str(uuid.uuid4())
     thread = Thread(id=thread_id, chat=PachaChat(
-        llm=LLM, tools=[PACHA_TOOL], system_prompt=SYSTEM_PROMPT, previous_messages=previous_messages))
+        llm=LLM, tools=[PACHA_TOOL], system_prompt=SYSTEM_PROMPT, previous_turns=previous_turns))
+    pp(thread)
     response: ThreadCreateResponseJson = {
         "thread_id": thread_id
     }

@@ -30,6 +30,7 @@ def get_system_prompt_fragment(tool_name: str, catalog: Catalog) -> str:
 class SqlToolOutput(ToolOutput):
     output: Optional[SqlOutput] = None
     error: Optional[str] = None
+    type: str = 'sql'
 
     def get_response(self) -> str:
         response = ""
@@ -41,6 +42,10 @@ class SqlToolOutput(ToolOutput):
 
     def get_error(self) -> Optional[str]:
         return self.error
+    
+    def from_dict(cls, tool_output_dict: dict):
+        # note that this will not marshal inner class but it's not required. TODO: use pydantic
+        return cls(**tool_output_dict)
 
 
 @dataclass

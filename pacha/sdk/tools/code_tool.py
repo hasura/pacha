@@ -4,10 +4,15 @@ from pacha.data_engine.catalog import Catalog
 from pacha.data_engine.data_engine import DataEngine
 from pacha.query_planner.data_context import SqlStatement
 from pacha.query_planner.python_executor import PythonExecutor, PythonExecutorHooks
-from pacha.sdk.tools.sql_tool import SYSTEM_PROMPT_FRAGMENT_TEMPLATE
 from pacha.utils.tool import Tool, ToolOutput
 
 CODE_ARGUMENT_NAME = "python_code"
+
+SYSTEM_PROMPT_FRAGMENT_TEMPLATE = """
+The schema of the database available using the "{tool_name}" tool is as follows.
+
+{catalog}
+"""
 
 TOOL_DESCRIPTION = """
 This tool can be used to write Python scripts to retrieve data from the user's database.
@@ -42,6 +47,7 @@ class PythonToolOutput(ToolOutput):
     output: str
     error: Optional[str]
     sql_statements: list[SqlStatement]
+    type: str = 'code'
 
     def get_response(self) -> str:
         response = self.output
@@ -51,6 +57,10 @@ class PythonToolOutput(ToolOutput):
 
     def get_error(self) -> Optional[str]:
         return self.error
+    
+    def from_dict(cls, tool_output_dict: dict):
+        # note that this will not marshal inner class but it's not required. TODO: use pydantic
+        return cls(**tool_output_dict)
 
 
 @dataclass
