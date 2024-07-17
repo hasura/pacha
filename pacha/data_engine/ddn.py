@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pacha.data_engine.catalog import Column, ScalarType, Catalog, Schema, Table
+from pacha.data_engine.catalog import Column, ScalarType, Catalog, Schema, Table, ForeignKey, ForeignKeyMapping
 from pacha.data_engine import DataEngine, SqlOutput
 import requests
 import argparse
@@ -20,6 +20,16 @@ JOIN information_schema.columns i
 ON h.table_name = i.table_name
 AND h.schema_name = i.table_schema
 AND h.column_name = i.column_name
+'''
+
+FOREIGN_KEYS_QUERY = '''
+SELECT from_schema_name,
+       from_table_name,
+       from_column_name,
+       to_schema_name,
+       to_table_name,
+       to_column_name
+FROM hasura.inferred_foreign_key_constraints
 '''
 
 
@@ -46,7 +56,7 @@ def map_data_type(data_type: str) -> ScalarType:
     return ScalarType.UNKNOWN
 
 
-def create_schema_from_introspection(tables_data, columns_data) -> Catalog:
+def create_schema_from_introspection(tables_data, columns_data, foreign_keys_data) -> Catalog:
     schemas: dict[str, Schema] = {}
     for table_data in tables_data:
         schema_name = table_data["schema_name"]
@@ -54,6 +64,7 @@ def create_schema_from_introspection(tables_data, columns_data) -> Catalog:
         schema = schemas.setdefault(schema_name, Schema(schema_name))
         schema.tables[table_name] = Table(
             table_name, table_data["description"])
+
     for column_data in columns_data:
         column_name = column_data["column_name"]
         schema = schemas[column_data["schema_name"]]
@@ -64,6 +75,20 @@ def create_schema_from_introspection(tables_data, columns_data) -> Catalog:
             type=map_data_type(column_data["data_type"])
         )
         table.columns[column.name] = column
+
+    for foreign_key_data in foreign_keys_data:
+        source_table = schemas[foreign_key_data["from_schema_name"]
+                               ].tables[foreign_key_data["from_table_name"]]
+        target_schema_name = foreign_key_data["to_schema_name"]
+        target_table_name = foreign_key_data["to_table_name"]
+        foreign_key = next((foreign_key for foreign_key in source_table.foreign_keys if foreign_key.target_schema ==
+                           target_schema_name and foreign_key.target_table == target_table_name), None)
+        if foreign_key is None:
+            foreign_key = ForeignKey(
+                target_schema=target_schema_name, target_table=target_table_name)
+        foreign_key.mapping.append(ForeignKeyMapping(
+            source_column=foreign_key_data["to_column_name"], target_column=foreign_key_data["to_table_name"]))
+
     return Catalog(schemas=schemas)
 
 
@@ -75,7 +100,8 @@ class DdnDataEngine(DataEngine):
     def get_catalog(self) -> Catalog:
         tables = self.execute_sql(TABLES_QUERY)
         columns = self.execute_sql(COLUMNS_QUERY)
-        return create_schema_from_introspection(tables, columns)
+        foreign_keys = self.execute_sql(FOREIGN_KEYS_QUERY)
+        return create_schema_from_introspection(tables, columns, foreign_keys)
 
     def execute_sql(self, sql: str) -> SqlOutput:
         headers = {"Content-type": "application/json"} | self.headers

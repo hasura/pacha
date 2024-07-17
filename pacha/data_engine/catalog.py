@@ -26,6 +26,20 @@ class Table:
     name: str
     description: Optional[str] = None
     columns: dict[str, Column] = field(default_factory=dict)
+    foreign_keys: list['ForeignKey'] = field(default_factory=list)
+
+
+@dataclass
+class ForeignKeyMapping:
+    source_column: str
+    target_column: str
+
+
+@dataclass
+class ForeignKey:
+    target_schema: str
+    target_table: str
+    mapping: list[ForeignKeyMapping] = field(default_factory=list)
 
 
 @dataclass
@@ -57,8 +71,9 @@ When using the RELEVANCE and SIMILARITY functions, always ORDER BY relevance/sim
 If passing a literal of type VECTOR enclose it in single quotes. Eg: '[0.14, 0.1, 0.77, ...]'
 """
 
-# Renders the catalog for an LLM prompt
+
 def render_catalog(catalog: Catalog) -> str:
+    """Renders the catalog for an LLM prompt"""
     rendered = ''
     for schema in catalog.schemas.values():
         for table in schema.tables.values():
@@ -70,6 +85,15 @@ def render_catalog(catalog: Catalog) -> str:
                 rendered += f'"{field.name}" {field.type.name},'
                 if field.description is not None:
                     rendered += f'-- Description: {field.description}'
+                rendered += '\n'
+            for foreign_key in table.foreign_keys:
+                rendered += 'FOREIGN KEY ('
+                rendered += ', '.join(
+                    mapping.source_column for mapping in foreign_key.mapping)
+                rendered += f') REFERENCES {foreign_key.target_schema}.{
+                    foreign_key.target_table}('
+                rendered += ', '.join(
+                    mapping.target_column for mapping in foreign_key.mapping)
                 rendered += '\n'
             rendered += ")\n"
 
