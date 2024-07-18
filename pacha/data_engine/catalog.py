@@ -94,7 +94,7 @@ def render_catalog(catalog: Catalog) -> str:
                     foreign_key.target_table}('
                 rendered += ', '.join(
                     mapping.target_column for mapping in foreign_key.mapping)
-                rendered += '\n'
+                rendered += ')\n'
             rendered += ")\n"
 
     if catalog.semantic_search_enabled:

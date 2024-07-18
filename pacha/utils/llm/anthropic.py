@@ -59,7 +59,7 @@ class Anthropic(Llm):
         messages = [to_message(turn) for turn in chat.turns]
         system_prompt = chat.get_system_prompt()
 
-        get_logger().debug(f"Anthropic Messages: {str(messages)}")
+        get_logger().debug(f"Anthropic System Prompt: {system_prompt}\nMessages: {str(messages)}")
 
         response: Message = self.client.messages.create(
             max_tokens=MAX_TOKENS,

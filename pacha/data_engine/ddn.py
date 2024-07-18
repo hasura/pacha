@@ -86,8 +86,9 @@ def create_schema_from_introspection(tables_data, columns_data, foreign_keys_dat
         if foreign_key is None:
             foreign_key = ForeignKey(
                 target_schema=target_schema_name, target_table=target_table_name)
+            source_table.foreign_keys.append(foreign_key)
         foreign_key.mapping.append(ForeignKeyMapping(
-            source_column=foreign_key_data["to_column_name"], target_column=foreign_key_data["to_table_name"]))
+            source_column=foreign_key_data["from_column_name"], target_column=foreign_key_data["to_column_name"]))
 
     return Catalog(schemas=schemas)
 
