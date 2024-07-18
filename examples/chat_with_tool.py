@@ -5,7 +5,7 @@ from examples.utils.io import (
     ASSISTANT_RESPONSE_COLOR, QUERY_PLAN_COLOR, USER_INPUT_COLOR
 )
 import logging
-from pacha.utils.chat.types import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
+from pacha.utils.chat import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
 from pacha.utils.logging import setup_logger as setup_pacha_logger
 import os
 

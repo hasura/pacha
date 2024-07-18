@@ -1,7 +1,7 @@
 from together import Together
 from together.types.chat_completions import ChatCompletionMessage, MessageRole, ChatCompletionResponse
 
-from pacha.utils.chat.types import Turn, UserTurn, AssistantTurn, Chat
+from pacha.utils.chat import Turn, UserTurn, AssistantTurn, Chat
 from pacha.utils.llm import Llm, LlmException
 from pacha.utils.logging import get_logger
 

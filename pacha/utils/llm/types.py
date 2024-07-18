@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Optional, cast, Union
 
-from pacha.utils.chat.types import Chat, UserTurn, AssistantTurn
+from pacha.utils.chat import Chat, UserTurn, AssistantTurn
 from pacha.utils.tool import Tool
 
 @dataclass

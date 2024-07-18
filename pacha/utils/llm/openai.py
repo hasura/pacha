@@ -9,7 +9,7 @@ from openai.types.chat import (
 import json
 
 from pacha.utils.logging import get_logger
-from pacha.utils.chat.types import Turn, UserTurn, AssistantTurn, ToolResponseTurn, Chat
+from pacha.utils.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, Chat
 from pacha.utils.llm import Llm, LlmException
 from pacha.utils.tool import Tool, ToolCall
 

@@ -6,7 +6,7 @@ from pacha.query_planner.input import QueryPlanningInput
 from pacha.query_planner.data_context import *
 from pacha.query_planner.python_executor import PythonExecutor, PythonExecutorHooks
 from pacha.utils.logging import get_logger
-from pacha.utils.chat.types import Turn, AssistantTurn, UserTurn
+from pacha.utils.chat import Turn, AssistantTurn, UserTurn
 import pacha.utils.llm as llm
 import pacha.utils.llm.llama as llama
 import pacha.utils.llm.openai as openai

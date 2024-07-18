@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from pacha.utils.chat.types import UserTurn, ToolResponseTurn, Chat 
+from pacha.utils.chat import UserTurn, ToolResponseTurn, Chat 
 from pacha.utils.llm import Llm
 from pacha.utils.logging import get_logger
 from pacha.utils.tool import Tool, ToolOutput, ToolCallResponse
