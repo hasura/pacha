@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify, render_template_string, redirect
 from flask_cors import CORS
-from pacha.sdk.chat import PachaChat
 from pacha.utils.llm import Llm
 from pacha.utils.tool import Tool
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
+from examples.chat_server.chat import PachaChat
 from examples.chat_server.threads import Thread, ThreadCreateResponseJson
 
 import uuid

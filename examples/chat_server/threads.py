@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import NotRequired, Optional, TypedDict
-from pacha.data_engine.data_engine import SqlOutput
-from pacha.sdk.chat import PachaChat, PachaChatResponse
+from pacha.data_engine import SqlOutput
+from examples.chat_server.chat import PachaChat, PachaChatResponse
 
 
 class DataFetch(TypedDict):

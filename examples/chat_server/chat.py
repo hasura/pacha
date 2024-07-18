@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional
-from pacha.utils.llm import UserTurn, AssistantTurn, Chat, Llm
-from pacha.utils.llm.types import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
+from pacha.utils.chat.types import UserTurn, ToolResponseTurn, Chat 
+from pacha.utils.llm import Llm
 from pacha.utils.logging import get_logger
-from pacha.utils.tool import Tool, ToolOutput
+from pacha.utils.tool import Tool, ToolOutput, ToolCallResponse
 
 from examples.utils.io import (
     get_python_executor_hooks_for_rendering_to_stdout, output, multi_line_input, Colors, get_query_planner_hooks_for_rendering_to_stdout,

@@ -6,9 +6,11 @@ from pacha.query_planner.input import QueryPlanningInput
 from pacha.query_planner.data_context import *
 from pacha.query_planner.python_executor import PythonExecutor, PythonExecutorHooks
 from pacha.utils.logging import get_logger
+from pacha.utils.chat.types import Turn, AssistantTurn, UserTurn
 import pacha.utils.llm as llm
 import pacha.utils.llm.llama as llama
 import pacha.utils.llm.openai as openai
+
 
 CODE_BEGIN_BACKTICKS = "```\n"
 CODE_BEGIN_BACKTICKS_PYTHON = "```python\n"
@@ -35,12 +37,12 @@ class QueryPlannerException(Exception):
         super().__init__(message)
 
 
-def get_previous_turns(data_context: Optional[DataContext]) -> list[llm.Turn]:
+def get_previous_turns(data_context: Optional[DataContext]) -> list[Turn]:
     if data_context is None or data_context.data is None or data_context.data.error is None:
         return []
     turns = get_previous_turns(data_context.previous_try)
-    turns.append(llm.AssistantTurn(text=data_context.query_plan.raw))
-    turns.append(llm.UserTurn(text=
+    turns.append(AssistantTurn(text=data_context.query_plan.raw))
+    turns.append(UserTurn(text=
                  f'Your script generated the following error. Fix it.\n {data_context.data.error}'))
 
     return turns
@@ -84,9 +86,9 @@ class QueryPlanner:
 
         previous_turns_length = 0
         for turn in turns:
-            if isinstance(turn, llm.UserTurn):
+            if isinstance(turn, UserTurn):
                 previous_turns_length += len(turn.text)
-            elif isinstance(turn, llm.AssistantTurn) and turn.text is not None:
+            elif isinstance(turn, AssistantTurn) and turn.text is not None:
                 previous_turns_length += len(turn.text)
 
         user_prompt_limit = TOTAL_PROMPT_LIMIT - \
@@ -97,7 +99,7 @@ class QueryPlanner:
             user_prompt_limit, MAX_CONVERSATION_HISTORY_TURNS)
 
         turns = [
-            llm.UserTurn(text=user_prompt)
+            UserTurn(text=user_prompt)
         ] + turns
 
         output = self.planner_llm.get_assistant_turn(
