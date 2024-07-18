@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from pacha.utils.chat import UserTurn, ToolResponseTurn, Chat 
+from pacha.utils.chat import UserTurn, ToolResponseTurn, Chat
 from pacha.utils.llm import Llm
 from pacha.utils.logging import get_logger
 from pacha.utils.tool import Tool, ToolOutput, ToolCallResponse
@@ -42,22 +42,22 @@ class PachaChatResponse:
 @dataclass
 class PachaChat:
     llm: Llm
-    tools: list[Tool]
-    chat: Chat
     pacha_tool: Tool
+    chat: Chat
+    tools: list[Tool]
 
     def __init__(self,
                  llm: Llm,
+                 pacha_tool: Tool,
                  system_prompt: Optional[str] = None,
-                 tools: list[Tool] = []):
+                 ):
         self.llm = llm
-        self.tools = tools
+        self.pacha_tool = pacha_tool
         if system_prompt is None:
             system_prompt = "You are a helpful assistant."
         self.chat = Chat(
             system_prompt=SYSTEM_PROMPT_TEMPLATE.format(instructions=system_prompt))
-        self.pacha_tool = next(
-            (t for t in tools if t.name() == "pacha"), None)
+        self.tools = [self.pacha_tool]
 
     def process_chat(self, user_query: str) -> PachaChatResponse:
         self.chat.add_turn(UserTurn(user_query))
@@ -79,7 +79,6 @@ class PachaChat:
                     call_id=tool_call.call_id, output=tool_output))
                 tool_input_output.append((str(tool_call.input), tool_output))
             else:
-                # TODO: handle non pacha tool call
                 output("Error", Colors.RED, "Invalid tool call")
                 raise Exception("Invalid tool call")
 

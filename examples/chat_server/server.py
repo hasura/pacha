@@ -69,7 +69,7 @@ def start_thread():
     data = request.json
     thread_id = str(uuid.uuid4())
     thread = Thread(id=thread_id, chat=PachaChat(
-        llm=LLM, tools=[PACHA_TOOL], system_prompt=SYSTEM_PROMPT))
+        llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT))
     threads[thread_id] = thread
     json_response: ThreadCreateResponseJson = {
         "thread_id": thread_id
