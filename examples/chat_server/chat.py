@@ -36,7 +36,7 @@ MAX_DATA_CONTEXT_LENGTH = 4000
 class PachaChatResponse:
     # optional list of tool (input, output)
     tool_responses: Optional[list[tuple[str, ToolOutput]]]
-    llm_response: str
+    llm_responses: list[str]
 
 
 @dataclass
@@ -61,32 +61,40 @@ class PachaChat:
 
     def process_chat(self, user_query: str) -> PachaChatResponse:
         self.chat.add_turn(UserTurn(user_query))
-        get_logger().info("Calling Assistant...")
-        assistant_turn = self.llm.get_assistant_turn(
-            self.chat, tools=self.tools, temperature=0)
-        self.chat.add_turn(assistant_turn)
-        tool_call_responses = []
         tool_input_output = []  # list of tool (input, output)
-        if assistant_turn.text is not None:
-            output("Assistant", ASSISTANT_RESPONSE_COLOR, assistant_turn.text)
-        for tool_call in assistant_turn.tool_calls:
-            if tool_call.name == self.pacha_tool.name():
-                output("Pacha Input", QUERY_PLAN_COLOR, str(tool_call.input))
-                tool_output = self.pacha_tool.execute(tool_call.input)
-                output("Pacha Output", QUERY_PLAN_COLOR,
-                       tool_output.get_response())
-                tool_call_responses.append(ToolCallResponse(
-                    call_id=tool_call.call_id, output=tool_output))
-                tool_input_output.append((str(tool_call.input), tool_output))
-            else:
-                output("Error", Colors.RED, "Invalid tool call")
-                raise Exception("Invalid tool call")
+        assistant_texts = []  # list of all assistant turn texts
 
-        if len(tool_call_responses) > 0:
-            self.chat.add_turn(ToolResponseTurn(calls=tool_call_responses))
+        while True:
+            get_logger().info("Calling Assistant...")
             assistant_turn = self.llm.get_assistant_turn(
                 self.chat, tools=self.tools, temperature=0)
             self.chat.add_turn(assistant_turn)
 
-        assert (assistant_turn.text is not None)
-        return PachaChatResponse(tool_input_output, assistant_turn.text)
+            if assistant_turn.text is not None:
+                output("Assistant", ASSISTANT_RESPONSE_COLOR,
+                       assistant_turn.text)
+                assistant_texts.append(assistant_turn.text)
+
+            if not assistant_turn.tool_calls:
+                break  # Exit the loop if there are no tool calls
+
+            tool_call_responses = []
+            for tool_call in assistant_turn.tool_calls:
+                if tool_call.name == self.pacha_tool.name():
+                    output("Pacha Input", QUERY_PLAN_COLOR,
+                           str(tool_call.input))
+                    tool_output = self.pacha_tool.execute(tool_call.input)
+                    output("Pacha Output", QUERY_PLAN_COLOR,
+                           tool_output.get_response())
+                    tool_call_responses.append(ToolCallResponse(
+                        call_id=tool_call.call_id, output=tool_output))
+                    tool_input_output.append(
+                        (str(tool_call.input), tool_output))
+                else:
+                    output("Error", Colors.RED, "Invalid tool call")
+                    raise Exception("Invalid tool call")
+
+            self.chat.add_turn(ToolResponseTurn(calls=tool_call_responses))
+
+        assert assistant_texts, "No assistant responses received"
+        return PachaChatResponse(tool_input_output, assistant_texts)

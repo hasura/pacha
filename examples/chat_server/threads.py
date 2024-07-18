@@ -61,7 +61,7 @@ class ThreadMessage:
 
     def response_to_json(self) -> MessageResponseJson:
         response_json: MessageResponseJson = {
-            "response": self.pacha_response.llm_response,
+            "response": self.pacha_response.llm_responses,
             "query_plan": list(map(self.get_input, self.pacha_response.tool_responses)),
             "query_plan_output": list(map(self.get_output, self.pacha_response.tool_responses)),
             # flatten list of lists
