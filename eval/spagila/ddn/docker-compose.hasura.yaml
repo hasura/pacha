@@ -1,3 +1,5 @@
+include:
+  - path: default/connector/spagila/docker-compose.spagila.yaml
 services:
   auth_hook:
     image: ghcr.io/hasura/v3-dev-auth-webhook
@@ -9,7 +11,9 @@ services:
   engine:
     build:
       context: engine
-      dockerfile: Dockerfile
+      dockerfile_inline: |-
+        FROM ghcr.io/hasura/v3-engine
+        COPY ./ /md/
       pull: false
     develop:
       watch:
