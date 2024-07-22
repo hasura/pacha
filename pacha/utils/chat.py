@@ -3,7 +3,24 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Optional, cast, Union
 import copy
-from pacha.utils.tool import ToolCall, ToolCallResponse
+from pacha.utils.tool import ToolOutput
+
+
+# ToolCall and ToolCallResponse are here instead of pacha/utils/tool.py intentionally.
+# Tool calls are less about the tool and more about the chat itself 
+# (i.e. tool calls with IDs always happen in the context of a chat)
+
+@dataclass
+class ToolCall:
+    name: str
+    call_id: str
+    input: Any
+
+
+@dataclass
+class ToolCallResponse:
+    call_id: str
+    output: ToolOutput
 
 
 @dataclass

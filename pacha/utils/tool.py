@@ -3,13 +3,6 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 
-@dataclass
-class ToolCall:
-    name: str
-    call_id: str
-    input: Any
-
-
 class ToolOutput(ABC):
     @abstractmethod
     def get_response(self) -> str:
@@ -40,12 +33,6 @@ class Tool(ABC):
     @abstractmethod
     def system_prompt_fragment(self) -> str:
         ...
-
-
-@dataclass
-class ToolCallResponse:
-    call_id: str
-    output: ToolOutput
 
 
 @dataclass
