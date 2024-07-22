@@ -2,8 +2,9 @@ from dataclasses import dataclass
 from typing import Optional
 from pacha.utils.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCallResponse
 from pacha.utils.llm import Llm
-from pacha.utils.logging import get_logger
 from pacha.utils.tool import Tool, ToolOutput
+
+import logging
 
 
 @dataclass
@@ -44,6 +45,7 @@ class PachaChat:
         self.tools = [self.pacha_tool]
 
     def process_chat(self, user_query: str) -> PachaChatResponse:
+        logger = logging.getLogger('examples.chat_server.server') # get flask's app.logger
         self.chat.add_turn(UserTurn(user_query))
         response_messages = []  # list of all assistant turn texts and tool calls
 
@@ -59,16 +61,20 @@ class PachaChat:
             tool_call_responses = []
             for tool_call in assistant_turn.tool_calls:
                 if tool_call.name == self.pacha_tool.name():
+                    logger.debug(
+                        'called pacha tool with input: %s', tool_call.input)
                     tool_output = self.pacha_tool.execute(tool_call.input)
                     tool_calls.append(ToolCallMessage(
                         str(tool_call.input), tool_output))
                     tool_call_responses.append(ToolCallResponse(
                         call_id=tool_call.call_id, output=tool_output))
+                    logger.debug('pacha tool output: %s', tool_output)
                 else:
                     raise Exception("Invalid tool call")
 
             self.chat.add_turn(ToolResponseTurn(calls=tool_call_responses))
-            assistant_message = AssistantMessage(text=assistant_turn.text, tool_calls=tool_calls)
+            assistant_message = AssistantMessage(
+                text=assistant_turn.text, tool_calls=tool_calls)
             response_messages.append(assistant_message)
 
         assert response_messages, "No response received"

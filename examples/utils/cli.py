@@ -44,12 +44,13 @@ def add_tool_args(parser: argparse.ArgumentParser):
     add_data_engine_args(parser)
     parser.add_argument('-t', '--tool', type=str,
                         choices=['nl', 'sql', 'python'], default='python')
-    
+
+
 def add_auth_args(parser: argparse.ArgumentParser):
     parser.add_argument('-k', '--secret-key', type=str)
 
 
-def get_pacha_tool(args) -> Tool:
+def get_pacha_tool(args, render_to_stdout=True) -> Tool:
     data_engine = get_data_engine(args)
     if args.tool == 'nl':
         return PachaNlTool(query_planner=QueryPlanner(
@@ -58,8 +59,11 @@ def get_pacha_tool(args) -> Tool:
     elif args.tool == 'sql':
         return PachaSqlTool(data_engine=data_engine)
     elif args.tool == 'python':
-        return PachaPythonTool(
-            data_engine=data_engine, hooks=get_python_executor_hooks_for_rendering_to_stdout())
+        if render_to_stdout:
+            return PachaPythonTool(
+                data_engine=data_engine, hooks=get_python_executor_hooks_for_rendering_to_stdout())
+        else:
+            return PachaPythonTool(data_engine=data_engine)
     else:
         print("Invalid tool choice")
         exit(1)
@@ -68,6 +72,7 @@ def get_pacha_tool(args) -> Tool:
 def add_llm_args(parser: argparse.ArgumentParser):
     parser.add_argument('--llm', type=str,
                         choices=['openai', 'anthropic'], default='anthropic')
+
 
 def get_llm(args) -> Llm:
     if args.llm == 'openai':

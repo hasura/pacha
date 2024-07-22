@@ -8,6 +8,8 @@ from examples.chat_server.threads import Thread, ThreadCreateResponseJson
 
 import uuid
 import argparse
+import os
+import json
 
 
 app = Flask(__name__)
@@ -79,6 +81,7 @@ def start_thread():
         if message is not None:
             json_response["response"] = thread.send(message).response_to_json()
 
+    app.logger.debug('Response: %s', json.dumps(json_response))
     return jsonify(json_response), 201
 
 
@@ -92,7 +95,9 @@ def send_message(thread_id):
     if isinstance(data, dict):
         message = data.get('message')
         if message is not None:
-            return jsonify(thread.send(message).response_to_json()), 200
+            json_response = thread.send(message).response_to_json()
+            app.logger.debug('Response: %s', json.dumps(json_response))
+            return jsonify(json_response), 200
 
     return jsonify({"error": "invalid input"}), 400
 
@@ -124,6 +129,8 @@ def redirect_home():
 def main():
     global LLM
     global PACHA_TOOL
+    log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
+    app.logger.setLevel(log_level)
     parser = argparse.ArgumentParser(
         description='Pacha Chat Server')
     add_auth_args(parser)
@@ -131,7 +138,7 @@ def main():
     add_tool_args(parser)
     args = parser.parse_args()
     init_auth(args.secret_key)
-    PACHA_TOOL = get_pacha_tool(args)
+    PACHA_TOOL = get_pacha_tool(args, render_to_stdout=False)
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
     app.run()
