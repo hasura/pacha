@@ -9,21 +9,20 @@ class DataFetch(TypedDict):
     result: SqlOutput
 
 
-class MessageResponseJson(TypedDict):
-    response: str
-    query_plan: Optional[list[str]]
-    query_plan_output: Optional[list[str]]
+class MessageJson(TypedDict):
+    text : str
+    query_plan: Optional[str]
+    query_plan_output: Optional[str]
     data_fetches: NotRequired[list[DataFetch]]
 
 
 class ThreadCreateResponseJson(TypedDict):
     thread_id: str
-    response: NotRequired[MessageResponseJson]
+    messages: NotRequired[list[MessageJson]]
 
 
 class ThreadMessageJson(TypedDict):
-    message: str
-    response: MessageResponseJson
+    messages: list[MessageJson]
 
 
 class ThreadJson(TypedDict):
@@ -42,32 +41,37 @@ class ThreadMessage:
             "response": self.response_to_json()
         }
 
-    def get_input(self, tool_response):
-        tool_input = tool_response[0]
+    def get_input(self, tool_call):
+        tool_input = tool_call.input
         return tool_input
 
-    def get_output(self, tool_response):
-        tool_output = tool_response[1]
+    def get_output(self, tool_call):
+        tool_output = tool_call.output
         return tool_output.get_response()
 
-    def get_sql(self, tool_response):
-        tool_output = tool_response[1]
+    def get_sql(self, tool_call):
+        tool_output = tool_call.output
         data_fetches = []
         for sql_statement in tool_output.sql_statements:
             data_fetches.append({
                 "sql": sql_statement.sql,
                 "response": sql_statement.result})
         return data_fetches
-
-    def response_to_json(self) -> MessageResponseJson:
-        response_json: MessageResponseJson = {
-            "response": self.pacha_response.llm_responses,
-            "query_plan": list(map(self.get_input, self.pacha_response.tool_responses)),
-            "query_plan_output": list(map(self.get_output, self.pacha_response.tool_responses)),
-            # flatten list of lists
-            "data_fetches": sum(map(self.get_sql, self.pacha_response.tool_responses), [])
-        }
-        return response_json
+    
+    
+    def response_to_json(self) -> ThreadMessageJson:
+        messages: list[MessageJson] = []
+        for message in self.pacha_response.response_messages:
+            
+          message_json: MessageJson = {
+            "text": message.text,
+            "query_plan": list(map(self.get_input, message.tool_calls)),
+            "query_plan_output": list(map(self.get_output, message.tool_calls)),
+            "data_fetches": sum(map(self.get_sql, message.tool_calls), []) # flatten list of lists
+            }
+          
+          messages.append(message_json)
+        return messages
 
 
 @dataclass
