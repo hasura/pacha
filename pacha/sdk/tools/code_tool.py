@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Optional
 from pacha.data_engine.catalog import Catalog
 from pacha.data_engine.data_engine import DataEngine
@@ -51,6 +51,9 @@ class PythonToolOutput(ToolOutput):
 
     def get_error(self) -> Optional[str]:
         return self.error
+    
+    def get_output_as_dict(self) -> dict:
+        return asdict(self)
 
 
 @dataclass

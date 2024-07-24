@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from typing import NotRequired, Optional, TypedDict
 from examples.chat_server.chat import PachaChat, PachaChatResponse, AssistantMessage, ToolCallMessage
 
@@ -31,7 +31,7 @@ class ThreadJson(TypedDict):
 def tool_call_to_json(tool_call: ToolCallMessage)-> ToolCallMessageJson:
     return {
         "input": tool_call.input,
-        "output": asdict(tool_call.output)
+        "output": tool_call.output.get_output_as_dict()
     }
 
 def assistant_message_to_json(message: AssistantMessage) -> AssistantMessageJson:
