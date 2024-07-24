@@ -89,3 +89,6 @@ class PachaPythonTool(Tool):
 
     def system_prompt_fragment(self) -> str:
         return SYSTEM_PROMPT_FRAGMENT_TEMPLATE.format(tool_name=self.name(), catalog=self.catalog.render_for_prompt())
+
+    def input_as_text(self, input) -> str:
+        return input.get(CODE_ARGUMENT_NAME, "")

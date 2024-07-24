@@ -21,7 +21,7 @@ class AssistantMessage:
 
 @dataclass
 class PachaChatResponse:
-    response_messages: list[AssistantMessage]
+    assistant_messages: list[AssistantMessage]
 
 
 @dataclass
@@ -29,7 +29,6 @@ class PachaChat:
     llm: Llm
     pacha_tool: Tool
     chat: Chat
-    tools: list[Tool]
 
     def __init__(self,
                  llm: Llm,
@@ -42,16 +41,16 @@ class PachaChat:
             system_prompt = "You are a helpful assistant."
         self.chat = Chat(
             system_prompt=system_prompt)
-        self.tools = [self.pacha_tool]
 
     def process_chat(self, user_query: str) -> PachaChatResponse:
-        logger = logging.getLogger('examples.chat_server.server') # get flask's app.logger
+        # get flask's app.logger
+        logger = logging.getLogger('examples.chat_server.server')
         self.chat.add_turn(UserTurn(user_query))
         response_messages = []  # list of all assistant turn texts and tool calls
 
         while True:
             assistant_turn = self.llm.get_assistant_turn(
-                self.chat, tools=self.tools, temperature=0)
+                self.chat, tools=[self.pacha_tool], temperature=0)
             self.chat.add_turn(assistant_turn)
 
             if not assistant_turn.tool_calls:
@@ -65,7 +64,7 @@ class PachaChat:
                         'called pacha tool with input: %s', tool_call.input)
                     tool_output = self.pacha_tool.execute(tool_call.input)
                     tool_calls.append(ToolCallMessage(
-                        str(tool_call.input), tool_output))
+                        self.pacha_tool.input_as_text(tool_call.input), tool_output))
                     tool_call_responses.append(ToolCallResponse(
                         call_id=tool_call.call_id, output=tool_output))
                     logger.debug('pacha tool output: %s', tool_output)

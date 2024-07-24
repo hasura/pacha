@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Optional
 
-
+@dataclass
 class ToolOutput(ABC):
     @abstractmethod
     def get_response(self) -> str:
@@ -32,6 +32,10 @@ class Tool(ABC):
 
     @abstractmethod
     def system_prompt_fragment(self) -> str:
+        ...
+        
+    @abstractmethod
+    def input_as_text(self, input) -> str:
         ...
 
 

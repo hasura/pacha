@@ -22,7 +22,7 @@ threads: dict[str, Thread] = {}
 # will be initialized in main
 SECRET_KEY = None
 LLM: Llm = None  # type: ignore
-PACHA_TOOL: Tool = None
+PACHA_TOOL: Tool = None  # type: ignore
 SYSTEM_PROMPT: str | None = None
 
 
@@ -79,7 +79,7 @@ def start_thread():
     if isinstance(data, dict):
         message = data.get('message')
         if message is not None:
-            json_response["response"] = thread.send(message).response_to_json()
+            json_response["response"] = thread.send(message).to_json()
 
     app.logger.debug('Response: %s', json.dumps(json_response))
     return jsonify(json_response), 201
@@ -95,7 +95,7 @@ def send_message(thread_id):
     if isinstance(data, dict):
         message = data.get('message')
         if message is not None:
-            json_response = thread.send(message).response_to_json()
+            json_response = thread.send(message).to_json()
             app.logger.debug('Response: %s', json.dumps(json_response))
             return jsonify(json_response), 200
 
@@ -114,7 +114,7 @@ def serve_console():
     </head>
     <body>
         <h1>Welcome</h1>
-        <p>This is a dynamically generated page using Flask.</p>
+        <p>Head to <a href='https://console.hasura.io/local/chat'>https://console.hasura.io/local/chat</a></p>
     </body>
     </html>
     """
