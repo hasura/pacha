@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, TypedDict
 from pacha.utils.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCallResponse
 from pacha.utils.llm import Llm
 from pacha.utils.tool import Tool, ToolOutput
@@ -7,16 +7,43 @@ from pacha.utils.tool import Tool, ToolOutput
 import logging
 
 
+class ToolCallMessageJson(TypedDict):
+    input: str
+    output: dict
+
+
 @dataclass
 class ToolCallMessage:
     input: str
     output: ToolOutput
+
+    def to_json(self) -> ToolCallMessageJson:
+        return {
+            "input": self.input,
+            "output": self.output.get_output_as_dict()
+        }
+
+
+class AssistantMessageJson(TypedDict):
+    text: Optional[str]
+    tool_calls: list[ToolCallMessageJson]
 
 
 @dataclass
 class AssistantMessage:
     text: Optional[str]
     tool_calls: Optional[list[ToolCallMessage]]
+
+    def to_json(self) -> AssistantMessageJson:
+        tool_calls_json: list[ToolCallMessageJson]
+        if self.tool_calls is None:
+            tool_calls_json = []
+        else:
+            tool_calls_json = list(map(lambda m: m.to_json(), self.tool_calls))
+        return {
+            "text": self.text,
+            "tool_calls": tool_calls_json
+        }
 
 
 @dataclass

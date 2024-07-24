@@ -1,16 +1,6 @@
 from dataclasses import dataclass, field
 from typing import NotRequired, Optional, TypedDict
-from examples.chat_server.chat import PachaChat, PachaChatResponse, AssistantMessage, ToolCallMessage
-
-
-class ToolCallMessageJson(TypedDict):
-    input: str
-    output: dict
-
-
-class AssistantMessageJson(TypedDict):
-    text: Optional[str]
-    tool_calls: list[ToolCallMessageJson]
+from examples.chat_server.chat import PachaChat, PachaChatResponse, AssistantMessageJson
 
 
 class ThreadMessageJson(TypedDict):
@@ -28,24 +18,6 @@ class ThreadJson(TypedDict):
     history: NotRequired[list[ThreadMessageJson]]
 
 
-def tool_call_to_json(tool_call: ToolCallMessage)-> ToolCallMessageJson:
-    return {
-        "input": tool_call.input,
-        "output": tool_call.output.get_output_as_dict()
-    }
-
-def assistant_message_to_json(message: AssistantMessage) -> AssistantMessageJson:
-    tool_calls_json: list[ToolCallMessageJson]
-    if message.tool_calls is None:
-        tool_calls_json = []
-    else:
-        tool_calls_json = list(map(tool_call_to_json, message.tool_calls))    
-    return {
-        "text": message.text,
-        "tool_calls": tool_calls_json
-    }
-
-
 @dataclass
 class ThreadMessage:
     user_message: str
@@ -54,7 +26,7 @@ class ThreadMessage:
     def to_json(self) -> ThreadMessageJson:
         return {
             "user_message": self.user_message,
-            "assistant_messages": list(map(assistant_message_to_json, self.pacha_response.assistant_messages))
+            "assistant_messages": list(map(lambda m: m.to_json(), self.pacha_response.assistant_messages))
         }
 
 
