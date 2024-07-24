@@ -23,7 +23,7 @@ threads: dict[str, Thread] = {}
 SECRET_KEY = None
 LLM: Llm = None  # type: ignore
 PACHA_TOOL: Tool = None  # type: ignore
-SYSTEM_PROMPT: str | None = None
+SYSTEM_PROMPT: str = "You are a helpful assistant"
 
 
 def init_system_prompt(pacha_tool):

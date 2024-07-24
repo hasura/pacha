@@ -33,14 +33,11 @@ class PachaChat:
     def __init__(self,
                  llm: Llm,
                  pacha_tool: Tool,
-                 system_prompt: Optional[str] = None,
+                 system_prompt: str,
                  ):
         self.llm = llm
         self.pacha_tool = pacha_tool
-        if system_prompt is None:
-            system_prompt = "You are a helpful assistant."
-        self.chat = Chat(
-            system_prompt=system_prompt)
+        self.chat = Chat(system_prompt=system_prompt)
 
     def process_chat(self, user_query: str) -> PachaChatResponse:
         # get flask's app.logger
