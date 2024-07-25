@@ -1,15 +1,25 @@
 from dataclasses import dataclass
-from typing import Optional, TypedDict
-from pacha.utils.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCallResponse
+from typing import Optional, TypedDict, cast
+from pacha.utils.chat import UserTurn, ToolResponseTurn, Chat, ToolCallResponse
+from pacha.sdk.tools import PythonToolOutput, PythonToolOutputJson, SqlToolOutput, SqlToolOutputJson
 from pacha.utils.llm import Llm
 from pacha.utils.tool import Tool, ToolOutput
+from pacha.data_engine.data_engine import SqlOutput, SqlStatement
 
 import logging
 
 
-class ToolCallMessageJson(TypedDict):
-    input: str
-    output: dict
+class PythonToolCallMessageJson(TypedDict):
+    python_code: str
+    output: PythonToolOutputJson
+
+
+class SqlToolCallMessageJson(TypedDict):
+    sql: str
+    output: SqlToolOutputJson
+
+
+ToolCallMessageJson = PythonToolCallMessageJson | SqlToolCallMessageJson
 
 
 @dataclass
@@ -18,10 +28,30 @@ class ToolCallMessage:
     output: ToolOutput
 
     def to_json(self) -> ToolCallMessageJson:
-        return {
-            "input": self.input,
-            "output": self.output.get_output_as_dict()
-        }
+        output_dict = self.output.get_output_as_dict()
+        if isinstance(self.output, PythonToolOutput):
+            python_tool_output = cast(PythonToolOutputJson, output_dict)
+            return PythonToolCallMessageJson(
+                python_code=self.input,
+                # Note: We explicitly construct the output json again for type hints
+                output=PythonToolOutputJson(
+                    output=python_tool_output["output"],
+                    error=python_tool_output["error"],
+                    sql_statements=python_tool_output["sql_statements"]
+                )
+            )
+        elif isinstance(self.output, SqlToolOutput):
+            sql_tool_output = cast(SqlToolOutputJson, output_dict)
+            return SqlToolCallMessageJson(
+                sql=self.input,
+                # Note: We explicitly construct the output json again for type hints
+                output=SqlToolOutputJson(
+                    output=sql_tool_output["output"],
+                    error=sql_tool_output["error"]
+                )
+            )
+        else:
+            raise TypeError("Unsupported ToolOutput type")
 
 
 class AssistantMessageJson(TypedDict):

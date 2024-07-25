@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, asdict
-from typing import Optional
+from typing import Optional, TypedDict, NotRequired, cast
 from pacha.data_engine.catalog import Catalog
 from pacha.data_engine.data_engine import DataEngine
 from pacha.query_planner.data_context import SqlStatement
@@ -37,6 +37,12 @@ executor.output(f'{min_date'})
 """
 
 
+class PythonToolOutputJson(TypedDict):
+    output: str
+    error: Optional[str]
+    sql_statements: list[SqlStatement]
+
+
 @dataclass
 class PythonToolOutput(ToolOutput):
     output: str
@@ -51,9 +57,9 @@ class PythonToolOutput(ToolOutput):
 
     def get_error(self) -> Optional[str]:
         return self.error
-    
-    def get_output_as_dict(self) -> dict:
-        return asdict(self)
+
+    def get_output_as_dict(self) -> PythonToolOutputJson:
+        return cast(PythonToolOutputJson, asdict(self))
 
 
 @dataclass
