@@ -5,13 +5,22 @@ from pacha.data_engine.catalog import Catalog
 
 SqlOutput = list[dict[str, Any]]
 
+
+@dataclass
+class SqlStatement:
+    sql: str
+    result: SqlOutput
+
+
 def noop(*args, **kwargs):
     pass
+
 
 @dataclass
 class SqlHooks(ABC):
     on_sql_request: Callable[[str], None] = noop
     on_sql_response: Callable[[SqlOutput], None] = noop
+
 
 class DataEngine(ABC):
     @abstractmethod
@@ -21,4 +30,3 @@ class DataEngine(ABC):
     @abstractmethod
     def execute_sql(self, sql: str) -> SqlOutput:
         ...
-

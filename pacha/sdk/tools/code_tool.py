@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass, field, asdict
+from typing import Optional, TypedDict, NotRequired, cast
 from pacha.data_engine.catalog import Catalog
 from pacha.data_engine.data_engine import DataEngine
 from pacha.query_planner.data_context import SqlStatement
@@ -37,6 +37,12 @@ executor.output(f'{min_date'})
 """
 
 
+class PythonToolOutputJson(TypedDict):
+    output: str
+    error: Optional[str]
+    sql_statements: list[SqlStatement]
+
+
 @dataclass
 class PythonToolOutput(ToolOutput):
     output: str
@@ -51,6 +57,9 @@ class PythonToolOutput(ToolOutput):
 
     def get_error(self) -> Optional[str]:
         return self.error
+
+    def get_output_as_dict(self) -> PythonToolOutputJson:
+        return cast(PythonToolOutputJson, asdict(self))
 
 
 @dataclass
@@ -89,3 +98,6 @@ class PachaPythonTool(Tool):
 
     def system_prompt_fragment(self) -> str:
         return SYSTEM_PROMPT_FRAGMENT_TEMPLATE.format(tool_name=self.name(), catalog=self.catalog.render_for_prompt())
+
+    def input_as_text(self, input) -> str:
+        return input.get(CODE_ARGUMENT_NAME, "")

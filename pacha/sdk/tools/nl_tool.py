@@ -35,3 +35,6 @@ class PachaNlTool(Tool):
 
     def system_prompt_fragment(self) -> str:
         return ""
+    
+    def input_as_text(self, input) -> str:
+        return input.get(QUERY_ARGUMENT_NAME, "")

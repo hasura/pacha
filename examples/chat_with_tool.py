@@ -1,13 +1,11 @@
 import argparse
 from examples.utils.cli import add_llm_args, add_tool_args, get_data_engine, get_llm, get_pacha_tool
-from pacha.query_planner import QueryPlanner
 from examples.utils.io import (
     get_python_executor_hooks_for_rendering_to_stdout, output, multi_line_input, Colors, get_query_planner_hooks_for_rendering_to_stdout,
     ASSISTANT_RESPONSE_COLOR, QUERY_PLAN_COLOR, USER_INPUT_COLOR
 )
 import logging
-from pacha.sdk.tools import PachaNlTool, PachaPythonTool, PachaSqlTool
-from pacha.utils.llm.types import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
+from pacha.utils.chat import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
 from pacha.utils.logging import setup_logger as setup_pacha_logger
 import os
 

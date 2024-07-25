@@ -1,17 +1,12 @@
 from dataclasses import dataclass, field
 from typing import Any, Optional
+from pacha.data_engine.data_engine import SqlStatement
 
 
 @dataclass
 class QueryPlan:
     raw: str
     python_code: Optional[str] = None
-
-
-@dataclass
-class SqlStatement:
-    sql: str
-    result: list[dict[str, Any]]
 
 
 @dataclass

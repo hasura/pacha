@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Any, Optional
 
 
+@dataclass
 class ToolOutput(ABC):
     @abstractmethod
     def get_response(self) -> str:
@@ -10,6 +11,10 @@ class ToolOutput(ABC):
 
     @abstractmethod
     def get_error(self) -> Optional[str]:
+        ...
+
+    @abstractmethod
+    def get_output_as_dict(self) -> dict:
         ...
 
 
@@ -34,6 +39,10 @@ class Tool(ABC):
     def system_prompt_fragment(self) -> str:
         ...
 
+    @abstractmethod
+    def input_as_text(self, input) -> str:
+        ...
+
 
 @dataclass
 class StringToolOutput(ToolOutput):
@@ -44,3 +53,6 @@ class StringToolOutput(ToolOutput):
 
     def get_error(self) -> Optional[str]:
         return None
+
+    def get_output_as_dict(self) -> dict:
+        return asdict(self)

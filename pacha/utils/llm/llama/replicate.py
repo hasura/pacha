@@ -1,7 +1,8 @@
 import replicate
 
 from pacha.utils.logging import get_logger
-from pacha.utils.llm.types import AssistantTurn, LlmException, Turn, Chat, Llm, UserTurn
+from pacha.utils.chat import Turn, UserTurn, AssistantTurn, Chat
+from pacha.utils.llm import Llm, LlmException
 
 LLAMA_MODEL_REPLICATE = "meta/meta-llama-3-70b-instruct"
 
