@@ -1,10 +1,10 @@
 from typing import Optional
 import anthropic
 from anthropic.types import Message, MessageParam, ToolParam
-from pacha.utils.chat import Chat, Turn, ToolCall, UserTurn, AssistantTurn, ToolResponseTurn
+from pacha.sdk.chat import Chat, Turn, ToolCall, UserTurn, AssistantTurn, ToolResponseTurn
+from pacha.sdk.llms.llm import Llm
+from pacha.sdk.tools.tool import Tool
 from pacha.utils.logging import get_logger
-from pacha.utils.llm import Llm
-from pacha.utils.tool import Tool
 
 MODEL = "claude-3-5-sonnet-20240620"
 MAX_TOKENS = 1024
@@ -37,12 +37,12 @@ def to_message(turn: Turn) -> MessageParam:
         }
     elif isinstance(turn, ToolResponseTurn):
         content = []
-        for call in turn.calls:
+        for response in turn.responses:
             content.append({
                 "type": "tool_result",
-                "tool_use_id": call.call_id,
-                "content": [{"type": "text", "text": call.output.get_response()}],
-                "is_error": call.output.get_error() is not None
+                "tool_use_id": response.call_id,
+                "content": [{"type": "text", "text": response.output.get_response()}],
+                "is_error": response.output.get_error() is not None
             })
         return {
             "role": "user",
@@ -55,7 +55,7 @@ class Anthropic(Llm):
     def __init__(self, *args, **kwargs):
         self.client = anthropic.Anthropic(*args, **kwargs)
 
-    def get_assistant_turn(self, chat: Chat, tools=list[Tool], temperature: Optional[float] = None) -> AssistantTurn:
+    def get_assistant_turn(self, chat: Chat, tools: list[Tool] = [], temperature: Optional[float] = None) -> AssistantTurn:
         messages = [to_message(turn) for turn in chat.turns]
         system_prompt = chat.get_system_prompt()
 

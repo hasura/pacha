@@ -6,10 +6,10 @@ from pacha.query_planner.input import QueryPlanningInput
 from pacha.query_planner.data_context import *
 from pacha.query_planner.python_executor import PythonExecutor, PythonExecutorHooks
 from pacha.utils.logging import get_logger
-from pacha.utils.chat import Turn, AssistantTurn, UserTurn
-import pacha.utils.llm as llm
-import pacha.utils.llm.llama as llama
-import pacha.utils.llm.openai as openai
+from pacha.sdk.chat import Turn, AssistantTurn, UserTurn
+import pacha.sdk.llms.llm as llm
+import pacha.sdk.llms.llama as llama
+import pacha.sdk.llms.openai as openai
 
 
 CODE_BEGIN_BACKTICKS = "```\n"

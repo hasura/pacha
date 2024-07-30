@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional
 
 from pacha.data_engine.data_engine import SqlHooks
-from pacha.query_planner import QueryPlannerHooks, QueryPlan, DataContext
+from pacha.query_planner.query_planner import QueryPlannerHooks, QueryPlan, DataContext
 from pacha.data_engine import SqlOutput
 from pacha.query_planner.python_executor import PythonExecutorHooks
 

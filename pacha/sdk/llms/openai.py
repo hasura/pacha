@@ -7,11 +7,11 @@ from openai.types.chat import (
     ChatCompletionMessageToolCallParam
 )
 import json
-
+from typing import Optional
 from pacha.utils.logging import get_logger
-from pacha.utils.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCall
-from pacha.utils.llm import Llm, LlmException
-from pacha.utils.tool import Tool
+from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCall
+from pacha.sdk.llms.llm import Llm, LlmException
+from pacha.sdk.tools.tool import Tool
 
 MODEL = "gpt-4o"
 
@@ -45,11 +45,11 @@ def to_messages(turn: Turn) -> list[ChatCompletionMessageParam]:
         return [assistant_message]
     elif isinstance(turn, ToolResponseTurn):
         tool_messages = []
-        for call in turn.calls:
+        for response in turn.responses:
             tool_messages.append({
                 "role": "tool",
-                "tool_call_id": call.call_id,
-                "content": call.output.get_response()
+                "tool_call_id": response.call_id,
+                "content": response.output.get_response()
             })
         return tool_messages
     raise TypeError("Invalid turn type")
@@ -59,7 +59,7 @@ class OpenAI(Llm):
     def __init__(self, *args, **kwargs):
         self.client = openai.OpenAI(*args, **kwargs)
 
-    def get_assistant_turn(self, chat: Chat, tools=list[Tool], temperature=None) -> AssistantTurn:
+    def get_assistant_turn(self, chat: Chat, tools: list[Tool] = [], temperature: Optional[float] = None) -> AssistantTurn:
         messages = []
         system_prompt = chat.get_system_prompt()
         if system_prompt is not None:

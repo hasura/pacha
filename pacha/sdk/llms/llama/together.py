@@ -1,8 +1,8 @@
 from together import Together
 from together.types.chat_completions import ChatCompletionMessage, MessageRole, ChatCompletionResponse
 
-from pacha.utils.chat import Turn, UserTurn, AssistantTurn, Chat
-from pacha.utils.llm import Llm, LlmException
+from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, Chat
+from pacha.sdk.llms.llm import Llm, LlmException
 from pacha.utils.logging import get_logger
 
 LLAMA_MODEL_TOGETHER = "meta-llama/Llama-3-70b-chat-hf"

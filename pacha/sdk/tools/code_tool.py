@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field, asdict
 from typing import Optional, TypedDict, NotRequired, cast
 from pacha.data_engine.catalog import Catalog
-from pacha.data_engine.data_engine import DataEngine
-from pacha.query_planner.data_context import SqlStatement
+from pacha.data_engine.data_engine import DataEngine, SqlStatement
 from pacha.query_planner.python_executor import PythonExecutor, PythonExecutorHooks
 from pacha.sdk.tools.sql_tool import SYSTEM_PROMPT_FRAGMENT_TEMPLATE
-from pacha.utils.tool import Tool, ToolOutput
+from pacha.sdk.tools.tool import Tool, ToolOutput
 
 CODE_ARGUMENT_NAME = "python_code"
 
