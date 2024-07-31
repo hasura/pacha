@@ -8,16 +8,6 @@ import asyncio
 import logging
 
 
-# class PythonToolCallMessageJson(TypedDict):
-#     python_code: str
-#     output: PythonToolOutputJson
-
-
-# class SqlToolCallMessageJson(TypedDict):
-#     sql: str
-#     output: SqlToolOutputJson
-
-
 class ToolCallMessageJson(TypedDict):
     tool_call: ToolCallJson
     tool_call_response: ToolCallResponseJson
@@ -33,52 +23,6 @@ class ToolCallMessage:
             "tool_call": self.tool_call.to_json(),
             "tool_call_response": self.tool_call_response.to_json()
         }
-        # output_dict = self.output.get_output_as_dict()
-        # if isinstance(self.output, PythonToolOutput):
-        #     python_tool_output = cast(PythonToolOutputJson, output_dict)
-        #     return PythonToolCallMessageJson(
-        #         python_code=self.input,
-        #         # Note: We explicitly construct the output json again for type hints
-        #         output=PythonToolOutputJson(
-        #             output=python_tool_output["output"],
-        #             error=python_tool_output["error"],
-        #             sql_statements=python_tool_output["sql_statements"]
-        #         )
-        #     )
-        # elif isinstance(self.output, SqlToolOutput):
-        #     sql_tool_output = cast(SqlToolOutputJson, output_dict)
-        #     return SqlToolCallMessageJson(
-        #         sql=self.input,
-        #         # Note: We explicitly construct the output json again for type hints
-        #         output=SqlToolOutputJson(
-        #             output=sql_tool_output["output"],
-        #             error=sql_tool_output["error"]
-        #         )
-        #     )
-        # else:
-        #     raise TypeError("Unsupported ToolOutput type")
-
-
-# class AssistantMessageJson(TypedDict):
-#     text: Optional[str]
-#     tool_calls: list[ToolCallMessageJson]
-
-
-# @dataclass
-# class AssistantMessage:
-#     text: Optional[str]
-#     tool_calls: Optional[list[ToolCallMessage]]
-
-#     def to_json(self) -> AssistantMessageJson:
-#         tool_calls_json: list[ToolCallMessageJson]
-#         if self.tool_calls is None:
-#             tool_calls_json = []
-#         else:
-#             tool_calls_json = list(map(lambda m: m.to_json(), self.tool_calls))
-#         return {
-#             "text": self.text,
-#             "tool_calls": tool_calls_json
-#         }
 
 
 @dataclass
@@ -139,8 +83,9 @@ class PachaChat:
                     yield tool_call_response
                 else:
                     raise Exception("Invalid tool call")
-            
-            tool_response_turn =  ToolResponseTurn(responses=list(map(lambda m : m.tool_call_response, tool_call_messages)))
+
+            tool_response_turn = ToolResponseTurn(responses=list(
+                map(lambda m: m.tool_call_response, tool_call_messages)))
             self.chat.add_turn(tool_response_turn)
             assistant_messages.append(tool_response_turn)
 
@@ -180,7 +125,8 @@ class PachaChat:
                 else:
                     raise Exception("Invalid tool call")
 
-            tool_response_turn =  ToolResponseTurn(responses=tool_call_responses)
+            tool_response_turn = ToolResponseTurn(
+                responses=tool_call_responses)
             self.chat.add_turn(tool_response_turn)
             assistant_messages.append(tool_response_turn)
 

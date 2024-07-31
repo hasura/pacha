@@ -5,7 +5,7 @@ from pacha.sdk.tools import PythonToolOutputJson, SqlToolOutputJson, PythonToolO
 
 import copy
 
-# ToolCall and ToolCallResponse are here instead of pacha/utils/tool.py intentionally.
+# ToolCall and ToolCallResponse are here instead of pacha/sdk/tools/tool.py intentionally.
 # Tool calls are less about the tool and more about the chat itself
 # (i.e. tool calls with IDs always happen in the context of a chat)
 
