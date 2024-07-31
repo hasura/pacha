@@ -20,13 +20,15 @@ class ToolCallJson(TypedDict):
 class ToolCall:
     name: str
     call_id: str
-    input: object
+    input: Any
 
     def to_json(self) -> ToolCallJson:
+        print(type(self.input), isinstance(self.input, (float, str, set, dict)))
+        print(self.input)
         return {
             "name": self.name,
             "call_id": self.call_id,
-            "input": vars(self.input)
+            "input": self.input
         }
 
 
