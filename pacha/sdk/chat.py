@@ -23,13 +23,11 @@ class ToolCall:
     input: Any
 
     def to_json(self) -> ToolCallJson:
-        print(type(self.input), isinstance(self.input, (float, str, set, dict)))
-        print(self.input)
-        return {
-            "name": self.name,
-            "call_id": self.call_id,
-            "input": self.input
-        }
+        return ToolCallJson(
+            name=self.name,
+            call_id=self.call_id,
+            input=self.input
+        )
 
 
 ToolOutputJson = PythonToolOutputJson | SqlToolOutputJson
@@ -88,11 +86,10 @@ class AssistantTurn:
     tool_calls: list[ToolCall] = field(default_factory=list)
 
     def to_json(self) -> AssistantTurnJson:
-        return {
-            "text": self.text,
-            "tool_calls": list(map(lambda m: m.to_json(), self.tool_calls))
-
-        }
+        return AssistantTurnJson(
+            text=self.text,
+            tool_calls=list(map(lambda m: m.to_json(), self.tool_calls))
+        )
 
 
 class ToolResponseTurnJson(TypedDict):
@@ -103,10 +100,10 @@ class ToolResponseTurnJson(TypedDict):
 class ToolResponseTurn:
     responses: list[ToolCallResponse]
 
-    def to_json(self):
-        return {
-            "responses": list(map(lambda m: m.to_json, self.responses))
-        }
+    def to_json(self) -> ToolResponseTurnJson:
+        return ToolResponseTurnJson(
+            responses=list(map(lambda m: m.to_json(), self.responses))
+        )
 
 
 Turn = Union[UserTurn, AssistantTurn, ToolResponseTurn]

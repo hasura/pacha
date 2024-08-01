@@ -4,6 +4,7 @@ from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, ToolCallRe
 from examples.chat_server.pacha_chat import PachaChat, ChatFinishMessage
 
 import json
+import logging
 
 
 class ThreadMessageJson(TypedDict):
@@ -40,20 +41,21 @@ class Thread:
     history: list[ThreadMessage] = field(default_factory=list)
 
     def send(self, message: str) -> ThreadMessage:
-        assistant_messages= self.chat.process_chat(message)
+        assistant_messages = self.chat.process_chat(message)
         thread_message = ThreadMessage(UserTurn(message), assistant_messages)
         self.history.append(thread_message)
         return thread_message
 
     async def send_streaming(self, message: str) -> AsyncGenerator[Any, None]:
 
+        logger = logging.getLogger('examples.chat_server.server')
         current_message = ThreadMessage(
             user_message=UserTurn(message), assistant_messages=[])
 
-        yield f"event: start\ndata: {{}}\n\n"
+        thread_json = json.dumps({"thread_id": self.id})
+        yield f"event: start\ndata: {thread_json}\n\n"
 
         async for chunk in self.chat.process_chat_streaming(message):
-            print(f"Received chunk: {chunk}")  # Debug print
 
             if isinstance(chunk, AssistantTurn):
                 current_message.assistant_messages.append(chunk)
@@ -62,19 +64,19 @@ class Thread:
 
             elif isinstance(chunk, ToolCallResponse):
                 event_data = json.dumps(chunk.to_json())
-                yield f"event: tool_call_message\ndata: {event_data}\n\n"
+                yield f"event: tool_response_message\ndata: {event_data}\n\n"
+
+            elif isinstance(chunk, ToolResponseTurn):
+                current_message.assistant_messages.append(chunk)
 
             elif isinstance(chunk, ChatFinishMessage):
                 self.history.append(current_message)
                 yield f"event: finish\ndata: {{}}\n\n"
 
-            elif isinstance(chunk, ToolResponseTurn):
-                current_message.assistant_messages.append(chunk)
-
             else:
                 # Handle unknown chunk types
                 event_data = json.dumps({"unknown_data": str(chunk)})
-                yield f"event: unknown\ndata: {event_data}\n\n"
+                logger.warn(f"event: unknown\ndata: {event_data}\n\n")
 
     def to_json(self, include_history: bool = True) -> ThreadJson:
         json: ThreadJson = {

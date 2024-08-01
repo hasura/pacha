@@ -6,7 +6,6 @@ from typing import Optional, Dict, List, Callable
 import uuid
 import argparse
 import os
-import json
 import uvicorn
 
 from pacha.sdk.llms.llm import Llm
@@ -31,8 +30,8 @@ threads: Dict[str, Thread] = {}
 
 # Global variables
 SECRET_KEY: Optional[str] = None
-LLM: Optional[Llm] = None
-PACHA_TOOL: Optional[Tool] = None
+LLM: Llm = None # type: ignore
+PACHA_TOOL: Tool = None #type: ignore
 SYSTEM_PROMPT: str = "You are a helpful assistant"
 
 def init_system_prompt(pacha_tool):
@@ -61,7 +60,8 @@ async def verify_token(request: Request, call_next: Callable):
 app.middleware("http")(verify_token)
 
 class MessageInput(BaseModel):
-    message: Optional[str] = None
+    message: str
+    stream: Optional[bool] = True
 
 @app.get("/threads")
 async def get_threads():
@@ -80,24 +80,26 @@ async def start_thread(message_input: MessageInput = Body(default=None)):
     thread = Thread(id=thread_id, chat=PachaChat(
         llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT))
     threads[thread_id] = thread
-    json_response: ThreadCreateResponseJson = {
-        "thread_id": thread_id
-    }
-    if message_input and message_input.message:
+    
+    if message_input.stream:
+        return StreamingResponse(thread.send_streaming(message_input.message), media_type="text/event-stream")
+    else:
+        json_response: ThreadCreateResponseJson = {
+            "thread_id": thread_id
+        }
         json_response["response"] = thread.send(message_input.message).to_json()
-    return JSONResponse(content=json_response, status_code=201)
+        return JSONResponse(content=json_response, status_code=201)
 
 @app.post("/threads/{thread_id}")
 async def send_message(thread_id: str, message_input: MessageInput):
     thread = threads.get(thread_id)
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
-
-    async def event_generator():
-        async for event in thread.send_streaming(message_input.message):
-            yield event
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    
+    if message_input.stream:
+        return StreamingResponse(thread.send_streaming(message_input.message), media_type="text/event-stream")
+    else:
+        return JSONResponse(content=thread.send(message_input.message).to_json(), status_code=201) 
 
 @app.get("/console", response_class=HTMLResponse)
 async def serve_console():
@@ -123,8 +125,6 @@ async def redirect_home():
 def main():
     global LLM
     global PACHA_TOOL
-    log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
-    # FastAPI uses Uvicorn for logging, so we don't need to set the log level here
 
     parser = argparse.ArgumentParser(description='Pacha Chat Server')
     add_auth_args(parser)
@@ -136,7 +136,8 @@ def main():
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
 
-    uvicorn.run(app, host="0.0.0.0", port=5000, log_level=log_level.lower())
+    log_level = os.environ.get('PACHA_LOG_LEVEL', 'info').lower()
+    uvicorn.run(app, host="0.0.0.0", port=5000, log_level=log_level)
 
 if __name__ == "__main__":
     main()
