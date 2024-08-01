@@ -10,6 +10,7 @@ import uvicorn
 
 from pacha.sdk.llms.llm import Llm
 from pacha.sdk.tools.tool import Tool
+from pacha.utils.logging import setup_logger
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.threads import Thread, ThreadCreateResponseJson
@@ -149,8 +150,9 @@ def main():
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
 
-    log_level = os.environ.get('PACHA_LOG_LEVEL', 'info').lower()
-    uvicorn.run(app, host="0.0.0.0", port=5000, log_level=log_level)
+    log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
+    setup_logger(log_level)
+    uvicorn.run(app, host="0.0.0.0", port=5000, log_level=log_level.lower())
 
 
 if __name__ == "__main__":

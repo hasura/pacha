@@ -5,11 +5,11 @@ from examples.utils.io import (
     ASSISTANT_RESPONSE_COLOR, QUERY_PLAN_COLOR, USER_INPUT_COLOR
 )
 import logging
-from pacha.utils.chat import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
+from pacha.sdk.chat import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
 from pacha.utils.logging import setup_logger as setup_pacha_logger
 import os
 
-from pacha.utils.tool import Tool
+from pacha.sdk.tools.tool import Tool
 
 def main():
     log_level = os.environ.get('LOG', 'WARNING').upper()
@@ -59,7 +59,7 @@ def main():
             user_input = multi_line_input("User", USER_INPUT_COLOR)
             chat.add_turn(UserTurn(text=user_input))
         else:
-            chat.add_turn(ToolResponseTurn(calls=tool_call_responses))
+            chat.add_turn(ToolResponseTurn(responses=tool_call_responses))
 
 if __name__ == "__main__":
     main()

@@ -3,9 +3,9 @@ from typing import Optional, TypedDict, cast, AsyncGenerator, Any
 from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCall, ToolCallResponse, ToolCallJson, ToolCallResponseJson
 from pacha.sdk.llms.llm import Llm
 from pacha.sdk.tools.tool import Tool, ToolOutput
+from pacha.utils.logging import get_logger
 
 import asyncio
-import logging
 
 
 @dataclass
@@ -30,7 +30,7 @@ class PachaChat:
 
     async def process_chat_streaming(self, user_query: str) -> AsyncGenerator[Any, None]:
         # get flask's app.logger
-        logger = logging.getLogger('examples.chat_server.server')
+        logger = get_logger()
         self.chat.add_turn(UserTurn(user_query))
 
         while True:
@@ -69,7 +69,7 @@ class PachaChat:
 
     def process_chat(self, user_query: str) -> list[AssistantTurn | ToolResponseTurn]:
         # get flask's app.logger
-        logger = logging.getLogger('examples.chat_server.server')
+        logger = get_logger()
         self.chat.add_turn(UserTurn(user_query))
         # list of all assistant turn texts and tool calls
         assistant_messages: list[AssistantTurn | ToolResponseTurn] = []

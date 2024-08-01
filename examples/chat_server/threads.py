@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import NotRequired, Optional, TypedDict, AsyncGenerator, Any
 from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse, AssistantTurnJson, ToolResponseTurnJson
+from pacha.utils.logging import get_logger
 from examples.chat_server.pacha_chat import PachaChat, ChatFinishMessage
 
 import json
-import logging
 
 
 class ThreadMessageJson(TypedDict):
@@ -48,7 +48,7 @@ class Thread:
 
     async def send_streaming(self, message: str) -> AsyncGenerator[Any, None]:
 
-        logger = logging.getLogger('examples.chat_server.server')
+        logger = get_logger()
         current_message = ThreadMessage(
             user_message=UserTurn(message), assistant_messages=[])
 
