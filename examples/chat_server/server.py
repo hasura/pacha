@@ -1,26 +1,35 @@
-from flask import Flask, request, jsonify, render_template_string, redirect
-from flask_cors import CORS
+from fastapi import FastAPI, Request, HTTPException, Depends, Body
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional, Dict, List, Callable
+import uuid
+import argparse
+import os
+import uvicorn
+
 from pacha.sdk.llms.llm import Llm
 from pacha.sdk.tools.tool import Tool
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.threads import Thread, ThreadCreateResponseJson
 
-import uuid
-import argparse
-import os
-import json
+app = FastAPI()
 
-
-app = Flask(__name__)
-CORS(app)
-
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # In-memory storage for threads
-threads: dict[str, Thread] = {}
+threads: Dict[str, Thread] = {}
 
-# will be initialized in main
-SECRET_KEY = None
+# Global variables
+SECRET_KEY: Optional[str] = None
 LLM: Llm = None  # type: ignore
 PACHA_TOOL: Tool = None  # type: ignore
 SYSTEM_PROMPT: str = "You are a helpful assistant"
@@ -43,68 +52,69 @@ def init_auth(secret_key):
     SECRET_KEY = secret_key
 
 
-@app.before_request
-def authenticate():
-    if request.path in PUBLIC_ROUTES or SECRET_KEY is None:
-        return
+@app.middleware("http")
+async def verify_token(request: Request, call_next: Callable):
+    if request.url.path in PUBLIC_ROUTES or SECRET_KEY is None:
+        return await call_next(request)
     token = request.headers.get('pacha_auth_token')
     if not token or token != SECRET_KEY:
-        return jsonify({"error": "pacha token invalid or not found"}), 401
+        return JSONResponse(status_code=401, content={"error": "pacha token invalid or not found"})
+    return await call_next(request)
+
+app.middleware("http")(verify_token)
 
 
-@app.route('/threads', methods=['GET'])
-def get_threads():
-    return jsonify([thread.to_json(include_history=False) for thread in threads.values()]), 200
+class MessageInput(BaseModel):
+    message: str
+    stream: Optional[bool] = True
 
 
-@app.route('/threads/<thread_id>', methods=['GET'])
-def get_thread(thread_id):
+@app.get("/threads")
+async def get_threads():
+    return [thread.to_json(include_history=False) for thread in threads.values()]
+
+
+@app.get("/threads/{thread_id}")
+async def get_thread(thread_id: str):
     thread = threads.get(thread_id)
     if thread is None:
-        return jsonify({"error": "Thread not found"}), 404
+        raise HTTPException(status_code=404, detail="Thread not found")
+    return thread.to_json()
 
-    return jsonify(thread.to_json()), 200
 
-
-@app.route('/threads', methods=['POST'])
-def start_thread():
-    data = request.json
+@app.post("/threads")
+async def start_thread(message_input: MessageInput = Body(default=None)):
     thread_id = str(uuid.uuid4())
     thread = Thread(id=thread_id, chat=PachaChat(
         llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT))
     threads[thread_id] = thread
-    json_response: ThreadCreateResponseJson = {
-        "thread_id": thread_id
-    }
-    if isinstance(data, dict):
-        message = data.get('message')
-        if message is not None:
-            json_response["response"] = thread.send(message).to_json()
 
-    app.logger.debug('Response: %s', json.dumps(json_response))
-    return jsonify(json_response), 201
+    if message_input.stream:
+        return StreamingResponse(thread.send_streaming(message_input.message), media_type="text/event-stream", status_code=201)
+    else:
+        json_response: ThreadCreateResponseJson = {
+            "thread_id": thread_id
+        }
+        json_response["response"] = thread.send(
+            message_input.message).to_json()
+        return JSONResponse(content=json_response, status_code=201)
 
 
-@app.route('/threads/<thread_id>', methods=['POST'])
-def send_message(thread_id):
+@app.post("/threads/{thread_id}")
+async def send_message(thread_id: str, message_input: MessageInput):
     thread = threads.get(thread_id)
     if thread is None:
-        return jsonify({"error": "Thread not found"}), 404
+        raise HTTPException(status_code=404, detail="Thread not found")
 
-    data = request.json
-    if isinstance(data, dict):
-        message = data.get('message')
-        if message is not None:
-            json_response = thread.send(message).to_json()
-            app.logger.debug('Response: %s', json.dumps(json_response))
-            return jsonify(json_response), 200
-
-    return jsonify({"error": "invalid input"}), 400
+    if message_input.stream:
+        return StreamingResponse(thread.send_streaming(message_input.message), media_type="text/event-stream")
+    else:
+        return JSONResponse(content=thread.send(message_input.message).to_json(), status_code=201)
 
 
-@app.route('/console', methods=['GET'])
-def serve_console():
-    template = """
+@app.get("/console", response_class=HTMLResponse)
+async def serve_console():
+    return """
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -118,21 +128,18 @@ def serve_console():
     </body>
     </html>
     """
-    return render_template_string(template)
 
 
-@app.route('/')
-def redirect_home():
-    return redirect('/console')
+@app.get("/", response_class=RedirectResponse)
+async def redirect_home():
+    return RedirectResponse(url='/console')
 
 
 def main():
     global LLM
     global PACHA_TOOL
-    log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
-    app.logger.setLevel(log_level)
-    parser = argparse.ArgumentParser(
-        description='Pacha Chat Server')
+
+    parser = argparse.ArgumentParser(description='Pacha Chat Server')
     add_auth_args(parser)
     add_llm_args(parser)
     add_tool_args(parser)
@@ -141,7 +148,9 @@ def main():
     PACHA_TOOL = get_pacha_tool(args, render_to_stdout=False)
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
-    app.run()
+
+    log_level = os.environ.get('PACHA_LOG_LEVEL', 'info').lower()
+    uvicorn.run(app, host="0.0.0.0", port=5000, log_level=log_level)
 
 
 if __name__ == "__main__":
