@@ -9,8 +9,10 @@ import asyncio
 
 
 @dataclass
-class ChatFinishMessage:
+class ChatFinish:
     tokens_used: Optional[str] = None
+    
+AssistantEvents = AssistantTurn | ToolCallResponse | ToolResponseTurn | ChatFinish
 
 
 @dataclass
@@ -28,7 +30,7 @@ class PachaChat:
         self.pacha_tool = pacha_tool
         self.chat = Chat(system_prompt=system_prompt)
 
-    async def process_chat_streaming(self, user_query: str) -> AsyncGenerator[Any, None]:
+    async def process_chat_streaming(self, user_query: str) -> AsyncGenerator[AssistantEvents, None]:
         logger = get_logger()
         
         self.chat.add_turn(UserTurn(user_query))
@@ -65,7 +67,7 @@ class PachaChat:
             self.chat.add_turn(tool_response_turn)
             yield tool_response_turn
 
-        yield ChatFinishMessage()  # TODO: Compute tokens and respond in finish message
+        yield ChatFinish()  # TODO: Compute tokens and respond in finish message
 
     def process_chat(self, user_query: str) -> list[AssistantTurn | ToolResponseTurn]:
         logger = get_logger()

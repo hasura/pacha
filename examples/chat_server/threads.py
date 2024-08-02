@@ -2,9 +2,15 @@ from dataclasses import dataclass, field
 from typing import NotRequired, Optional, TypedDict, AsyncGenerator, Any
 from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse, AssistantTurnJson, ToolResponseTurnJson
 from pacha.utils.logging import get_logger
-from examples.chat_server.pacha_chat import PachaChat, ChatFinishMessage
+from examples.chat_server.pacha_chat import PachaChat, ChatFinish
 
 import json
+
+
+START_EVENT = 'start'
+ASSISTANT_RESPONSE_EVENT = 'assistant_response_message'
+TOOL_RESPONSE_EVENT = 'tool_response_message'
+FINISH_EVENT = 'finish'
 
 
 class ThreadMessageJson(TypedDict):
@@ -53,29 +59,29 @@ class Thread:
             user_message=UserTurn(message), assistant_messages=[])
 
         start_event_data = json.dumps({"thread_id": self.id})
-        yield f"event: start\ndata: {start_event_data}\n\n"
+        yield f"event: {START_EVENT}\ndata: {start_event_data}\n\n"
 
         async for chunk in self.chat.process_chat_streaming(message):
 
             if isinstance(chunk, AssistantTurn):
                 current_message.assistant_messages.append(chunk)
                 event_data = json.dumps(chunk.to_json())
-                yield f"event: assistant_message\ndata: {event_data}\n\n"
+                yield f"event: {ASSISTANT_RESPONSE_EVENT}\ndata: {event_data}\n\n"
 
             elif isinstance(chunk, ToolCallResponse):
                 event_data = json.dumps(chunk.to_json())
-                yield f"event: tool_response_message\ndata: {event_data}\n\n"
+                yield f"event: {TOOL_RESPONSE_EVENT}\ndata: {event_data}\n\n"
 
             elif isinstance(chunk, ToolResponseTurn):
                 current_message.assistant_messages.append(chunk)
 
-            elif isinstance(chunk, ChatFinishMessage):
+            elif isinstance(chunk, ChatFinish):
                 self.history.append(current_message)
-                yield f"event: finish\ndata: {{}}\n\n"
+                yield f"event: {FINISH_EVENT}\ndata: {{}}\n\n"
 
             else:
-                # log unknown chunk types
-                event_data = json.dumps({"unknown_data": str(chunk)})
+                # handle unknown chunk types
+                event_data = json.dumps({"unknown_data": str(chunk)[0:40]}) # log max 40 chars
                 logger.warn(f"event: unknown\ndata: {event_data}\n\n")
 
     def to_json(self, include_history: bool = True) -> ThreadJson:

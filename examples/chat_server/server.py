@@ -29,7 +29,7 @@ app.add_middleware(
 # In-memory storage for threads
 threads: Dict[str, Thread] = {}
 
-# Global variables
+# will be initialized in main
 SECRET_KEY: Optional[str] = None
 LLM: Llm = None  # type: ignore
 PACHA_TOOL: Tool = None  # type: ignore
