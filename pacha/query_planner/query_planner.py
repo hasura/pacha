@@ -4,7 +4,7 @@ from pacha.query_planner.instructions import *
 from pacha.data_engine import DataEngine, SqlOutput
 from pacha.query_planner.input import QueryPlanningInput
 from pacha.query_planner.data_context import *
-from pacha.query_planner.python_executor import PythonExecutor, PythonExecutorHooks
+from pacha.data_engine.python_executor import PythonExecutor, PythonExecutorHooks
 from pacha.utils.logging import get_logger
 from pacha.sdk.chat import Turn, AssistantTurn, UserTurn
 import pacha.sdk.llms.llm as llm

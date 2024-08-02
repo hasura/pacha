@@ -29,8 +29,8 @@ class PachaChat:
         self.chat = Chat(system_prompt=system_prompt)
 
     async def process_chat_streaming(self, user_query: str) -> AsyncGenerator[Any, None]:
-        # get flask's app.logger
         logger = get_logger()
+        
         self.chat.add_turn(UserTurn(user_query))
 
         while True:
@@ -65,13 +65,12 @@ class PachaChat:
             self.chat.add_turn(tool_response_turn)
             yield tool_response_turn
 
-        yield ChatFinishMessage()  # TODO: Compute tokens and respond
+        yield ChatFinishMessage()  # TODO: Compute tokens and respond in finish message
 
     def process_chat(self, user_query: str) -> list[AssistantTurn | ToolResponseTurn]:
-        # get flask's app.logger
         logger = get_logger()
+        
         self.chat.add_turn(UserTurn(user_query))
-        # list of all assistant turn texts and tool calls
         assistant_messages: list[AssistantTurn | ToolResponseTurn] = []
 
         while True:

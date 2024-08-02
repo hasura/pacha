@@ -110,7 +110,7 @@ async def send_message(thread_id: str, message_input: MessageInput):
     if message_input.stream:
         return StreamingResponse(thread.send_streaming(message_input.message), media_type="text/event-stream")
     else:
-        return JSONResponse(content=thread.send(message_input.message).to_json(), status_code=201)
+        return JSONResponse(content=thread.send(message_input.message).to_json(), status_code=200)
 
 
 @app.get("/console", response_class=HTMLResponse)

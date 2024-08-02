@@ -47,13 +47,13 @@ class Thread:
         return thread_message
 
     async def send_streaming(self, message: str) -> AsyncGenerator[Any, None]:
-
         logger = get_logger()
+        
         current_message = ThreadMessage(
             user_message=UserTurn(message), assistant_messages=[])
 
-        thread_json = json.dumps({"thread_id": self.id})
-        yield f"event: start\ndata: {thread_json}\n\n"
+        start_event_data = json.dumps({"thread_id": self.id})
+        yield f"event: start\ndata: {start_event_data}\n\n"
 
         async for chunk in self.chat.process_chat_streaming(message):
 
@@ -74,7 +74,7 @@ class Thread:
                 yield f"event: finish\ndata: {{}}\n\n"
 
             else:
-                # Handle unknown chunk types
+                # log unknown chunk types
                 event_data = json.dumps({"unknown_data": str(chunk)})
                 logger.warn(f"event: unknown\ndata: {event_data}\n\n")
 
