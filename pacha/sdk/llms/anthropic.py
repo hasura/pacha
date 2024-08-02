@@ -37,7 +37,7 @@ def to_message(turn: Turn) -> MessageParam:
         }
     elif isinstance(turn, ToolResponseTurn):
         content = []
-        for response in turn.responses:
+        for response in turn.tool_responses:
             content.append({
                 "type": "tool_result",
                 "tool_use_id": response.call_id,

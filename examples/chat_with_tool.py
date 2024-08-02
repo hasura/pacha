@@ -59,7 +59,7 @@ def main():
             user_input = multi_line_input("User", USER_INPUT_COLOR)
             chat.add_turn(UserTurn(text=user_input))
         else:
-            chat.add_turn(ToolResponseTurn(responses=tool_call_responses))
+            chat.add_turn(ToolResponseTurn(tool_responses=tool_call_responses))
 
 if __name__ == "__main__":
     main()

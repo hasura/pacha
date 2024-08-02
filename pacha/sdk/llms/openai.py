@@ -45,7 +45,7 @@ def to_messages(turn: Turn) -> list[ChatCompletionMessageParam]:
         return [assistant_message]
     elif isinstance(turn, ToolResponseTurn):
         tool_messages = []
-        for response in turn.responses:
+        for response in turn.tool_responses:
             tool_messages.append({
                 "role": "tool",
                 "tool_call_id": response.call_id,

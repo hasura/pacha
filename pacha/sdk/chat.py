@@ -93,16 +93,16 @@ class AssistantTurn:
 
 
 class ToolResponseTurnJson(TypedDict):
-    responses: list[ToolCallResponseJson]
+    tool_responses: list[ToolCallResponseJson]
 
 
 @dataclass
 class ToolResponseTurn:
-    responses: list[ToolCallResponse]
+    tool_responses: list[ToolCallResponse]
 
     def to_json(self) -> ToolResponseTurnJson:
         return ToolResponseTurnJson(
-            responses=list(map(lambda m: m.to_json(), self.responses))
+            tool_responses=list(map(lambda m: m.to_json(), self.tool_responses))
         )
 
 

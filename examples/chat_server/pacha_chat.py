@@ -63,7 +63,7 @@ class PachaChat:
                     raise Exception("Invalid tool call")
 
             tool_response_turn = ToolResponseTurn(
-                responses=tool_call_responses)
+                tool_responses=tool_call_responses)
             self.chat.add_turn(tool_response_turn)
             yield tool_response_turn
 
@@ -98,7 +98,7 @@ class PachaChat:
                     raise Exception("Invalid tool call")
 
             tool_response_turn = ToolResponseTurn(
-                responses=tool_call_responses)
+                tool_responses=tool_call_responses)
             self.chat.add_turn(tool_response_turn)
             assistant_messages.append(tool_response_turn)
 
