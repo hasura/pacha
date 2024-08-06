@@ -4,7 +4,7 @@ Connect realtime data to your AI
 
 ## What is it?
 
-Pacha is an AI tool that does retrieval of context for a natural language query using a SQL interface.
+Pacha is an AI tool that does retrieval of context for a natural language query using a SQL interface and a Python programming environment.
 Pacha is specially built to work with Hasura DDN for authorized multi-source querying.
 
 You would use Pacha with your favourite LLMs to generate grounded responses in your AI apps/agents/chatbots.
