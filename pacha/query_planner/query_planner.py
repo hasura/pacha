@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Callable, Optional
+from pacha.data_engine.artifacts import Artifacts
 from pacha.query_planner.instructions import *
 from pacha.data_engine import DataEngine, SqlOutput
 from pacha.query_planner.input import QueryPlanningInput
@@ -27,8 +28,7 @@ def get_system_instructions(llm: llm.Llm, catalog: Catalog):
     if isinstance(llm, openai.OpenAI):
         return OPENAI_SYSTEM_INSTRUCTIONS_TEMPLATE.format(catalog=catalog.render_for_prompt())
     else:
-        semantic_search_example = SEMANTIC_SEARCH_EXAMPLE if catalog.semantic_search_enabled else ""
-        return LLAMA_SYSTEM_INSTRUCTIONS_TEMPLATE.format(catalog=catalog.render_for_prompt(), semantic_search_example=semantic_search_example)
+        return LLAMA_SYSTEM_INSTRUCTIONS_TEMPLATE.format(catalog=catalog.render_for_prompt())
 
 
 @dataclass
@@ -71,7 +71,7 @@ class QueryPlanner:
         self.catalog = self.data_engine.get_catalog()
 
     def exec_code(self, code: str) -> QueryPlanExecutionResult:
-        executor = PythonExecutor(self.data_engine, hooks=self.hooks.python)
+        executor = PythonExecutor(self.data_engine, artifacts=Artifacts(), hooks=self.hooks.python)
         executor.exec_code(code)
         return QueryPlanExecutionResult(executor.output_text, executor.sql_statements, executor.error)
 

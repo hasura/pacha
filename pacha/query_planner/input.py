@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 @dataclass
 class Turn(ABC):
     @abstractmethod
-    def render_for_prompt() -> str:
+    def render_for_prompt(self) -> str:
         ...
 
 

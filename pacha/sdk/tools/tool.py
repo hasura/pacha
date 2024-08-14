@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
+
+from pacha.data_engine.artifacts import Artifacts
 
 
 @dataclass
@@ -14,7 +16,7 @@ class ToolOutput(ABC):
         ...
 
     @abstractmethod
-    def get_output_as_dict(self) -> dict:
+    def get_output_as_dict(self) -> Mapping[str, Any]:
         ...
 
 
@@ -24,7 +26,7 @@ class Tool(ABC):
         ...
 
     @abstractmethod
-    def execute(self, input) -> ToolOutput:
+    def execute(self, input, artifacts: Artifacts) -> ToolOutput:
         ...
 
     @abstractmethod
@@ -36,7 +38,7 @@ class Tool(ABC):
         ...
 
     @abstractmethod
-    def system_prompt_fragment(self) -> str:
+    def system_prompt_fragment(self, artifacts: Artifacts) -> str:
         ...
 
     @abstractmethod

@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, cast, Union, TypedDict
+from pacha.error import PachaException
 from pacha.sdk.tools.tool import ToolOutput
 from pacha.sdk.tools import PythonToolOutputJson, SqlToolOutputJson, PythonToolOutput, SqlToolOutput
 
 import copy
+import json
 
 # ToolCall and ToolCallResponse are here instead of pacha/sdk/tools/tool.py intentionally.
 # Tool calls are less about the tool and more about the chat itself
@@ -102,7 +104,8 @@ class ToolResponseTurn:
 
     def to_json(self) -> ToolResponseTurnJson:
         return ToolResponseTurnJson(
-            tool_responses=list(map(lambda m: m.to_json(), self.tool_responses))
+            tool_responses=list(
+                map(lambda m: m.to_json(), self.tool_responses))
         )
 
 
@@ -112,6 +115,21 @@ Turn = Union[UserTurn, AssistantTurn, ToolResponseTurn]
 @dataclass
 class ChatDelta:
     turns: list[Union[AssistantTurn, ToolResponseTurn]]
+
+
+def get_prompt_characters(turn: Turn) -> int:
+    if isinstance(turn, UserTurn):
+        return len(turn.text)
+    if isinstance(turn, AssistantTurn):
+        characters = 0
+        if turn.text is not None:
+            characters += len(turn.text)
+        for tool_call in turn.tool_calls:
+            characters += len(tool_call.name)
+            characters += len(json.dumps(tool_call.input))
+        return characters
+    if isinstance(turn, ToolResponseTurn):
+        return sum(len(tool_response.output.get_response()) for tool_response in turn.tool_responses)
 
 
 @dataclass
@@ -137,3 +155,25 @@ class Chat:
         chat.turns = list(self.turns)
         chat.extend(delta)
         return chat
+
+    def truncate(self, character_limit: int) -> 'Chat':
+        index = len(self.turns) - 1
+        characters = 0
+        system_prompt = self.get_system_prompt()
+        if system_prompt is not None:
+            characters += len(system_prompt)
+        user_turn_index = None
+        while index >= 0:
+            turn_characters = get_prompt_characters(self.turns[index])
+            if characters + turn_characters > character_limit:
+                break
+            characters += turn_characters
+            if isinstance(self.turns[index], UserTurn):
+                user_turn_index = index
+            index -= 1
+        if user_turn_index is None:
+            raise PachaException("The latest user turn is beyond the character limit")
+        
+        # We always want to start the chat with a user turn.
+        # TODO: Add summary of the truncated turns in the system prompt
+        return Chat(system_prompt=self.system_prompt, turns=self.turns[user_turn_index:])

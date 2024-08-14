@@ -39,21 +39,21 @@ class DdnDataEngineException(Exception):
         super().__init__(message)
 
 
-def map_data_type(data_type: str) -> ScalarType:
-    data_type = data_type.lower()
-    if data_type.startswith("int"):
+def map_data_type(data_type: str) -> ScalarType | str:
+    data_type_lower = data_type.lower()
+    if data_type_lower.startswith("int"):
         return ScalarType.INTEGER
-    if data_type.startswith("float"):
+    if data_type_lower.startswith("float"):
         return ScalarType.NUMERIC
-    if data_type.startswith("utf"):
+    if data_type_lower.startswith("utf"):
         return ScalarType.TEXT
-    if data_type.startswith("bool"):
+    if data_type_lower.startswith("bool"):
         return ScalarType.BOOLEAN
-    if data_type.startswith("date"):
+    if data_type_lower.startswith("date"):
         return ScalarType.DATE
-    if data_type.startswith("timestamp"):
+    if data_type_lower.startswith("timestamp"):
         return ScalarType.TIMESTAMP
-    return ScalarType.UNKNOWN
+    return data_type
 
 
 def create_schema_from_introspection(tables_data, columns_data, foreign_keys_data) -> Catalog:

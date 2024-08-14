@@ -60,9 +60,9 @@ class PachaSqlTool(Tool):
         self.catalog = self.data_engine.get_catalog()
 
     def name(self) -> str:
-        return 'pacha'
+        return 'execute_sql'
 
-    def execute(self, input) -> SqlToolOutput:
+    def execute(self, input, artifacts) -> SqlToolOutput:
         sql = input[SQL_ARGUMENT_NAME]
         try:
             return SqlToolOutput(output=self.data_engine.execute_sql(sql))
@@ -84,7 +84,7 @@ class PachaSqlTool(Tool):
     def description(self) -> str:
         return TOOL_DESCRIPTION
 
-    def system_prompt_fragment(self) -> str:
+    def system_prompt_fragment(self, artifacts) -> str:
         return SYSTEM_PROMPT_FRAGMENT_TEMPLATE.format(tool_name=self.name(), catalog=self.catalog.render_for_prompt())
 
     def input_as_text(self, input) -> str:

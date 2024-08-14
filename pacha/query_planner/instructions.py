@@ -41,38 +41,9 @@ else:
   executor.output('No articles found from 2023')
 ```
 
-{semantic_search_example}
-
 The schema of the database that is accessible through `executor.get_from_database` is as follows:
 
 {catalog}
-"""
-
-SEMANTIC_SEARCH_EXAMPLE = """
-  Retrieving articles about environmental impact of greenhouse emissions from 2023
-  ```
-  query = \"""
-    SELECT 
-      a.id,
-      a.title,
-      a.content,
-      RELEVANCE(ae.embedding, 'environmental impact of greenhouse emissions') AS relevance 
-    FROM public.articles a
-    JOIN vectors.article_embeddings ae
-    ON a.id = ae.article_id
-    WHERE EXTRACT(YEAR FROM a.date) = 2023
-    ORDER BY relevance DESC
-    LIMIT 10
-  \"""
-
-  articles = executor.get_from_database(query)
-  if len(articles) == 0:
-    executor.output('No articles found from 2023')
-  else:
-    executor.output(f'{len(articles)} articles from 2023 most relevant to the query "biodiversity" are:')
-    for article in articles:
-      executor.output(f'ID: {article["id"]}\\nTitle: {article["title"]}\\nRelevance: {article["relevance"]}\\n')
-  ```
 """
 
 OPENAI_SYSTEM_INSTRUCTIONS_TEMPLATE = """

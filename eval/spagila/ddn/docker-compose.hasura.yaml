@@ -12,7 +12,7 @@ services:
     build:
       context: engine
       dockerfile_inline: |-
-        FROM ghcr.io/hasura/v3-engine
+        FROM ghcr.io/hasura/v3-engine:dev-main
         COPY ./ /md/
       pull: false
     develop:

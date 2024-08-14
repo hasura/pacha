@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 import traceback
-from typing import Callable, Optional
+from typing import Any, Callable, Literal, Optional
+from pacha.data_engine.artifacts import ArtifactData, ArtifactType, Artifacts
 from pacha.data_engine.data_engine import SqlHooks
 from pacha.data_engine import DataEngine, SqlOutput, SqlStatement
 from pacha.utils.logging import get_logger
@@ -21,6 +22,7 @@ class PythonExecutorHooks:
 class PythonExecutor:
     data_engine: DataEngine
     hooks: PythonExecutorHooks
+    artifacts: Artifacts
     sql_statements: list[SqlStatement] = field(default_factory=list)
     output_text: str = ""
     error: Optional[str] = None
@@ -34,6 +36,16 @@ class PythonExecutor:
 
     def output(self, text):
         self.output_text += str(text) + '\n'
+
+    def observe(self, text):
+        self.output(text)
+
+    def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData):
+        output = self.artifacts.store_artifact(identifier, title, artifact_type, data)
+        self.output(output)
+
+    def get_artifact(self, identifier: str) -> ArtifactData:
+        return self.artifacts.get_artifact(identifier)
 
     def exec_code(self, code: str):
         try:

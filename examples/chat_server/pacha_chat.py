@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, TypedDict, cast, AsyncGenerator, Any
+from pacha.data_engine.artifacts import Artifacts
 from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCall, ToolCallResponse, ToolCallJson, ToolCallResponseJson
 from pacha.sdk.llms.llm import Llm
 from pacha.sdk.tools.tool import Tool, ToolOutput
@@ -11,7 +12,8 @@ import asyncio
 @dataclass
 class ChatFinish:
     tokens_used: Optional[str] = None
-    
+
+
 AssistantEvents = AssistantTurn | ToolCallResponse | ToolResponseTurn | ChatFinish
 
 
@@ -20,6 +22,7 @@ class PachaChat:
     llm: Llm
     pacha_tool: Tool
     chat: Chat
+    artifacts: Artifacts
 
     def __init__(self,
                  llm: Llm,
@@ -28,11 +31,19 @@ class PachaChat:
                  ):
         self.llm = llm
         self.pacha_tool = pacha_tool
-        self.chat = Chat(system_prompt=system_prompt)
+        artifacts = Artifacts()
+        self.artifacts = artifacts
+
+        def system_prompt_builder(turns): return f"""
+            {system_prompt}
+
+            {pacha_tool.system_prompt_fragment(artifacts)}."""
+
+        self.chat = Chat(system_prompt=system_prompt_builder)
 
     async def process_chat_streaming(self, user_query: str) -> AsyncGenerator[AssistantEvents, None]:
         logger = get_logger()
-        
+
         self.chat.add_turn(UserTurn(user_query))
 
         while True:
@@ -53,7 +64,7 @@ class PachaChat:
                 if tool_call.name == self.pacha_tool.name():
                     logger.debug('called pacha tool with input: %s',
                                  tool_call.input)
-                    tool_output = await asyncio.to_thread(self.pacha_tool.execute, tool_call.input)
+                    tool_output = await asyncio.to_thread(self.pacha_tool.execute, tool_call.input, self.artifacts)
                     logger.debug('pacha tool output: %s', tool_output)
                     tool_call_response = ToolCallResponse(
                         call_id=tool_call.call_id, output=tool_output)
@@ -71,7 +82,7 @@ class PachaChat:
 
     def process_chat(self, user_query: str) -> list[AssistantTurn | ToolResponseTurn]:
         logger = get_logger()
-        
+
         self.chat.add_turn(UserTurn(user_query))
         assistant_messages: list[AssistantTurn | ToolResponseTurn] = []
 
@@ -89,7 +100,8 @@ class PachaChat:
                 if tool_call.name == self.pacha_tool.name():
                     logger.debug(
                         'called pacha tool with input: %s', tool_call.input)
-                    tool_output = self.pacha_tool.execute(tool_call.input)
+                    tool_output = self.pacha_tool.execute(
+                        tool_call.input, self.artifacts)
                     tool_call_response = ToolCallResponse(
                         call_id=tool_call.call_id, output=tool_output)
                     tool_call_responses.append(tool_call_response)
