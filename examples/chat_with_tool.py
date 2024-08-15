@@ -1,16 +1,13 @@
 import argparse
-from examples.utils.cli import add_llm_args, add_tool_args, get_data_engine, get_llm, get_pacha_tool
+from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool
 from examples.utils.io import (
-    get_python_executor_hooks_for_rendering_to_stdout, output, multi_line_input, Colors, get_query_planner_hooks_for_rendering_to_stdout,
-    ASSISTANT_RESPONSE_COLOR, QUERY_PLAN_COLOR, USER_INPUT_COLOR
+    output, multi_line_input, Colors, ASSISTANT_RESPONSE_COLOR, QUERY_PLAN_COLOR, USER_INPUT_COLOR
 )
 import logging
 from pacha.data_engine.artifacts import Artifacts
 from pacha.sdk.chat import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
 from pacha.utils.logging import setup_logger as setup_pacha_logger
 import os
-
-from pacha.sdk.tools.tool import Tool
 
 CHARACTER_LIMIT = 32000 * 4 # Assuming LLM performance degrades after 32k tokens and 4 characters per token
 
@@ -28,7 +25,7 @@ def main():
     llm = get_llm(args)
 
     get_system_prompt = lambda turns: f"""
-    You are Pacha - a helpful assistant that is connected to user's data. If needed, use the "{pacha_tool.name()}" tool to retrieve, observe, or process any contextual user data relevant to the conversation.
+    You are Pacha - an assistant that is connected to user's data. If needed, use the "{pacha_tool.name()}" tool to retrieve, observe, or process any contextual user data relevant to the conversation.
     Do not call this tool out to the user - from a user's point of view you are doing everything as a single system.
 
     {pacha_tool.system_prompt_fragment(artifacts)}. 
@@ -59,7 +56,7 @@ def main():
                 tool_call_responses.append(ToolCallResponse(
                     call_id=tool_call.call_id, output=tool_output))
             else:
-                output("Error", Colors.RED, "Invalid tool call")
+                output("Error", Colors.RED, f"Invalid tool call: {tool_call}")
                 raise Exception("Invalid tool call")
         if len(tool_call_responses) == 0:
             user_input = multi_line_input("User", USER_INPUT_COLOR)

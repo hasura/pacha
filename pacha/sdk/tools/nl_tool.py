@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pacha.query_planner.query_planner import QueryPlanner, QueryPlanningInput
 from pacha.query_planner.input import UserTurn
-from pacha.sdk.tools.tool import StringToolOutput, Tool
+from pacha.sdk.tool import StringToolOutput, Tool
 
 QUERY_ARGUMENT_NAME = "query"
 

@@ -8,8 +8,8 @@ import argparse
 import os
 import uvicorn
 
-from pacha.sdk.llms.llm import Llm
-from pacha.sdk.tools.tool import Tool
+from pacha.sdk.llm import Llm
+from pacha.sdk.tool import Tool
 from pacha.utils.logging import setup_logger
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
 from examples.chat_server.pacha_chat import PachaChat

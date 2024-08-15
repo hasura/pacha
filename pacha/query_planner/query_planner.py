@@ -8,7 +8,7 @@ from pacha.query_planner.data_context import *
 from pacha.data_engine.python_executor import PythonExecutor, PythonExecutorHooks
 from pacha.utils.logging import get_logger
 from pacha.sdk.chat import Turn, AssistantTurn, UserTurn
-import pacha.sdk.llms.llm as llm
+import pacha.sdk.llm as llm
 import pacha.sdk.llms.llama as llama
 import pacha.sdk.llms.openai as openai
 
@@ -71,7 +71,7 @@ class QueryPlanner:
         self.catalog = self.data_engine.get_catalog()
 
     def exec_code(self, code: str) -> QueryPlanExecutionResult:
-        executor = PythonExecutor(self.data_engine, artifacts=Artifacts(), hooks=self.hooks.python)
+        executor = PythonExecutor(self.data_engine, artifacts=Artifacts(), hooks=self.hooks.python, llm=self.planner_llm)
         executor.exec_code(code)
         return QueryPlanExecutionResult(executor.output_text, executor.sql_statements, executor.error)
 

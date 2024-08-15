@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional, TypedDict, cast, AsyncGenerator, Any
 from pacha.data_engine.artifacts import Artifacts
-from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCall, ToolCallResponse, ToolCallJson, ToolCallResponseJson
-from pacha.sdk.llms.llm import Llm
-from pacha.sdk.tools.tool import Tool, ToolOutput
+from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCall, ToolCallResponse
+from examples.chat_server.chat_json import ToolCallJson, ToolCallResponseJson
+from pacha.sdk.llm import Llm
+from pacha.sdk.tool import Tool, ToolOutput
 from pacha.utils.logging import get_logger
 
 import asyncio

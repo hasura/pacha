@@ -2,7 +2,7 @@ import replicate
 
 from pacha.utils.logging import get_logger
 from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, Chat
-from pacha.sdk.llms.llm import Llm, LlmException
+from pacha.sdk.llm import Llm, LlmException
 
 LLAMA_MODEL_REPLICATE = "meta/meta-llama-3-70b-instruct"
 
@@ -51,7 +51,8 @@ class LlamaOnReplicate(Llm):
     def __init__(self, *args, **kwargs):
         self.client = replicate.Client(*args, **kwargs)
 
-    def get_assistant_turn(self, chat: Chat, temperature=None) -> AssistantTurn:
+    def get_assistant_turn(self, chat: Chat, tools = [], temperature=None) -> AssistantTurn:
+        assert(len(tools) == 0)
         prompt = render_prompt_for_chat(chat)
         get_logger().debug(f"Llama Prompt: {prompt}")
 
@@ -60,5 +61,5 @@ class LlamaOnReplicate(Llm):
         }
 
         if temperature is not None:
-            input["temperature"] = temperature
+            input["temperature"] = str(temperature)
         return AssistantTurn(text=''.join(self.client.run(LLAMA_MODEL_REPLICATE, input=input)))

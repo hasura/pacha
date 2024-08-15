@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional, TypedDict, NotRequired, cast
 from pacha.data_engine.catalog import Catalog, render_catalog
 from pacha.data_engine.data_engine import DataEngine, SqlOutput
-from pacha.sdk.tools.tool import Tool, ToolOutput
+from pacha.sdk.tool import Tool, ToolOutput
 
 SQL_ARGUMENT_NAME = "sql"
 

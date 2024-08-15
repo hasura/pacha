@@ -5,6 +5,7 @@ from typing import Any, Literal
 ArtifactType = Literal['table', 'text']
 ArtifactData = list[dict[str, Any]] | str
 
+NUM_SAMPLE_ROWS = 2
 
 @dataclass
 class Artifact:
@@ -23,7 +24,7 @@ class Artifact:
             assert (isinstance(self.data, list) and len(self.data) > 0)
             assert (isinstance(self.data[0], dict))
             output += f", number of rows = {len(self.data)}"
-            output += f", first 10 rows = {self.data[:10]}"
+            output += f", sample rows = {self.data[:NUM_SAMPLE_ROWS]}"
         else:
             raise ValueError(f'Invalid artifact type {self.artifact_type}')
         return output

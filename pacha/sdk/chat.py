@@ -1,21 +1,16 @@
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, cast, Union, TypedDict
+from typing import Any, Callable, Optional, Union
 from pacha.error import PachaException
-from pacha.sdk.tools.tool import ToolOutput
-from pacha.sdk.tools import PythonToolOutputJson, SqlToolOutputJson, PythonToolOutput, SqlToolOutput
+from pacha.sdk.tool import ToolOutput
 
 import copy
 import json
 
+from pacha.utils.logging import get_logger
+
 # ToolCall and ToolCallResponse are here instead of pacha/sdk/tools/tool.py intentionally.
 # Tool calls are less about the tool and more about the chat itself
 # (i.e. tool calls with IDs always happen in the context of a chat)
-
-
-class ToolCallJson(TypedDict):
-    name: str
-    call_id: str
-    input: dict
 
 
 @dataclass
@@ -24,89 +19,26 @@ class ToolCall:
     call_id: str
     input: Any
 
-    def to_json(self) -> ToolCallJson:
-        return ToolCallJson(
-            name=self.name,
-            call_id=self.call_id,
-            input=self.input
-        )
-
-
-ToolOutputJson = PythonToolOutputJson | SqlToolOutputJson
-
-
-class ToolCallResponseJson(TypedDict):
-    call_id: str
-    output: ToolOutputJson
-
 
 @dataclass
 class ToolCallResponse:
     call_id: str
     output: ToolOutput
 
-    def to_json(self) -> ToolCallResponseJson:
-        output_dict = self.output.get_output_as_dict()
-        if isinstance(self.output, PythonToolOutput):
-            python_tool_output = cast(PythonToolOutputJson, output_dict)
-            return ToolCallResponseJson(
-                call_id=self.call_id,
-                # Note: We explicitly construct the output json again for type hints
-                output=PythonToolOutputJson(
-                    output=python_tool_output["output"],
-                    error=python_tool_output["error"],
-                    sql_statements=python_tool_output["sql_statements"]
-                )
-            )
-        elif isinstance(self.output, SqlToolOutput):
-            sql_tool_output = cast(SqlToolOutputJson, output_dict)
-            return ToolCallResponseJson(
-                call_id=self.call_id,
-                # Note: We explicitly construct the output json again for type hints
-                output=SqlToolOutputJson(
-                    output=sql_tool_output["output"],
-                    error=sql_tool_output["error"]
-                )
-            )
-        else:
-            raise TypeError("Unsupported ToolOutput type")
-
 
 @dataclass
 class UserTurn:
     text: str
-
-
-class AssistantTurnJson(TypedDict):
-    text: Optional[str]
-    tool_calls: list[ToolCallJson]
-
 
 @dataclass
 class AssistantTurn:
     text: Optional[str]
     tool_calls: list[ToolCall] = field(default_factory=list)
 
-    def to_json(self) -> AssistantTurnJson:
-        return AssistantTurnJson(
-            text=self.text,
-            tool_calls=list(map(lambda m: m.to_json(), self.tool_calls))
-        )
-
-
-class ToolResponseTurnJson(TypedDict):
-    tool_responses: list[ToolCallResponseJson]
-
 
 @dataclass
 class ToolResponseTurn:
     tool_responses: list[ToolCallResponse]
-
-    def to_json(self) -> ToolResponseTurnJson:
-        return ToolResponseTurnJson(
-            tool_responses=list(
-                map(lambda m: m.to_json(), self.tool_responses))
-        )
 
 
 Turn = Union[UserTurn, AssistantTurn, ToolResponseTurn]
@@ -174,6 +106,9 @@ class Chat:
         if user_turn_index is None:
             raise PachaException("The latest user turn is beyond the character limit")
         
+        if user_turn_index > 0:
+            get_logger().info("Truncated first {user_turn_index} turns")
+
         # We always want to start the chat with a user turn.
         # TODO: Add summary of the truncated turns in the system prompt
         return Chat(system_prompt=self.system_prompt, turns=self.turns[user_turn_index:])
