@@ -10,28 +10,38 @@ from pacha.sdk.tool import Tool, ToolOutput
 
 CODE_ARGUMENT_NAME = "python_code"
 
-TOOL_DESCRIPTION = """
-This tool can be used to write Python scripts to retrieve data from the user's database, process data, or manipulate artifacts.
-Always ensure that there is at least one `executor.output` or `executor.store_artifact call`.
+
+@dataclass
+class PythonOptions:
+    enable_artifacts: bool
+    enable_ai_primitives: bool
+
+
+def build_tool_description(options: PythonOptions) -> str:
+    return f"""
+This tool can be used to write Python scripts to retrieve data from the user's database, process data{', or manipulate artifacts' if options.enable_artifacts else ''}.
+Always ensure that there is at least one `executor.print`{' or `executor.store_artifact` ' if options.enable_artifacts else ' '}call.
 """
 
-CODE_ARGUMENT_DESCRIPTION = """
-The python code to execute. This must be Python code and not direct SQL. 
-"""
 
-PYTHON_METHODS = """
+def build_python_methods(options: PythonOptions) -> str:
+    methods = """
 - `def run_sql(self, sql: str) -> list[dict[str, Any]]`:
   This can be used to retrieve data by issuing an Apache DataFusion style SQL query. It returns a list of rows, with each row represented as a dictionary of selected column names (or aliases) to column values.
   Account for the possibilty of rows not meeting your filters in your python code or nullable columns returning None.
-  Keep the SQL simple, doing more in Python if you need to, especially if SQL is throwing errors.
+  Keep the SQL easy to understand (eg: no sub-selects), doing more in Python if you need to, especially if SQL is throwing errors.
   Use COUNT(1) instead of COUNT(*), as the SQL engine doesn't support *.
   The python representations of various SQL types are:
   - any number-like types: int
   - any text-like types: str
   - DATE type: str (eg: '2024-08-14')
   - TIMESTAMP type: str (eg: '2024-08-14T13:58:26')
-- `def output(self, text: str)`:
-  This can be used to output and observe anything from the Python script. This output will be visible to you only (not the user). Do not use this to output large amounts of data, use artifacts instead.
+- `def print(self, text: str)`
+  This can be used to print and observe anything from the Python script. This output will be visible to you only (not the user)."""
+
+    if options.enable_artifacts:
+        methods += """
+  Do not use this to print large amounts of data, use artifacts instead. If the user asks for insights or analysis on artifact data, then you should print that data.
 - `def store_artifact(self, identifier: str, title: str, artifact_type: 'table' | 'text', data)`:
   This can be used to store any retrieved / computed data in a tabular form, for referencing either when talking to the user or when.
   The `identifier` will be used to reference this artifact. If reusing an identifier, this overwrites the existing artifact.
@@ -43,7 +53,10 @@ PYTHON_METHODS = """
 - `def get_artifact(self, identifier: str) -> list[dict[str, Any]] | str`:
   This can be used to retrieve the `data` for an artifact that was previously created (even in an old invocation of this tool) using `store_table_artifact` for further processing or observation.
   The returned artifact data can also be modified (eg: to append rows or columns to it) and stored back.
-  For follow-up questions, avoid retrieving the data from the database again if you can look it up in a previously created artifact.
+  For follow-up questions, avoid retrieving the data from the database again if you can look it up in a previously created artifact."""
+
+    if options.enable_ai_primitives:
+        methods += """
 - `def classify(self, instructions: str, inputs_to_classify: list[str], categories: list[str], allow_multiple: bool) -> list[str | list[str]]`:
   This can be used to call an AI language model to classify the given `inputs_to_classify` into the specified `categories`.
   If `allow_multiple` is True, then zero or more categories can be chosen for each input and hence the output is a list of list of categories - one list per input.
@@ -52,23 +65,32 @@ PYTHON_METHODS = """
 - `def summarize(self, instructions: str, input: str) -> str`:
   This can be used to call a language model to summarize the `input`. Any summarization instructions (eg: what information to preserve) must be given in `instructions`. The output is the summarized text.
 """
+    return methods
 
-PYTHON_EXAMPLES = """
+CODE_ARGUMENT_DESCRIPTION = """
+The python code to execute. This must be Python code and not direct SQL. 
+"""
+
+def build_python_examples(options: PythonOptions) -> str:
+    examples = """
 Example: Fetching the title of article with ID 5
  ```
 data = executor.run_sql("SELECT title FROM library.articles WHERE id = 5")
 if len(data) == 0:
-  executor.output('not found')
+  executor.print('not found')
 else:
-  executor.output(f'{data[0]["title"]}')
+  executor.print(f'{data[0]["title"]}')
 ```
 
 Example: Fetching the date of the oldest article
 ```
 data = executor.run_sql("SELECT MIN(date) AS min_date FROM library.articles WHERE date >= '2023-01-1')
 min_date = data[0][min_date]
-executor.output(f'{min_date'})
-```
+executor.print(f'{min_date'})
+```"""
+
+    if options.enable_artifacts:
+        examples += """
 
 Example: Fetching the 100 most recent articles and storing them in the artifact
 ```
@@ -89,7 +111,7 @@ sql = \"""
 \"""
 data = executor.run_sql(sql)
 if len(data) == 0:
-  executor.output('no articles found')
+  executor.print('no articles found')
 else:
   artifact_data = []
   for row in data:
@@ -101,10 +123,12 @@ else:
       'Author': row['author_first_name'] + ' ' + row['author_last_name']
     }
     artifact_data.append(artifact_row)
-  # Store the articles as a tabular artifact
+  # Store the articles as a tabular artifact, for easier consumption by the user
   executor.store_artifact('most_recent_articles', '100 most recent articles', 'table', artifact_data)
-```
+```"""
 
+    if options.enable_ai_primitives:
+        examples += """
 Example: Filtering the previously retrieved articles to ones that might be considered controversial
 ```
 # Get the previously retrieved data from the artifact
@@ -146,41 +170,51 @@ for article in articles:
 
 # store the articles with summary in a new artifact
 executor.store_artifact('most_recent_controversial_articles_with_comments_summary, 'Most recent controversial articles with summarized comments', articles)
-```
-"""
+```"""
+    return examples
 
-SYSTEM_PROMPT_FRAGMENT_TEMPLATE = """
+def build_system_prompt_fragment(tool_name: str, catalog: Catalog, artifacts: Artifacts, options: PythonOptions) -> str:
+    prompt = f"""
 When executing Python code using the "{tool_name}" tool, you have access to an `executor` variable, which has the following methods:
-{python_methods}
+{build_python_methods(options)}
 
 Some Python code examples:
 
-{python_examples}
+{build_python_examples(options)}"""
 
+    if options.enable_artifacts:
+        prompt += """
 Any data or synthesized response that might be useful to reference later - either when talking to the user or for follow-up processing should be stored as an artifact.
 When referenced in the response, artifacts are rendered with a special user-friendly UI. So, whenever presenting data to the user, always put it in an artifact.
 
 When responding to the user with data which lives in an artifact, you can reference the artifact using an <artifact /> tag, with `identifier` being an attribute.
-Eg: If you created an artifact called 'most_recent_articles' and wanted to respond to the user with that data. You would respond like this:
+Eg: If you created an artifact called 'most_recent_articles' and wanted to respond to the user with that data, you would respond like this:
 
 Here are the 100 most recent articles I retrieved:
-<artifact identifier = 'most_recent_articles' />
+<artifact identifier = 'most_recent_articles' warning = 'I cannot see the full data so I must not make up observations' />
 
 This tag will be replaced by the actual artifact data when showed to the user. So do not repeat or summarize the data from in your response.
-Remember you yourself can't see the entire artifact - only a preview of it, so any aggregate analysis on the artifact should be done in Python by reading the artifact and computing any required metrics.
+Remember you yourself can't see the artifact, except what you printed from the python code, so any analysis on the artifact should be done in Python by reading the artifact, computing metrics, and printing the information.
 
 For follow up questions, read or process the data from the artifact itself, instead of querying it again from the database. This is important because the user is viewing the artifact and so will refer to data in the artifact as it is.
 
 Do not write very big python programs that do a lot of work. Instead, break them down into smaller programs (storing intermediate results in artifacts if needed), executing them, observing the output to see if it doing what you expect, and keeping the user informed on the progress.
+"""
 
+        if len(artifacts.artifacts) > 0:
+            prompt += f"""
 The previously created artifacts by you are:
 
-{artifacts}
+{artifacts.render_for_prompt()}
+"""
 
+    prompt += f"""
 The schema of the database available using the "{tool_name}" tool is as follows.
 
-{catalog}
+{catalog.render_for_prompt()}
 """
+    return prompt
+
 
 class PythonToolOutputJson(TypedDict):
     output: str
@@ -211,6 +245,7 @@ class PythonToolOutput(ToolOutput):
 class PachaPythonTool(Tool):
     data_engine: DataEngine
     llm: Llm
+    options: PythonOptions = field(default_factory=lambda: PythonOptions(enable_artifacts=False, enable_ai_primitives=False))
     hooks: PythonExecutorHooks = field(default_factory=PythonExecutorHooks)
     catalog: Catalog = field(init=False)
 
@@ -242,14 +277,10 @@ class PachaPythonTool(Tool):
         }
 
     def description(self) -> str:
-        return TOOL_DESCRIPTION
+        return build_tool_description(self.options)
 
     def system_prompt_fragment(self, artifacts: Artifacts) -> str:
-        return SYSTEM_PROMPT_FRAGMENT_TEMPLATE.format(
-            tool_name=self.name(),
-            catalog=self.catalog.render_for_prompt(),artifacts=artifacts.render_for_prompt(),
-            python_methods=PYTHON_METHODS,
-            python_examples=PYTHON_EXAMPLES)
+        return build_system_prompt_fragment(self.name(), self.catalog, artifacts, self.options)
 
     def input_as_text(self, input) -> str:
         return input.get(CODE_ARGUMENT_NAME, "")

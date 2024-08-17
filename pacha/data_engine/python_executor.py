@@ -33,12 +33,18 @@ class PythonExecutor:
         data = self.data_engine.execute_sql(sql)
         self.hooks.sql.on_sql_response(data)
         self.sql_statements.append(SqlStatement(sql, data))
+        columns = f", columns: {list(data[0].keys())}" if len(data) > 0 else ""
+        self.output(f'SQL statement returned {len(data)} rows{columns}')
         return data
 
+    # The below 3 functions all do the same thing. They all exist because we're experimenting with what's the best name to use for an LLM.
     def output(self, text):
         self.output_text += str(text) + '\n'
 
     def observe(self, text):
+        self.output(text)
+
+    def print(self, text):
         self.output(text)
 
     def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData):
