@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import NotRequired, Optional, TypedDict, AsyncGenerator, Any
+from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
 from examples.chat_server.chat_json import AssistantTurnJson, ToolResponseTurnJson, to_assistant_turn_json, to_tool_response_turn_json
 from pacha.utils.logging import get_logger
@@ -27,6 +28,7 @@ class ThreadCreateResponseJson(TypedDict):
 class ThreadJson(TypedDict):
     thread_id: str
     history: NotRequired[list[ThreadMessageJson]]
+    artifacts: NotRequired[list[ArtifactJson]]
 
 
 @dataclass
@@ -34,10 +36,10 @@ class ThreadMessage:
     user_message: UserTurn
     assistant_messages: list[AssistantTurn | ToolResponseTurn]
 
-    def to_json(self) -> ThreadMessageJson:
+    def to_json(self, artifacts: Artifacts) -> ThreadMessageJson:
         return {
             "user_message": self.user_message.text,
-            "assistant_messages": list(map(lambda m: to_assistant_turn_json(m) if isinstance(m, AssistantTurn) else to_tool_response_turn_json(m), self.assistant_messages))
+            "assistant_messages": list(map(lambda m: to_assistant_turn_json(m) if isinstance(m, AssistantTurn) else to_tool_response_turn_json(m, artifacts), self.assistant_messages))
         }
 
 
@@ -70,7 +72,8 @@ class Thread:
                 yield f"event: {ASSISTANT_RESPONSE_EVENT}\ndata: {event_data}\n\n"
 
             elif isinstance(chunk, ToolCallResponse):
-                event_data = json.dumps(to_tool_response_turn_json(chunk))
+                event_data = json.dumps(
+                    to_tool_response_turn_json(chunk, self.chat.artifacts))
                 yield f"event: {TOOL_RESPONSE_EVENT}\ndata: {event_data}\n\n"
 
             elif isinstance(chunk, ToolResponseTurn):
@@ -91,5 +94,8 @@ class Thread:
             "thread_id": self.id
         }
         if include_history:
-            json["history"] = [message.to_json() for message in self.history]
+            json["history"] = [message.to_json(
+                self.chat.artifacts) for message in self.history]
+            json["artifacts"] = [artifact.to_json()
+                                 for artifact in self.chat.artifacts.artifacts.values()]
         return json

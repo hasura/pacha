@@ -67,9 +67,11 @@ def build_python_methods(options: PythonOptions) -> str:
 """
     return methods
 
+
 CODE_ARGUMENT_DESCRIPTION = """
 The python code to execute. This must be Python code and not direct SQL. 
 """
+
 
 def build_python_examples(options: PythonOptions) -> str:
     examples = """
@@ -173,6 +175,7 @@ executor.store_artifact('most_recent_controversial_articles_with_comments_summar
 ```"""
     return examples
 
+
 def build_system_prompt_fragment(tool_name: str, catalog: Catalog, artifacts: Artifacts, options: PythonOptions) -> str:
     prompt = f"""
 When executing Python code using the "{tool_name}" tool, you have access to an `executor` variable, which has the following methods:
@@ -216,17 +219,12 @@ The schema of the database available using the "{tool_name}" tool is as follows.
     return prompt
 
 
-class PythonToolOutputJson(TypedDict):
-    output: str
-    error: Optional[str]
-    sql_statements: list[SqlStatement]
-
-
 @dataclass
 class PythonToolOutput(ToolOutput):
     output: str
     error: Optional[str]
     sql_statements: list[SqlStatement]
+    modified_artifact_identifiers: list[str]
 
     def get_response(self) -> str:
         response = self.output
@@ -237,15 +235,13 @@ class PythonToolOutput(ToolOutput):
     def get_error(self) -> Optional[str]:
         return self.error
 
-    def get_output_as_dict(self) -> PythonToolOutputJson:
-        return cast(PythonToolOutputJson, asdict(self))
-
 
 @dataclass
 class PachaPythonTool(Tool):
     data_engine: DataEngine
     llm: Llm
-    options: PythonOptions = field(default_factory=lambda: PythonOptions(enable_artifacts=False, enable_ai_primitives=False))
+    options: PythonOptions = field(default_factory=lambda: PythonOptions(
+        enable_artifacts=False, enable_ai_primitives=False))
     hooks: PythonExecutorHooks = field(default_factory=PythonExecutorHooks)
     catalog: Catalog = field(init=False)
 
@@ -258,11 +254,11 @@ class PachaPythonTool(Tool):
     def execute(self, input, artifacts: Artifacts) -> PythonToolOutput:
         input_code = input.get(CODE_ARGUMENT_NAME)
         if input_code is None:
-            return PythonToolOutput(output="", error=f"Missing parameter {CODE_ARGUMENT_NAME}", sql_statements=[])
+            return PythonToolOutput(output="", error=f"Missing parameter {CODE_ARGUMENT_NAME}", sql_statements=[], modified_artifact_identifiers=[])
         executor = PythonExecutor(
             data_engine=self.data_engine, artifacts=artifacts, hooks=self.hooks, llm=self.llm)
         executor.exec_code(input_code)
-        return PythonToolOutput(output=executor.output_text, error=executor.error, sql_statements=executor.sql_statements)
+        return PythonToolOutput(output=executor.output_text, error=executor.error, sql_statements=executor.sql_statements, modified_artifact_identifiers=executor.modified_artifact_identifiers)
 
     def input_schema(self):
         return {

@@ -15,10 +15,6 @@ class ToolOutput(ABC):
     def get_error(self) -> Optional[str]:
         ...
 
-    @abstractmethod
-    def get_output_as_dict(self) -> Mapping[str, Any]:
-        ...
-
 
 class Tool(ABC):
     @abstractmethod

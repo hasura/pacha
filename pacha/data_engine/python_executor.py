@@ -5,6 +5,7 @@ from pacha.data_engine.artifacts import ArtifactData, ArtifactType, Artifacts
 from pacha.data_engine.data_engine import SqlHooks
 from pacha.data_engine import DataEngine, SqlOutput, SqlStatement
 from pacha.sdk.llm import Llm
+import copy
 
 
 def noop(*args, **kwargs):
@@ -27,6 +28,7 @@ class PythonExecutor:
     sql_statements: list[SqlStatement] = field(default_factory=list)
     output_text: str = ""
     error: Optional[str] = None
+    modified_artifact_identifiers: list[str] = field(default_factory=list)
 
     def run_sql(self, sql: str) -> SqlOutput:
         self.hooks.sql.on_sql_request(sql)
@@ -49,10 +51,11 @@ class PythonExecutor:
 
     def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData):
         output = self.artifacts.store_artifact(identifier, title, artifact_type, data)
+        self.modified_artifact_identifiers.append(identifier)
         self.output(output)
 
     def get_artifact(self, identifier: str) -> ArtifactData:
-        return self.artifacts.get_artifact(identifier)
+        return copy.deepcopy(self.artifacts.get_artifact(identifier))
 
     def classify(self, instructions: str, inputs_to_classify: list[str], categories: list[str], allow_multiple: bool) -> list[str | list[str]]:
         if allow_multiple:

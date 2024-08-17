@@ -26,11 +26,6 @@ def get_system_prompt_fragment(tool_name: str, catalog: Catalog) -> str:
         tool_name=tool_name, catalog=catalog)
 
 
-class SqlToolOutputJson(TypedDict):
-    output: Optional[SqlOutput]
-    error: Optional[str]
-
-
 @dataclass
 class SqlToolOutput(ToolOutput):
     output: Optional[SqlOutput] = None
@@ -46,9 +41,6 @@ class SqlToolOutput(ToolOutput):
 
     def get_error(self) -> Optional[str]:
         return self.error
-
-    def get_output_as_dict(self) -> SqlToolOutputJson:
-        return cast(SqlToolOutputJson, asdict(self))
 
 
 @dataclass

@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, cast, Union, TypedDict
+from pacha.data_engine.artifacts import ArtifactJson, Artifacts
+from pacha.data_engine.data_engine import SqlOutput, SqlStatement
 from pacha.error import PachaException
 from pacha.sdk.chat import ToolCall, ToolCallResponse, AssistantTurn
 from pacha.sdk.tool import ToolOutput
-from pacha.sdk.tools import PythonToolOutputJson, SqlToolOutputJson, PythonToolOutput, SqlToolOutput
+from pacha.sdk.tools import PythonToolOutput, SqlToolOutput
 
 import copy
 import json
@@ -27,6 +29,33 @@ def to_tool_call_json(tool_call: ToolCall) -> ToolCallJson:
     )
 
 
+class PythonToolOutputJson(TypedDict):
+    output: str
+    error: Optional[str]
+    sql_statements: list[SqlStatement]
+    modified_artifacts: list[ArtifactJson]
+
+
+def python_tool_output_to_json(output: PythonToolOutput, artifacts: Artifacts) -> PythonToolOutputJson:
+    return {
+        "output": output.output,
+        "error": output.error,
+        "sql_statements": output.sql_statements,
+        "modified_artifacts": [artifacts.artifacts[identifier].to_json() for identifier in output.modified_artifact_identifiers]
+    }
+
+
+class SqlToolOutputJson(TypedDict):
+    output: Optional[SqlOutput]
+    error: Optional[str]
+
+
+def sql_tool_output_to_json(output: SqlToolOutput) -> SqlToolOutputJson:
+    return {
+        "output": output.output,
+        "error": output.error
+    }
+
 
 ToolOutputJson = PythonToolOutputJson | SqlToolOutputJson
 
@@ -35,28 +64,21 @@ class ToolCallResponseJson(TypedDict):
     call_id: str
     output: ToolOutputJson
 
-def to_tool_call_response_json(tool_call_response: ToolCallResponse) -> ToolCallResponseJson:
-    output_dict = tool_call_response.output.get_output_as_dict()
+
+def to_tool_call_response_json(tool_call_response: ToolCallResponse, artifacts: Artifacts) -> ToolCallResponseJson:
     if isinstance(tool_call_response.output, PythonToolOutput):
-        python_tool_output = cast(PythonToolOutputJson, output_dict)
+        python_tool_output = python_tool_output_to_json(
+            tool_call_response.output, artifacts)
         return ToolCallResponseJson(
             call_id=tool_call_response.call_id,
-            # Note: We explicitly construct the output json again for type hints
-            output=PythonToolOutputJson(
-                output=python_tool_output["output"],
-                error=python_tool_output["error"],
-                sql_statements=python_tool_output["sql_statements"]
-            )
+            output=python_tool_output
         )
     elif isinstance(tool_call_response.output, SqlToolOutput):
-        sql_tool_output = cast(SqlToolOutputJson, output_dict)
+        sql_tool_output = sql_tool_output_to_json(tool_call_response.output)
         return ToolCallResponseJson(
             call_id=tool_call_response.call_id,
             # Note: We explicitly construct the output json again for type hints
-            output=SqlToolOutputJson(
-                output=sql_tool_output["output"],
-                error=sql_tool_output["error"]
-            )
+            output=sql_tool_output
         )
     else:
         raise TypeError("Unsupported ToolOutput type")
@@ -66,23 +88,26 @@ class AssistantTurnJson(TypedDict):
     text: Optional[str]
     tool_calls: list[ToolCallJson]
 
+
 def to_assistant_turn_json(assistant_turn: AssistantTurn) -> AssistantTurnJson:
     return AssistantTurnJson(
         text=assistant_turn.text,
-        tool_calls=list(map(lambda tool_call: to_tool_call_json(tool_call), assistant_turn.tool_calls))
+        tool_calls=list(map(lambda tool_call: to_tool_call_json(
+            tool_call), assistant_turn.tool_calls))
     )
 
 
 class ToolResponseTurnJson(TypedDict):
     tool_responses: list[ToolCallResponseJson]
 
-def to_tool_response_turn_json(tool_response_turn) -> ToolResponseTurnJson:
+
+def to_tool_response_turn_json(tool_response_turn, artifacts: Artifacts) -> ToolResponseTurnJson:
     return ToolResponseTurnJson(
-        tool_responses=list(
-            map(lambda tool_response: tool_response.to_json(), tool_response_turn.tool_responses))
+        tool_responses=[to_tool_call_response_json(
+            response, artifacts) for response in tool_response_turn.tool_responses]
     )
+
+
 @dataclass
 class ToolResponseTurn:
     tool_responses: list[ToolCallResponse]
-
-

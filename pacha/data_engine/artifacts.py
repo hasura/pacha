@@ -1,11 +1,17 @@
 
-from dataclasses import dataclass, field
-from typing import Any, Literal
+from dataclasses import asdict, dataclass, field
+from typing import Any, Literal, TypedDict, cast
 
 ArtifactType = Literal['table', 'text']
 ArtifactData = list[dict[str, Any]] | str
 
 NUM_SAMPLE_ROWS = 2
+
+class ArtifactJson(TypedDict):
+    identifier: str
+    title: str
+    artifact_type: ArtifactType
+    data: ArtifactData
 
 @dataclass
 class Artifact:
@@ -28,6 +34,9 @@ class Artifact:
         else:
             raise ValueError(f'Invalid artifact type {self.artifact_type}')
         return output
+    
+    def to_json(self) -> ArtifactJson:
+            return cast(ArtifactJson, asdict(self))
 
 @dataclass
 class Artifacts:
@@ -42,7 +51,6 @@ class Artifacts:
         return f"Stored {artifact.render_for_prompt()}"
 
     def get_artifact(self, identifier: str) -> ArtifactData:
-        # Should we deep copy the data before returning?
         return self.artifacts[identifier].data
     
     def render_for_prompt(self) -> str:
