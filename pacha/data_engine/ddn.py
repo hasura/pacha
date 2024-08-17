@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pacha.data_engine.catalog import Column, ScalarType, Catalog, Schema, Table, ForeignKey, ForeignKeyMapping
+from pacha.data_engine.catalog import Column, ScalarType, Catalog, Schema, Table, ForeignKey, ForeignKeyMapping, Function, Argument
 from pacha.data_engine import DataEngine, SqlOutput
 import requests
 import argparse
@@ -32,6 +32,18 @@ SELECT from_schema_name,
 FROM hasura.inferred_foreign_key_constraints
 '''
 
+FUNCTIONS_QUERY = '''
+SELECT * from hasura.table_valued_function
+'''
+
+FUNCTIONS_FIELD_QUERY = '''
+SELECT * from hasura.table_valued_function_field
+'''
+
+FUNCTIONS_ARGUMENT_QUERY = '''
+SELECT * from hasura.table_valued_function_argument
+'''
+
 
 @dataclass
 class DdnDataEngineException(Exception):
@@ -56,7 +68,20 @@ def map_data_type(data_type: str) -> ScalarType | str:
     return data_type
 
 
-def create_schema_from_introspection(tables_data, columns_data, foreign_keys_data) -> Catalog:
+# TODO: merge this with map_data_type function
+def get_type_name(type_str: str) -> str:
+    type_mapping = {
+        "STRING": "string",
+        "FLOAT32": "float",
+        "BOOL": "boolean",
+        "ARRAY<STRING>": "string[]",
+    }
+    if type_str.startswith("STRUCT<"):
+        return "struct"
+    return type_mapping.get(type_str, type_str.lower())
+
+
+def create_schema_from_introspection(tables_data, columns_data, foreign_keys_data, functions_data, functions_field_data, functions_argument_data) -> Catalog:
     schemas: dict[str, Schema] = {}
     for table_data in tables_data:
         schema_name = table_data["schema_name"]
@@ -89,6 +114,32 @@ def create_schema_from_introspection(tables_data, columns_data, foreign_keys_dat
             source_table.foreign_keys.append(foreign_key)
         foreign_key.mapping.append(ForeignKeyMapping(
             source_column=foreign_key_data["from_column_name"], target_column=foreign_key_data["to_column_name"]))
+        
+    for func in functions_data:
+        function = Function(name=func["function_name"], description=func["description"])
+        
+        # Populate fields
+        for field in functions_field_data:
+            if field["function_name"] == function.name:
+                column = Column(
+                    name=field["field_name"],
+                    type=get_type_name(field["field_type"]),
+                    description=field["description"]
+                )
+                function.fields[column.name] = column
+
+        # Populate arguments
+        for arg in functions_argument_data:
+            if arg["function_name"] == function.name:
+                argument = Argument(
+                    name=arg["argument_name"],
+                    position=arg["argument_position"],
+                    type=get_type_name(arg["argument_type"]),
+                    description=arg["description"]
+                )
+                function.arguments[argument.name] = argument
+
+        schema.functions[function.name] = function
 
     return Catalog(schemas=schemas)
 
@@ -102,7 +153,10 @@ class DdnDataEngine(DataEngine):
         tables = self.execute_sql(TABLES_QUERY)
         columns = self.execute_sql(COLUMNS_QUERY)
         foreign_keys = self.execute_sql(FOREIGN_KEYS_QUERY)
-        return create_schema_from_introspection(tables, columns, foreign_keys)
+        functions = self.execute_sql(FUNCTIONS_QUERY)
+        functions_field = self.execute_sql(FUNCTIONS_FIELD_QUERY)
+        functions_argument = self.execute_sql(FUNCTIONS_ARGUMENT_QUERY)
+        return create_schema_from_introspection(tables, columns, foreign_keys, functions, functions_field, functions_argument)
 
     def execute_sql(self, sql: str) -> SqlOutput:
         headers = {"Content-type": "application/json"} | self.headers

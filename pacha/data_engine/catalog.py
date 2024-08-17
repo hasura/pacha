@@ -40,12 +40,29 @@ class ForeignKey:
     target_schema: str
     target_table: str
     mapping: list[ForeignKeyMapping] = field(default_factory=list)
+    
+
+@dataclass
+class Argument:
+    name: str
+    type: str
+    position: int
+    description: Optional[str] = None
+    
+    
+@dataclass
+class Function:
+    name: str
+    description: Optional[str] = None
+    fields: dict[str, Column] = field(default_factory=dict)
+    arguments: dict[str, Argument] = field(default_factory=dict)
 
 
 @dataclass
 class Schema:
     name: str
     tables: dict[str, Table] = field(default_factory=dict)
+    functions: dict[str, Function] = field(default_factory=dict)
 
 
 @dataclass
@@ -82,5 +99,48 @@ def render_catalog(catalog: Catalog) -> str:
                     mapping.target_column for mapping in foreign_key.mapping)
                 rendered += ')\n'
             rendered += ")\n"
+            
+            for func in schema.functions.values():
+                rendered += generate_signature(func)
+                rendered += "\n"
 
     return rendered
+
+
+# TODO: merge this with map_data_type function
+def get_type_name(type_str: str) -> str:
+    type_mapping = {
+        "STRING": "string",
+        "FLOAT32": "float",
+        "BOOL": "boolean",
+        "ARRAY<STRING>": "string[]",
+    }
+    if type_str.startswith("STRUCT<"):
+        return "struct"
+    return type_mapping.get(type_str, type_str.lower())
+
+
+
+def generate_signature(func: Function) -> str:
+
+    func_name = func.name
+
+    # Get arguments
+    func_args = [arg for arg in func.arguments.values()]
+    arg_lines = []
+    for arg in sorted(func_args, key=lambda x: x.position):
+        arg_type = get_type_name(arg.type)
+        arg_desc = arg.description if arg.description else ""
+        arg_lines.append(f"    {arg.name} {arg_type} -- {arg_desc}")
+    arg_str = ",\n".join(arg_lines)
+
+    # Get return fields
+    return_str = "table(\n    " + ",\n    ".join([f"{field.name} {get_type_name(field.type)}" 
+                                                  for field in func.fields.values()]) + "\n)"
+
+    signature = f"CREATE FUNCTION {func_name}(\n{arg_str}\n) RETURNS {
+        return_str}"
+
+    return signature
+
+
