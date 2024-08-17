@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from pacha.sdk.chat import Chat, UserTurn, AssistantTurn
-from pacha.sdk.tools.tool import Tool
+from pacha.sdk.tool import Tool
 
 @dataclass
 class LlmException(Exception):

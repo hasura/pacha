@@ -10,10 +10,10 @@ import json
 from typing import Optional
 from pacha.utils.logging import get_logger
 from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCall
-from pacha.sdk.llms.llm import Llm, LlmException
-from pacha.sdk.tools.tool import Tool
+from pacha.sdk.llm import Llm, LlmException
+from pacha.sdk.tool import Tool
 
-MODEL = "gpt-4o"
+MODEL = "gpt-4-turbo"
 
 
 def to_tool_call_param(tool_call: ToolCall) -> ChatCompletionMessageToolCallParam:

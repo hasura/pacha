@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional, TypedDict, NotRequired, cast
 from pacha.data_engine.catalog import Catalog, render_catalog
 from pacha.data_engine.data_engine import DataEngine, SqlOutput
-from pacha.sdk.tools.tool import Tool, ToolOutput
+from pacha.sdk.tool import Tool, ToolOutput
 
 SQL_ARGUMENT_NAME = "sql"
 
@@ -26,11 +26,6 @@ def get_system_prompt_fragment(tool_name: str, catalog: Catalog) -> str:
         tool_name=tool_name, catalog=catalog)
 
 
-class SqlToolOutputJson(TypedDict):
-    output: Optional[SqlOutput]
-    error: Optional[str]
-
-
 @dataclass
 class SqlToolOutput(ToolOutput):
     output: Optional[SqlOutput] = None
@@ -47,9 +42,6 @@ class SqlToolOutput(ToolOutput):
     def get_error(self) -> Optional[str]:
         return self.error
 
-    def get_output_as_dict(self) -> SqlToolOutputJson:
-        return cast(SqlToolOutputJson, asdict(self))
-
 
 @dataclass
 class PachaSqlTool(Tool):
@@ -60,9 +52,9 @@ class PachaSqlTool(Tool):
         self.catalog = self.data_engine.get_catalog()
 
     def name(self) -> str:
-        return 'pacha'
+        return 'execute_sql'
 
-    def execute(self, input) -> SqlToolOutput:
+    def execute(self, input, artifacts) -> SqlToolOutput:
         sql = input[SQL_ARGUMENT_NAME]
         try:
             return SqlToolOutput(output=self.data_engine.execute_sql(sql))
@@ -84,7 +76,7 @@ class PachaSqlTool(Tool):
     def description(self) -> str:
         return TOOL_DESCRIPTION
 
-    def system_prompt_fragment(self) -> str:
+    def system_prompt_fragment(self, artifacts) -> str:
         return SYSTEM_PROMPT_FRAGMENT_TEMPLATE.format(tool_name=self.name(), catalog=self.catalog.render_for_prompt())
 
     def input_as_text(self, input) -> str:

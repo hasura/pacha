@@ -5,11 +5,12 @@ from pacha.data_engine.data_engine import DataEngine
 from pacha.data_engine.ddn import DdnDataEngine
 from pacha.data_engine.postgres import PostgresDataEngine
 from pacha.query_planner.query_planner import QueryPlanner
-from pacha.sdk.tools.tool import Tool
+from pacha.sdk.tool import Tool
 from pacha.sdk.tools.code_tool import PachaPythonTool
 from pacha.sdk.tools.nl_tool import PachaNlTool
 from pacha.sdk.tools.sql_tool import PachaSqlTool
-from pacha.sdk.llms import Llm, openai, anthropic
+from pacha.sdk.llms import openai, anthropic
+from pacha.sdk.llm import Llm
 
 
 def add_data_engine_args(parser: argparse.ArgumentParser):
@@ -61,9 +62,9 @@ def get_pacha_tool(args, render_to_stdout=True) -> Tool:
     elif args.tool == 'python':
         if render_to_stdout:
             return PachaPythonTool(
-                data_engine=data_engine, hooks=get_python_executor_hooks_for_rendering_to_stdout())
+                data_engine=data_engine, hooks=get_python_executor_hooks_for_rendering_to_stdout(), llm=get_llm(args))
         else:
-            return PachaPythonTool(data_engine=data_engine)
+            return PachaPythonTool(data_engine=data_engine, llm=get_llm(args))
     else:
         print("Invalid tool choice")
         exit(1)

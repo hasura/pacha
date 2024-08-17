@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pacha.query_planner.query_planner import QueryPlanner, QueryPlanningInput
 from pacha.query_planner.input import UserTurn
-from pacha.sdk.tools.tool import Tool
+from pacha.sdk.tool import StringToolOutput, Tool
 
 QUERY_ARGUMENT_NAME = "query"
 
@@ -11,13 +11,13 @@ class PachaNlTool(Tool):
     query_planner: QueryPlanner
 
     def name(self) -> str:
-        return 'pacha'
+        return 'retrieve_data'
 
-    def execute(self, input) -> str:
+    def execute(self, input, artifacts) -> StringToolOutput:
         input_query = input[QUERY_ARGUMENT_NAME]
         data_context = self.query_planner.get_data_context(
             QueryPlanningInput([UserTurn(input_query)]))
-        return "No contextual data" if data_context.data is None else data_context.data.output
+        return StringToolOutput("No contextual data" if data_context.data is None else data_context.data.output)
 
     def input_schema(self):
         return {
@@ -34,7 +34,7 @@ class PachaNlTool(Tool):
     def description(self) -> str:
         return "Use this tool to retrieve any contextual data relevant to the conversation."
 
-    def system_prompt_fragment(self) -> str:
+    def system_prompt_fragment(self, artifacts) -> str:
         return ""
     
     def input_as_text(self, input) -> str:

@@ -2,8 +2,8 @@ from typing import Optional
 import anthropic
 from anthropic.types import Message, MessageParam, ToolParam
 from pacha.sdk.chat import Chat, Turn, ToolCall, UserTurn, AssistantTurn, ToolResponseTurn
-from pacha.sdk.llms.llm import Llm
-from pacha.sdk.tools.tool import Tool
+from pacha.sdk.llm import Llm
+from pacha.sdk.tool import Tool
 from pacha.utils.logging import get_logger
 
 MODEL = "claude-3-5-sonnet-20240620"
@@ -61,7 +61,7 @@ class Anthropic(Llm):
 
         get_logger().debug(f"Anthropic System Prompt: {system_prompt}\nMessages: {str(messages)}")
 
-        response: Message = self.client.messages.create(
+        raw_response = self.client.messages.with_raw_response.create(
             max_tokens=MAX_TOKENS,
             messages=messages,
             model=MODEL,
@@ -72,6 +72,8 @@ class Anthropic(Llm):
                 "description": tool.description(),
                 "input_schema": tool.input_schema()
             } for tool in tools])
+        print(raw_response.headers)
+        response: Message = raw_response.parse()
 
         get_logger().info(f"Token Usage: {response.usage}")
 

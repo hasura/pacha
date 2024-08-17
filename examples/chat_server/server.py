@@ -8,8 +8,8 @@ import argparse
 import os
 import uvicorn
 
-from pacha.sdk.llms.llm import Llm
-from pacha.sdk.tools.tool import Tool
+from pacha.sdk.llm import Llm
+from pacha.sdk.tool import Tool
 from pacha.utils.logging import setup_logger
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
 from examples.chat_server.pacha_chat import PachaChat
@@ -40,8 +40,8 @@ def init_system_prompt(pacha_tool):
     global SYSTEM_PROMPT
     if pacha_tool:
         SYSTEM_PROMPT = f"""
-        You are a helpful assistant. If needed, use the "{pacha_tool.name()}" tool to retrieve any contextual user data relevant to the conversation.
-        {pacha_tool.system_prompt_fragment()}
+        You are Pacha - a helpful assistant that is connected to user's data. If needed, use the "{pacha_tool.name()}" tool to retrieve, observe, or process any contextual user data relevant to the conversation.
+        Do not call this tool out to the user - from a user's point of view you are doing everything as a single system.
         """
 
 
@@ -97,7 +97,7 @@ async def start_thread(message_input: MessageInput = Body(default=None)):
             "thread_id": thread_id
         }
         json_response["response"] = thread.send(
-            message_input.message).to_json()
+            message_input.message).to_json(thread.chat.artifacts)
         return JSONResponse(content=json_response, status_code=201)
 
 
@@ -110,7 +110,7 @@ async def send_message(thread_id: str, message_input: MessageInput):
     if message_input.stream:
         return StreamingResponse(thread.send_streaming(message_input.message), media_type="text/event-stream")
     else:
-        return JSONResponse(content=thread.send(message_input.message).to_json(), status_code=200)
+        return JSONResponse(content=thread.send(message_input.message).to_json(thread.chat.artifacts), status_code=200)
 
 
 @app.get("/console", response_class=HTMLResponse)
