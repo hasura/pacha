@@ -241,7 +241,7 @@ class PachaPythonTool(Tool):
     data_engine: DataEngine
     llm: Llm
     options: PythonOptions = field(default_factory=lambda: PythonOptions(
-        enable_artifacts=False, enable_ai_primitives=False))
+        enable_artifacts=True, enable_ai_primitives=True))
     hooks: PythonExecutorHooks = field(default_factory=PythonExecutorHooks)
     catalog: Catalog = field(init=False)
 

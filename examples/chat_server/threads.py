@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import NotRequired, Optional, TypedDict, AsyncGenerator, Any
 from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
-from examples.chat_server.chat_json import AssistantTurnJson, ToolResponseTurnJson, to_assistant_turn_json, to_tool_response_turn_json
+from examples.chat_server.chat_json import AssistantTurnJson, ToolResponseTurnJson, to_assistant_turn_json, to_tool_call_response_json, to_tool_response_turn_json
 from pacha.utils.logging import get_logger
 from examples.chat_server.pacha_chat import PachaChat, ChatFinish
 
@@ -73,7 +73,7 @@ class Thread:
 
             elif isinstance(chunk, ToolCallResponse):
                 event_data = json.dumps(
-                    to_tool_response_turn_json(chunk, self.chat.artifacts))
+                    to_tool_call_response_json(chunk, self.chat.artifacts))
                 yield f"event: {TOOL_RESPONSE_EVENT}\ndata: {event_data}\n\n"
 
             elif isinstance(chunk, ToolResponseTurn):

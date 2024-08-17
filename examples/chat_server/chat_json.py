@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, cast, Union, TypedDict
 from pacha.data_engine.artifacts import ArtifactJson, Artifacts
-from pacha.data_engine.data_engine import SqlOutput, SqlStatement
+from pacha.data_engine.data_engine import SqlOutput, SqlStatement, SqlStatementJson
 from pacha.error import PachaException
-from pacha.sdk.chat import ToolCall, ToolCallResponse, AssistantTurn
+from pacha.sdk.chat import ToolCall, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
 from pacha.sdk.tool import ToolOutput
 from pacha.sdk.tools import PythonToolOutput, SqlToolOutput
 
@@ -32,7 +32,7 @@ def to_tool_call_json(tool_call: ToolCall) -> ToolCallJson:
 class PythonToolOutputJson(TypedDict):
     output: str
     error: Optional[str]
-    sql_statements: list[SqlStatement]
+    sql_statements: list[SqlStatementJson]
     modified_artifacts: list[ArtifactJson]
 
 
@@ -40,7 +40,7 @@ def python_tool_output_to_json(output: PythonToolOutput, artifacts: Artifacts) -
     return {
         "output": output.output,
         "error": output.error,
-        "sql_statements": output.sql_statements,
+        "sql_statements": [statement.to_json() for statement in output.sql_statements],
         "modified_artifacts": [artifacts.artifacts[identifier].to_json() for identifier in output.modified_artifact_identifiers]
     }
 
@@ -101,13 +101,8 @@ class ToolResponseTurnJson(TypedDict):
     tool_responses: list[ToolCallResponseJson]
 
 
-def to_tool_response_turn_json(tool_response_turn, artifacts: Artifacts) -> ToolResponseTurnJson:
+def to_tool_response_turn_json(tool_response_turn: ToolResponseTurn, artifacts: Artifacts) -> ToolResponseTurnJson:
     return ToolResponseTurnJson(
         tool_responses=[to_tool_call_response_json(
             response, artifacts) for response in tool_response_turn.tool_responses]
     )
-
-
-@dataclass
-class ToolResponseTurn:
-    tool_responses: list[ToolCallResponse]
