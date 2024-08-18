@@ -72,7 +72,7 @@ class Anthropic(Llm):
                 "description": tool.description(),
                 "input_schema": tool.input_schema()
             } for tool in tools])
-        print(raw_response.headers)
+        # print(raw_response.headers)
         response: Message = raw_response.parse()
 
         get_logger().info(f"Token Usage: {response.usage}")
