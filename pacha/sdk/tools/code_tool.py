@@ -31,6 +31,7 @@ def build_python_methods(options: PythonOptions) -> str:
   Account for the possibilty of rows not meeting your filters in your python code or nullable columns returning None.
   Keep the SQL easy to understand (eg: no sub-selects), doing more in Python if you need to, especially if SQL is throwing errors.
   Use COUNT(1) instead of COUNT(*), as the SQL engine doesn't support *.
+  Never do a SELECT * but select only the columns you want.
   The python representations of various SQL types are:
   - any number-like types: int
   - any text-like types: str
@@ -166,8 +167,20 @@ Example: Adding a summary of the comments to the previously retrieved controvers
 articles = executor.get_artifact('most_recent_controversial_articles')
 
 for article in articles:
-    comments = executor.run_sql(f"SELECT text FROM GetArticleComments({article['ID']})")
-    comments_summary = executor.summarize('Given these comments on an article, summarize what they are saying', '\n'.join([comment['text'] for comment in comments]))
+    sql = f\"""
+      SELECT
+        text,
+        author,
+        timestamp
+      FROM
+        GetArticleComments(STRUCT(
+            {article['ID']} as article_id
+            50 as limit
+            'recent' AS sort_by
+        ))
+    \"""
+    comments = executor.run_sql(sql)
+    comments_summary = executor.summarize('Given these comments on an article, summarize what they are saying', '\n'.join(comments))
     article['Comments Summary'] = comments_summary
 
 # store the articles with summary in a new artifact
