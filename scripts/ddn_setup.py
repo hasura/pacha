@@ -1,7 +1,7 @@
 import argparse
 import subprocess
 import shutil
-import psycopg2
+# import psycopg2
 import sys
 import os
 import pathlib
@@ -98,8 +98,8 @@ def main():
 
     try:
         match database:
-            case 'postgres':
-                psycopg2.connect(connection_string)
+            # case 'postgres':
+            #     psycopg2.connect(connection_string)
             case _:
                 print('skipping db connectivity check')
     except Exception as e:

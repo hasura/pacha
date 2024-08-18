@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 
-import psycopg2._psycopg
+#import psycopg2._psycopg
 from pacha.data_engine.catalog import Column, ScalarType, Catalog, Table, Schema, TypeReference
 from pacha.data_engine import DataEngine, SqlOutput
-import psycopg2
+#import psycopg2
 
 INTROSPECTION_QUERY = '''
 WITH table_columns AS (
@@ -110,18 +110,20 @@ class PostgresDataEngine(DataEngine):
         return catalog
 
     def execute_sql(self, sql: str) -> SqlOutput:
-        connection = psycopg2.connect(self.connection_string)
-        cursor = connection.cursor()
-        cursor.execute(f"SET STATEMENT_TIMEOUT = '{STATEMENT_TIMEOUT}'")
-        cursor.execute(f"SELECT json_agg(t) FROM ({
-                       sql.strip("\n").strip(";")}) AS t")
-        data = cursor.fetchall()
-        result = data[0][0]
-        result = [] if result is None else result
-        return result
+        # connection = psycopg2.connect(self.connection_string)
+        # cursor = connection.cursor()
+        # cursor.execute(f"SET STATEMENT_TIMEOUT = '{STATEMENT_TIMEOUT}'")
+        # cursor.execute(f"SELECT json_agg(t) FROM ({
+        #                sql.strip("\n").strip(";")}) AS t")
+        # data = cursor.fetchall()
+        # result = data[0][0]
+        # result = [] if result is None else result
+        # return result
+        return []
 
     def execute_mutation(self, sql: str):
-        connection = psycopg2.connect(self.connection_string)
-        cursor = connection.cursor()
-        cursor.execute(sql)
-        connection.commit()
+        # connection = psycopg2.connect(self.connection_string)
+        # cursor = connection.cursor()
+        # cursor.execute(sql)
+        # connection.commit()
+        pass
