@@ -90,6 +90,16 @@ Example: Fetching the date of the oldest article
 data = executor.run_sql("SELECT MIN(date) AS min_date FROM library.articles WHERE date >= '2023-01-1')
 min_date = data[0][min_date]
 executor.print(f'{min_date'})
+```
+
+Example: Calling a SQL function
+```
+data = executor.run_sql("SELECT greeting FROM HelloWorld(STRUCT('Hi' as greeting, 'Alice' as person, 5 as repeat_count)))
+if len(data) != 5:
+    executor.print('expected 5 rows')
+else:
+    for row in data:
+        executor.print(row[greeting])
 ```"""
 
     if options.enable_artifacts:
@@ -167,6 +177,7 @@ Example: Adding a summary of the comments to the previously retrieved controvers
 articles = executor.get_artifact('most_recent_controversial_articles')
 
 for article in articles:
+    # Use the inline struct syntax when calling SQL functions.
     sql = f\"""
       SELECT
         text,

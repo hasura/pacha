@@ -182,6 +182,8 @@ class Catalog:
         rendered = ""
         for schema in self.schemas.values():
             rendered += schema.render()
+        if len(self.functions) > 0:
+            rendered += "Below are the available SQL functions. Remember these need to be called via Python/SQL and not directly as tool calls. To pass a struct argument to a SQL function, you must use the inline STRUCT syntax of Apache DataFusion with named fields (eg: STRUCT('value1' as field1, 'value2' as field2)). Any optional fields may be omitted if you don't wish to pass them.\n"
         for function in self.functions.values():
             rendered += "\n"
             rendered += function.render()
