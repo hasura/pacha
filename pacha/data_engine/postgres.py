@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 import psycopg2._psycopg
-from pacha.data_engine.catalog import Column, ScalarType, Catalog, Table, Schema
+from pacha.data_engine.catalog import Column, ScalarType, Catalog, Table, Schema, TypeReference
 from pacha.data_engine import DataEngine, SqlOutput
 import psycopg2
 
@@ -86,8 +86,8 @@ def create_catalog_from_introspection(introspection) -> Catalog:
         schema = schemas.setdefault(schema_name, Schema(schema_name))
         columns = {}
         for column_data in table_data["columns"]:
-            column = Column(name=column_data["name"], type=map_data_type(
-                column_data["type"]), description=column_data["description"])
+            column = Column(name=column_data["name"], type=TypeReference(nullable=False, underlying_type=map_data_type(
+                column_data["type"])), description=column_data["description"])
             columns[column.name] = column
         table = Table(
             name=table_name, description=table_data["description"], columns=columns)

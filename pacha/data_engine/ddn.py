@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pacha.data_engine.catalog import Column, ScalarType, Catalog, Schema, Table, ForeignKey, ForeignKeyMapping
+from pacha.data_engine.catalog import Argument, Column, Function, ScalarType, Catalog, Schema, Table, ForeignKey, ForeignKeyMapping, TypeReference
 from pacha.data_engine import DataEngine, SqlOutput
 import requests
 import argparse
@@ -14,7 +14,8 @@ SELECT h.schema_name,
        h.table_name,
        h.column_name,
        h.description,
-       i.data_type
+       i.data_type,
+       i.is_nullable
 FROM hasura.column_metadata h
 JOIN information_schema.columns i
 ON h.table_name = i.table_name
@@ -30,6 +31,18 @@ SELECT from_schema_name,
        to_table_name,
        to_column_name
 FROM hasura.inferred_foreign_key_constraints
+'''
+
+TABLE_VALUED_FUNCTIONS_QUERY = '''
+SELECT function_name, description FROM hasura.table_valued_function
+'''
+
+TABLE_VALUED_FUNCTION_ARGUMENTS_QUERY = '''
+SELECT function_name, argument_name, argument_type, is_nullable, description FROM hasura.table_valued_function_argument ORDER BY argument_position ASC
+'''
+
+TABLE_VALUED_FUNCTION_FIELDS_QUERY = '''
+SELECT function_name, field_name, field_type, is_nullable, description FROM hasura.table_valued_function_field
 '''
 
 
@@ -56,7 +69,14 @@ def map_data_type(data_type: str) -> ScalarType | str:
     return data_type
 
 
-def create_schema_from_introspection(tables_data, columns_data, foreign_keys_data) -> Catalog:
+def create_schema_from_introspection(
+        tables_data,
+        columns_data,
+        foreign_keys_data,
+        table_valued_functions_data,
+        table_valued_function_arguments_data,
+        table_valued_function_fields_data,
+) -> Catalog:
     schemas: dict[str, Schema] = {}
     for table_data in tables_data:
         schema_name = table_data["schema_name"]
@@ -72,7 +92,8 @@ def create_schema_from_introspection(tables_data, columns_data, foreign_keys_dat
         column = Column(
             name=column_name,
             description=column_data["description"],
-            type=map_data_type(column_data["data_type"])
+            type=TypeReference(nullable=column_data["is_nullable"] == "YES", underlying_type=map_data_type(
+                column_data["data_type"]))
         )
         table.columns[column.name] = column
 
@@ -90,7 +111,24 @@ def create_schema_from_introspection(tables_data, columns_data, foreign_keys_dat
         foreign_key.mapping.append(ForeignKeyMapping(
             source_column=foreign_key_data["from_column_name"], target_column=foreign_key_data["to_column_name"]))
 
-    return Catalog(schemas=schemas)
+    functions: dict[str, Function] = {}
+    for function_data in table_valued_functions_data:
+        function = Function(name=function_data['function_name'], arguments={
+        }, result_type={}, description=function_data['description'])
+        functions[function.name] = function
+
+    for field_data in table_valued_function_arguments_data:
+        field = Argument(name=field_data['argument_name'], type=TypeReference(
+            nullable=field_data['is_nullable'], underlying_type=map_data_type(field_data['argument_type'])), description=field_data['description'])
+        functions[field_data['function_name']].arguments[field.name] = field
+
+    for field_data in table_valued_function_fields_data:
+        column = Column(name=field_data['field_name'], type=TypeReference(
+            nullable=field_data['is_nullable'], underlying_type=map_data_type(field_data['field_type'])), description=field_data['description'])
+        functions[field_data['function_name']
+                  ].result_type[column.name] = column
+
+    return Catalog(schemas=schemas, functions=functions)
 
 
 @dataclass
@@ -99,10 +137,15 @@ class DdnDataEngine(DataEngine):
     headers: dict[str, str] = field(default_factory=dict)
 
     def get_catalog(self) -> Catalog:
-        tables = self.execute_sql(TABLES_QUERY)
-        columns = self.execute_sql(COLUMNS_QUERY)
-        foreign_keys = self.execute_sql(FOREIGN_KEYS_QUERY)
-        return create_schema_from_introspection(tables, columns, foreign_keys)
+        catalog = create_schema_from_introspection(
+            self.execute_sql(TABLES_QUERY),
+            self.execute_sql(COLUMNS_QUERY),
+            self.execute_sql(FOREIGN_KEYS_QUERY),
+            self.execute_sql(TABLE_VALUED_FUNCTIONS_QUERY),
+            self.execute_sql(TABLE_VALUED_FUNCTION_ARGUMENTS_QUERY),
+            self.execute_sql(TABLE_VALUED_FUNCTION_FIELDS_QUERY))
+        print(catalog.render_for_prompt())
+        return catalog
 
     def execute_sql(self, sql: str) -> SqlOutput:
         headers = {"Content-type": "application/json"} | self.headers
