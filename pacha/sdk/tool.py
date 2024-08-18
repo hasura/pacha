@@ -15,6 +15,15 @@ class ToolOutput(ABC):
     def get_error(self) -> Optional[str]:
         ...
 
+@dataclass
+class ErrorToolOutput(ToolOutput):
+    error: str
+
+    def get_error(self) -> str:
+        return self.error
+
+    def get_response(self) -> str:
+        return self.error
 
 class Tool(ABC):
     @abstractmethod

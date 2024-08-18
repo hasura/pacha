@@ -4,7 +4,7 @@ from pacha.data_engine.artifacts import Artifacts
 from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCall, ToolCallResponse
 from examples.chat_server.chat_json import ToolCallJson, ToolCallResponseJson
 from pacha.sdk.llm import Llm
-from pacha.sdk.tool import Tool, ToolOutput
+from pacha.sdk.tool import ErrorToolOutput, Tool, ToolOutput
 from pacha.utils.logging import get_logger
 
 import asyncio
@@ -72,7 +72,10 @@ class PachaChat:
                     tool_call_responses.append(tool_call_response)
                     yield tool_call_response
                 else:
-                    raise Exception("Invalid tool call")
+                    error = f"""No such tool: {
+                        tool_call.name}. Did you mean to call a Python/SQL function using the {self.pacha_tool.name()} tool instead?"""
+                    tool_call_responses.append(ToolCallResponse(
+                        call_id=tool_call.call_id, output=ErrorToolOutput(error)))
 
             tool_response_turn = ToolResponseTurn(
                 tool_responses=tool_call_responses)

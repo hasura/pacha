@@ -144,7 +144,6 @@ class DdnDataEngine(DataEngine):
             self.execute_sql(TABLE_VALUED_FUNCTIONS_QUERY),
             self.execute_sql(TABLE_VALUED_FUNCTION_ARGUMENTS_QUERY),
             self.execute_sql(TABLE_VALUED_FUNCTION_FIELDS_QUERY))
-        print(catalog.render_for_prompt())
         return catalog
 
     def execute_sql(self, sql: str) -> SqlOutput:
