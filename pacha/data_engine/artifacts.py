@@ -7,11 +7,13 @@ ArtifactData = list[dict[str, Any]] | str
 
 NUM_SAMPLE_ROWS = 2
 
+
 class ArtifactJson(TypedDict):
     identifier: str
     title: str
     artifact_type: ArtifactType
     data: ArtifactData
+
 
 @dataclass
 class Artifact:
@@ -34,9 +36,10 @@ class Artifact:
         else:
             raise ValueError(f'Invalid artifact type {self.artifact_type}')
         return output
-    
+
     def to_json(self) -> ArtifactJson:
-            return cast(ArtifactJson, asdict(self))
+        return cast(ArtifactJson, asdict(self))
+
 
 @dataclass
 class Artifacts:
@@ -44,15 +47,17 @@ class Artifacts:
     artifacts: dict[str, Artifact] = field(default_factory=dict)
 
     def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData) -> str:
-        
+
         artifact = Artifact(
             identifier=identifier, title=title, artifact_type=artifact_type, data=data)
+        # Render before storing the artifact since it does some validation checks on the artifact.
+        rendered = artifact.render_for_prompt()
         self.artifacts[identifier] = artifact
-        return f"Stored {artifact.render_for_prompt()}"
+        return f"Stored {rendered}"
 
     def get_artifact(self, identifier: str) -> ArtifactData:
         return self.artifacts[identifier].data
-    
+
     def render_for_prompt(self) -> str:
         rendered = ""
         for artifact in self.artifacts.values():
