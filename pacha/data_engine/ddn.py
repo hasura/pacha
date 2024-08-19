@@ -6,21 +6,26 @@ import requests
 import argparse
 
 TABLES_QUERY = '''
-SELECT schema_name, table_name, description FROM hasura.table_metadata
+SELECT t.schema_name, 
+       t.table_name, 
+       t.description,
+       st.description AS type_description
+FROM hasura.table_metadata t
+JOIN hasura.struct_type st
+ON st.name = t.return_type
 '''
 
 COLUMNS_QUERY = '''
-SELECT h.schema_name,
-       h.table_name,
-       h.column_name,
-       h.description,
-       i.data_type,
-       i.is_nullable
-FROM hasura.column_metadata h
-JOIN information_schema.columns i
-ON h.table_name = i.table_name
-AND h.schema_name = i.table_schema
-AND h.column_name = i.column_name
+SELECT t.schema_name,
+       t.table_name,
+       f.field_name AS column_name,
+       f.description,
+       f.field_type AS data_type,
+       f.field_type_normalized AS data_type_normalized,
+       f.is_nullable
+FROM hasura.table_metadata t
+JOIN hasura.struct_type_field f
+ON f.struct_type_name = t.return_type
 '''
 
 FOREIGN_KEYS_QUERY = '''
@@ -34,15 +39,35 @@ FROM hasura.inferred_foreign_key_constraints
 '''
 
 TABLE_VALUED_FUNCTIONS_QUERY = '''
-SELECT function_name, description FROM hasura.table_valued_function
+SELECT tvf.function_name, 
+       tvf.description,
+       st.description AS type_description
+FROM hasura.table_valued_function tvf
+JOIN hasura.struct_type st
+ON st.name = tvf.return_type
 '''
 
 TABLE_VALUED_FUNCTION_ARGUMENTS_QUERY = '''
-SELECT function_name, argument_name, argument_type, is_nullable, description FROM hasura.table_valued_function_argument ORDER BY argument_position ASC
+SELECT function_name, 
+       argument_name,
+       argument_type,
+       argument_type_normalized,
+       is_nullable,
+       description 
+FROM hasura.table_valued_function_argument 
+ORDER BY argument_position ASC
 '''
 
 TABLE_VALUED_FUNCTION_FIELDS_QUERY = '''
-SELECT function_name, field_name, field_type, is_nullable, description FROM hasura.table_valued_function_field
+SELECT tvf.function_name, 
+       f.field_name AS column_name,
+       f.description,
+       f.field_type AS data_type,
+       f.field_type_normalized AS data_type_normalized,
+       f.is_nullable
+FROM hasura.table_valued_function tvf
+JOIN hasura.struct_type_field f
+ON f.struct_type_name = tvf.return_type
 '''
 
 
