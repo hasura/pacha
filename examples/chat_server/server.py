@@ -91,7 +91,12 @@ async def start_thread(message_input: MessageInput = Body(default=None)):
     threads[thread_id] = thread
 
     if message_input.stream:
-        return StreamingResponse(thread.send_streaming(message_input.message), media_type="text/event-stream", status_code=201)
+        return StreamingResponse(
+            thread.send_streaming(message_input.message),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+            status_code=201
+        )
     else:
         json_response: ThreadCreateResponseJson = {
             "thread_id": thread_id
@@ -108,7 +113,11 @@ async def send_message(thread_id: str, message_input: MessageInput):
         raise HTTPException(status_code=404, detail="Thread not found")
 
     if message_input.stream:
-        return StreamingResponse(thread.send_streaming(message_input.message), media_type="text/event-stream")
+        return StreamingResponse(
+            thread.send_streaming(message_input.message),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"}
+        )
     else:
         return JSONResponse(content=thread.send(message_input.message).to_json(thread.chat.artifacts), status_code=200)
 
