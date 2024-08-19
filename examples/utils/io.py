@@ -46,7 +46,8 @@ def multi_line_input(prompt: str, color: Colors) -> str:
     return '\n'.join(lines)
 
 
-MAX_SQL_OUTPUT_LENGTH = 2000
+MAX_SQL_QUERY_LENGTH = 100
+MAX_SQL_OUTPUT_LENGTH = 100
 
 
 def output_query_plan(query_plan: QueryPlan):
@@ -54,7 +55,7 @@ def output_query_plan(query_plan: QueryPlan):
 
 
 def output_sql_request(sql: str):
-    output("SQL Query", DATA_ENGINE_COLOR, sql)
+    output("SQL Query", DATA_ENGINE_COLOR, sql.replace('\n', ' ')[:MAX_SQL_QUERY_LENGTH])
 
 
 def output_sql_response(data: SqlOutput):
