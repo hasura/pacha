@@ -5,16 +5,18 @@ from examples.utils.io import (
 )
 import logging
 from pacha.data_engine.artifacts import Artifacts
+from pacha.data_engine.context import ExecutionContext
 from pacha.sdk.chat import Chat, ToolCallResponse, ToolResponseTurn, UserTurn
 from pacha.sdk.tool import ErrorToolOutput
 from pacha.utils.logging import setup_logger as setup_pacha_logger
 import os
+import asyncio
 
 # Assuming LLM performance degrades after 32k tokens and 4 characters per token
 CHARACTER_LIMIT = 32000 * 4
 
 
-def main():
+async def async_main():
     log_level = os.environ.get('LOG', 'WARNING').upper()
     setup_pacha_logger(log_level)
 
@@ -24,7 +26,7 @@ def main():
     add_llm_args(parser)
     args = parser.parse_args()
     artifacts = Artifacts()
-    pacha_tool = get_pacha_tool(args)
+    pacha_tool = await get_pacha_tool(args)
     llm = get_llm(args)
 
     def get_system_prompt(turns): return f"""
@@ -44,7 +46,7 @@ def main():
 
     while True:
         logging.getLogger(__name__).info("Calling Assistant...")
-        assistant_turn = llm.get_assistant_turn(
+        assistant_turn = await llm.get_assistant_turn(
             chat.truncate(CHARACTER_LIMIT), tools=[pacha_tool], temperature=0)
         chat.add_turn(assistant_turn)
         tool_call_responses = []
@@ -53,7 +55,7 @@ def main():
         for tool_call in assistant_turn.tool_calls:
             if tool_call.name == pacha_tool.name():
                 output("Pacha Input", QUERY_PLAN_COLOR, str(tool_call.input))
-                tool_output = pacha_tool.execute(tool_call.input, artifacts)
+                tool_output = await pacha_tool.execute(tool_call.input, ExecutionContext(artifacts))
                 output("Pacha Output", QUERY_PLAN_COLOR,
                        tool_output.get_response())
                 tool_call_responses.append(ToolCallResponse(
@@ -69,6 +71,12 @@ def main():
             chat.add_turn(UserTurn(text=user_input))
         else:
             chat.add_turn(ToolResponseTurn(tool_responses=tool_call_responses))
+
+# This is called directly by poetry
+
+
+def main():
+    asyncio.run(async_main())
 
 
 if __name__ == "__main__":

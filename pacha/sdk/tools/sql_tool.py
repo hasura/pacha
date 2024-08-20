@@ -44,20 +44,18 @@ class SqlToolOutput(ToolOutput):
 
 
 @dataclass
+# Do not construct directly, use create_sql_tool instead.
 class PachaSqlTool(Tool):
     data_engine: DataEngine
     catalog: Catalog = field(init=False)
 
-    def __post_init__(self):
-        self.catalog = self.data_engine.get_catalog()
-
     def name(self) -> str:
         return 'execute_sql'
 
-    def execute(self, input, artifacts) -> SqlToolOutput:
+    async def execute(self, input, context) -> SqlToolOutput:
         sql = input[SQL_ARGUMENT_NAME]
         try:
-            return SqlToolOutput(output=self.data_engine.execute_sql(sql))
+            return SqlToolOutput(output=await self.data_engine.execute_sql(sql))
         except Exception as e:
             return SqlToolOutput(error=str(e))
 
@@ -81,3 +79,8 @@ class PachaSqlTool(Tool):
 
     def input_as_text(self, input) -> str:
         return input.get(SQL_ARGUMENT_NAME, "")
+
+async def create_sql_tool(*args, **kwargs) -> PachaSqlTool:
+    tool = PachaSqlTool(*args, **kwargs)
+    tool.catalog = await tool.data_engine.get_catalog()
+    return tool

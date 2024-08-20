@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Callable, Optional
 from pacha.data_engine.artifacts import Artifacts
+from pacha.data_engine.context import ExecutionContext
 from pacha.query_planner.instructions import *
 from pacha.data_engine import DataEngine, SqlOutput
 from pacha.query_planner.input import QueryPlanningInput
@@ -67,15 +68,15 @@ class QueryPlanner:
     hooks: QueryPlannerHooks = field(default_factory=QueryPlannerHooks)
     catalog: Catalog = field(init=False)
 
-    def __post_init__(self):
-        self.catalog = self.data_engine.get_catalog()
+    async def __post_init__(self):
+        self.catalog = await self.data_engine.get_catalog()
 
-    def exec_code(self, code: str) -> QueryPlanExecutionResult:
-        executor = PythonExecutor(self.data_engine, artifacts=Artifacts(), hooks=self.hooks.python, llm=self.planner_llm)
-        executor.exec_code(code)
+    async def exec_code(self, code: str) -> QueryPlanExecutionResult:
+        executor = PythonExecutor(self.data_engine, context=ExecutionContext(), hooks=self.hooks.python, llm=self.planner_llm)
+        await executor.exec_code(code)
         return QueryPlanExecutionResult(executor.output_text, executor.sql_statements, executor.error)
 
-    def get_model_output(self, input: QueryPlanningInput, previous_try: Optional[DataContext]) -> str:
+    async def get_model_output(self, input: QueryPlanningInput, previous_try: Optional[DataContext]) -> str:
         query_planner_system_prompt = get_system_instructions(
             self.planner_llm, self.catalog)
         if self.system_prompt is not None:
@@ -102,14 +103,14 @@ class QueryPlanner:
             UserTurn(text=user_prompt)
         ] + turns
 
-        output = self.planner_llm.get_assistant_turn(
+        output = (await self.planner_llm.get_assistant_turn(
             llm.Chat(system_prompt=query_planner_system_prompt, turns=turns),
-            temperature=0).text
+            temperature=0)).text
         assert(output is not None)
         return output
 
-    def get_query_plan(self, input: QueryPlanningInput, previous_try: Optional[DataContext]) -> QueryPlan:
-        model_output = self.get_model_output(input, previous_try)
+    async def get_query_plan(self, input: QueryPlanningInput, previous_try: Optional[DataContext]) -> QueryPlan:
+        model_output = await self.get_model_output(input, previous_try)
 
         python_code = None
 
@@ -129,27 +130,27 @@ class QueryPlanner:
 
         return QueryPlan(raw=model_output, python_code=python_code)
 
-    def execute_query_plan(self, query_plan: QueryPlan) -> Optional[QueryPlanExecutionResult]:
+    async def execute_query_plan(self, query_plan: QueryPlan) -> Optional[QueryPlanExecutionResult]:
         if query_plan.python_code is None:
             return None
-        return self.exec_code(query_plan.python_code)
+        return await self.exec_code(query_plan.python_code)
 
-    def get_data_context(self, input: QueryPlanningInput) -> DataContext:
+    async def get_data_context(self, input: QueryPlanningInput) -> DataContext:
         get_logger().info("Calling Query Planner...")
-        data_context = self.get_data_context_internal(input, previous_try=None)
+        data_context = await self.get_data_context_internal(input, previous_try=None)
         retries = 0
         while data_context.data is not None and data_context.data.error is not None and retries < MAX_RETRIES:
             get_logger().info("Retrying Query Planning...")
-            data_context = self.get_data_context_internal(
+            data_context = await self.get_data_context_internal(
                 input, previous_try=data_context)
             retries += 1
         return data_context
 
-    def get_data_context_internal(self, input: QueryPlanningInput, previous_try: Optional[DataContext]) -> DataContext:
-        query_plan = self.get_query_plan(input, previous_try)
+    async def get_data_context_internal(self, input: QueryPlanningInput, previous_try: Optional[DataContext]) -> DataContext:
+        query_plan = await self.get_query_plan(input, previous_try)
         self.hooks.on_query_plan_generation(query_plan)
 
-        execution_result = self.execute_query_plan(query_plan)
+        execution_result = await self.execute_query_plan(query_plan)
         data_context = DataContext(
             query_plan, data=execution_result, previous_try=previous_try)
         self.hooks.on_query_plan_execution(data_context)

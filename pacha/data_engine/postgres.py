@@ -100,16 +100,16 @@ class PostgresDataEngine(DataEngine):
     connection_string: str
     included_schemas: list[str] = field(default_factory=lambda: ["public"])
 
-    def get_catalog(self) -> Catalog:
+    async def get_catalog(self) -> Catalog:
         comma_separated_schemas = ', '.join(
             [f"'{schema}'" for schema in self.included_schemas])
-        data = self.execute_sql(INTROSPECTION_QUERY.format(
+        data = await self.execute_sql(INTROSPECTION_QUERY.format(
             included_schemas=f'({comma_separated_schemas})'))
         catalog = create_catalog_from_introspection(
             next(iter(data[0].values())))
         return catalog
 
-    def execute_sql(self, sql: str) -> SqlOutput:
+    async def execute_sql(self, sql: str, allow_mutations: bool = False) -> SqlOutput:
         # connection = psycopg2.connect(self.connection_string)
         # cursor = connection.cursor()
         # cursor.execute(f"SET STATEMENT_TIMEOUT = '{STATEMENT_TIMEOUT}'")

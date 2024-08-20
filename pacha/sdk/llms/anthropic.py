@@ -53,15 +53,15 @@ def to_message(turn: Turn) -> MessageParam:
 
 class Anthropic(Llm):
     def __init__(self, *args, **kwargs):
-        self.client = anthropic.Anthropic(*args, **kwargs)
+        self.client = anthropic.AsyncAnthropic(*args, **kwargs)
 
-    def get_assistant_turn(self, chat: Chat, tools: list[Tool] = [], temperature: Optional[float] = None) -> AssistantTurn:
+    async def get_assistant_turn(self, chat: Chat, tools: list[Tool] = [], temperature: Optional[float] = None) -> AssistantTurn:
         messages = [to_message(turn) for turn in chat.turns]
         system_prompt = chat.get_system_prompt()
 
         get_logger().debug(f"Anthropic System Prompt: {system_prompt}\nMessages: {str(messages)}")
 
-        raw_response = self.client.messages.with_raw_response.create(
+        raw_response = await self.client.messages.with_raw_response.create(
             max_tokens=MAX_TOKENS,
             messages=messages,
             model=MODEL,

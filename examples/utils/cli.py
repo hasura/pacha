@@ -6,9 +6,9 @@ from pacha.data_engine.ddn import DdnDataEngine
 from pacha.data_engine.postgres import PostgresDataEngine
 from pacha.query_planner.query_planner import QueryPlanner
 from pacha.sdk.tool import Tool
-from pacha.sdk.tools.code_tool import PachaPythonTool
+from pacha.sdk.tools.code_tool import PachaPythonTool, create_python_tool
 from pacha.sdk.tools.nl_tool import PachaNlTool
-from pacha.sdk.tools.sql_tool import PachaSqlTool
+from pacha.sdk.tools.sql_tool import PachaSqlTool, create_sql_tool
 from pacha.sdk.llms import openai, anthropic
 from pacha.sdk.llm import Llm
 
@@ -51,20 +51,20 @@ def add_auth_args(parser: argparse.ArgumentParser):
     parser.add_argument('-k', '--secret-key', type=str)
 
 
-def get_pacha_tool(args, render_to_stdout=True) -> Tool:
+async def get_pacha_tool(args, render_to_stdout=True) -> Tool:
     data_engine = get_data_engine(args)
     if args.tool == 'nl':
         return PachaNlTool(query_planner=QueryPlanner(
             data_engine=data_engine,
             hooks=get_query_planner_hooks_for_rendering_to_stdout()))
     elif args.tool == 'sql':
-        return PachaSqlTool(data_engine=data_engine)
+        return await create_sql_tool(data_engine=data_engine)
     elif args.tool == 'python':
         if render_to_stdout:
-            return PachaPythonTool(
+            return await create_python_tool(
                 data_engine=data_engine, hooks=get_python_executor_hooks_for_rendering_to_stdout(), llm=get_llm(args))
         else:
-            return PachaPythonTool(data_engine=data_engine, llm=get_llm(args))
+            return await create_python_tool(data_engine=data_engine, llm=get_llm(args)) # type: ignore
     else:
         print("Invalid tool choice")
         exit(1)

@@ -35,9 +35,9 @@ class SqlHooks(ABC):
 
 class DataEngine(ABC):
     @abstractmethod
-    def get_catalog(self) -> Catalog:
+    async def get_catalog(self) -> Catalog:
         ...
 
     @abstractmethod
-    def execute_sql(self, sql: str) -> SqlOutput:
+    async def execute_sql(self, sql: str, allow_mutations: bool = False) -> SqlOutput:
         ...

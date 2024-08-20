@@ -22,7 +22,7 @@ class LlamaOnTogether(Llm):
     def __init__(self, *args, **kwargs):
         self.client = Together(*args, **kwargs)
 
-    def get_assistant_turn(self, chat: Chat, tools = [], temperature=None) -> AssistantTurn:
+    async def get_assistant_turn(self, chat: Chat, tools = [], temperature=None) -> AssistantTurn:
         assert(len(tools) == 0)
         messages = []
         system_prompt = chat.get_system_prompt()
