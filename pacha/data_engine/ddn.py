@@ -148,8 +148,8 @@ def create_schema_from_introspection(
         functions[field_data['function_name']].arguments[field.name] = field
 
     for field_data in table_valued_function_fields_data:
-        column = Column(name=field_data['field_name'], type=TypeReference(
-            nullable=field_data['is_nullable'], underlying_type=map_data_type(field_data['field_type'])), description=field_data['description'])
+        column = Column(name=field_data['column_name'], type=TypeReference(
+            nullable=field_data['is_nullable'], underlying_type=map_data_type(field_data['data_type'])), description=field_data['description'])
         functions[field_data['function_name']
                   ].result_type[column.name] = column
 
