@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  openresty:
+    image: openresty/openresty:alpine
+    ports:
+      - "9701:80"
+    volumes:
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+    environment:
+      API_KEYS: "comma-separated-list"
