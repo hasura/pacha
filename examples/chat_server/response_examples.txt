@@ -1,6 +1,8 @@
 Conversation about response types: https://hasurahq.slack.com/archives/C07GVB485RD/p1723841320559989?thread_ts=1723838909.100429&cid=C07GVB485RD
 
-curl -X POST "http://localhost:5000/threads" -H "Content-Type: application/json" -d '{"message": "Who are my top customers"}'
+Example 1 (normal streaming)
+
+$ curl -X POST "http://localhost:5000/threads" -H "Content-Type: application/json" -d '{"message": "Who are my top customers"}'
 
 event: start
 data: {"thread_id": "30a9cd4d-2c16-411f-b5f5-25e9a688952d"}
@@ -17,3 +19,42 @@ data: {"text": "Based on the analysis of the payment data, I've identified the t
 event: finish
 data: {}
 
+
+Example 2 (mutation confirmation)
+
+
+$ curl -X POST "http://localhost:5000/threads" -H "Content-Type: application/json" -d '{"message": "issue a refund to abhinav@hasura.io who has owner_id f67a3d0c-38eb-43b8-8f41-1d772673708f and project_id 73a7b217-49f0-4301-8dab-b5c9b2576bbc for 20 dollars"}'
+
+event: start
+data: {"thread_id": "48b9bbef-4780-4890-9c6e-b0966042f13b"}
+
+event: assistant_response_message
+data: {"text": null, "tool_calls": [{"name": "execute_python", "call_id": "call_2i3Ws2jlHSEUruCYlQli9hsQ", "input": {"python_code": "refund_data = await executor.run_sql(\"SELECT * FROM app.IssueCredits(STRUCT(20 as amount, 'abhinav@hasura.io' as email, 'f67a3d0c-38eb-43b8-8f41-1d772673708f' as ownerId, '73a7b217-49f0-4301-8dab-b5c9b2576bbc' as projectId))\")\nexecutor.store_artifact('refund_result', 'Refund Result', 'table', refund_data)"}}]}
+
+event: tool_response_message
+data: {"call_id": "call_2i3Ws2jlHSEUruCYlQli9hsQ", "output": {"output": "", "error": "Traceback (most recent call last):\n  File \"<string>\", line 2, in async_exec_code\n  File \"/Users/abhg/hasura/pacha-ai/pacha/data_engine/python_executor.py\", line 49, in run_sql\n    try:\n         \n  File \"/Users/abhg/hasura/pacha-ai/pacha/data_engine/ddn.py\", line 189, in execute_sql\n    raise DdnDataEngineException(error)\npacha.data_engine.ddn.DdnDataEngineException: error in data fusion: Error during planning: table function 'app' not found\n", "sql_statements": [], "modified_artifacts": []}}
+
+event: assistant_response_message
+data: {"text": "It seems there was an error in processing the refund request due to an issue with the database function. Let me try again to ensure the refund is issued correctly.", "tool_calls": [{"name": "execute_python", "call_id": "call_FpvG36T82WvVB8gYAHSS0gqx", "input": {"python_code": "refund_data = await executor.run_sql(\"SELECT * FROM IssueCredits(STRUCT(20 as amount, 'abhinav@hasura.io' as email, 'f67a3d0c-38eb-43b8-8f41-1d772673708f' as ownerId, '73a7b217-49f0-4301-8dab-b5c9b2576bbc' as projectId))\")\nexecutor.store_artifact('refund_result', 'Refund Result', 'table', refund_data)"}}]}
+
+event: user_confirmation
+data: {"confirmation_id": "5009a10f-14b4-4191-8f4c-5438817e85d5", "message": "SELECT * FROM IssueCredits(STRUCT(20 as amount, 'abhinav@hasura.io' as email, 'f67a3d0c-38eb-43b8-8f41-1d772673708f' as ownerId, '73a7b217-49f0-4301-8dab-b5c9b2576bbc' as projectId))", "thread_id": "48b9bbef-4780-4890-9c6e-b0966042f13b"}
+
+.... it's waiting here for user confirmation ...
+
+When the user accepts confirmation, the following request should get fired:
+
+$ curl -X POST "http://localhost:5000/threads/48b9bbef-4780-4890-9c6e-b0966042f13b/user_confirmation" -H "Content-Type: application/json" -d '{"confirmation_id": "5009a10f-14b4-4191-8f4c-5438817e85d5", "confirm": true}'
+
+{}
+
+$ ... Then the first event stream continues
+
+event: tool_response_message
+data: {"call_id": "call_FpvG36T82WvVB8gYAHSS0gqx", "output": {"output": "SQL statement returned 1 rows, columns: ['status', 'stripeInvoiceId']\nStored table artifact: identifier = 'refund_result', title = 'Refund Result', number of rows = 1, sample rows = [{'status': 'success', 'stripeInvoiceId': 'stripe_fake_invoice_id_123_987'}]\n", "error": null, "sql_statements": [{"sql": "SELECT * FROM IssueCredits(STRUCT(20 as amount, 'abhinav@hasura.io' as email, 'f67a3d0c-38eb-43b8-8f41-1d772673708f' as ownerId, '73a7b217-49f0-4301-8dab-b5c9b2576bbc' as projectId))", "result": [{"status": "success", "stripeInvoiceId": "stripe_fake_invoice_id_123_987"}]}], "modified_artifacts": [{"identifier": "refund_result", "title": "Refund Result", "artifact_type": "table", "data": [{"status": "success", "stripeInvoiceId": "stripe_fake_invoice_id_123_987"}]}]}}
+
+event: assistant_response_message
+data: {"text": "The refund has been successfully processed. Here are the details of the transaction:\n\n<artifact identifier=\"refund_result\"/>", "tool_calls": []}
+
+event: finish
+data: {}
