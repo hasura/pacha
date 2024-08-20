@@ -40,6 +40,21 @@ class Artifact:
     def to_json(self) -> ArtifactJson:
         return cast(ArtifactJson, asdict(self))
 
+    def get_validation_error(self) -> str | None:
+        if self.artifact_type == 'text':
+            if not isinstance(self.data, str):
+                return "Text artifact should have text data"
+        elif self.artifact_type == 'table':
+            if not isinstance(self.data, list):
+                return "Table artifact should have a list of rows"
+            if len(self.data) == 0:
+                return "Table artifact should have at least 1 row"
+            if not isinstance(self.data[0], dict):
+                return "Table artifact rows should be a map of columns"
+        else:
+            return f"Unknown artifact type {self.artifact_type}"
+        return None
+
 
 @dataclass
 class Artifacts:
@@ -50,7 +65,10 @@ class Artifacts:
 
         artifact = Artifact(
             identifier=identifier, title=title, artifact_type=artifact_type, data=data)
-        # Render before storing the artifact since it does some validation checks on the artifact.
+        validation_error = artifact.get_validation_error()
+        if validation_error is not None:
+            return f"Invalid artifact {identifier} not stored: {validation_error}"
+
         rendered = artifact.render_for_prompt()
         self.artifacts[identifier] = artifact
         return f"Stored {rendered}"
