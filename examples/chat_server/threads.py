@@ -4,7 +4,7 @@ from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
 from examples.chat_server.chat_json import AssistantTurnJson, ToolResponseTurnJson, to_assistant_turn_json, to_tool_call_response_json, to_tool_response_turn_json
 from pacha.utils.logging import get_logger
-from examples.chat_server.pacha_chat import PachaChat, ChatFinish
+from examples.chat_server.pacha_chat import PachaChat, ChatFinish, UserConfirmationRequest
 
 import json
 
@@ -13,6 +13,7 @@ START_EVENT = 'start'
 ASSISTANT_RESPONSE_EVENT = 'assistant_response_message'
 TOOL_RESPONSE_EVENT = 'tool_response_message'
 FINISH_EVENT = 'finish'
+USER_CONFIRMATION_EVENT = 'user_confirmation'
 
 
 class ThreadMessageJson(TypedDict):
@@ -29,6 +30,20 @@ class ThreadJson(TypedDict):
     thread_id: str
     history: NotRequired[list[ThreadMessageJson]]
     artifacts: NotRequired[list[ArtifactJson]]
+
+
+class UserConfirmationRequestJson(TypedDict):
+    thread_id: str
+    confirmation_id: str
+    message: str
+
+
+def to_user_confirmation_request_json(request: UserConfirmationRequest, thread_id: str) -> UserConfirmationRequestJson:
+    return {
+        "confirmation_id": request.id,
+        "message": request.message,
+        "thread_id": thread_id
+    }
 
 
 @dataclass
@@ -49,8 +64,8 @@ class Thread:
     chat: PachaChat
     history: list[ThreadMessage] = field(default_factory=list)
 
-    def send(self, message: str) -> ThreadMessage:
-        assistant_messages = self.chat.process_chat(message)
+    async def send(self, message: str) -> ThreadMessage:
+        assistant_messages = await self.chat.process_chat(message)
         thread_message = ThreadMessage(UserTurn(message), assistant_messages)
         self.history.append(thread_message)
         return thread_message
@@ -82,7 +97,10 @@ class Thread:
             elif isinstance(chunk, ChatFinish):
                 self.history.append(current_message)
                 yield f"event: {FINISH_EVENT}\ndata: {{}}\n\n"
-
+            elif isinstance(chunk, UserConfirmationRequest):
+                event_data = json.dumps(
+                    to_user_confirmation_request_json(chunk, self.id))
+                yield f"event: {USER_CONFIRMATION_EVENT}\ndata: {event_data}\n\n"
             else:
                 # handle unknown chunk types
                 event_data = json.dumps(

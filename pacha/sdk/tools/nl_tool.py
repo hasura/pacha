@@ -13,9 +13,9 @@ class PachaNlTool(Tool):
     def name(self) -> str:
         return 'retrieve_data'
 
-    def execute(self, input, artifacts) -> StringToolOutput:
+    async def execute(self, input, context) -> StringToolOutput:
         input_query = input[QUERY_ARGUMENT_NAME]
-        data_context = self.query_planner.get_data_context(
+        data_context = await self.query_planner.get_data_context(
             QueryPlanningInput([UserTurn(input_query)]))
         return StringToolOutput("No contextual data" if data_context.data is None else data_context.data.output)
 

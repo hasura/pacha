@@ -57,9 +57,9 @@ def to_messages(turn: Turn) -> list[ChatCompletionMessageParam]:
 
 class OpenAI(Llm):
     def __init__(self, *args, **kwargs):
-        self.client = openai.OpenAI(*args, **kwargs)
+        self.client = openai.AsyncOpenAI(*args, **kwargs)
 
-    def get_assistant_turn(self, chat: Chat, tools: list[Tool] = [], temperature: Optional[float] = None) -> AssistantTurn:
+    async def get_assistant_turn(self, chat: Chat, tools: list[Tool] = [], temperature: Optional[float] = None) -> AssistantTurn:
         messages = []
         system_prompt = chat.get_system_prompt()
         if system_prompt is not None:
@@ -73,7 +73,7 @@ class OpenAI(Llm):
 
         get_logger().debug(f"OpenAI Messages: {str(messages)}")
 
-        response = self.client.chat.completions.create(
+        response = await self.client.chat.completions.create(
             messages=messages,
             model=MODEL,
             temperature=temperature,

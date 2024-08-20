@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pacha.data_engine.catalog import Argument, Column, Function, ScalarType, Catalog, Schema, Table, ForeignKey, ForeignKeyMapping, TypeReference
 from pacha.data_engine import DataEngine, SqlOutput
 import requests
-import argparse
+import asyncio
 
 TABLES_QUERY = '''
 SELECT t.schema_name, 
@@ -161,19 +161,22 @@ class DdnDataEngine(DataEngine):
     url: str
     headers: dict[str, str] = field(default_factory=dict)
 
-    def get_catalog(self) -> Catalog:
-        catalog = create_schema_from_introspection(
+    async def get_catalog(self) -> Catalog:
+        tables_data, columns_data, foreign_keys_data, table_valued_functions_data, table_valued_function_arguments_data, table_valued_function_fields_data, = await asyncio.gather(
             self.execute_sql(TABLES_QUERY),
             self.execute_sql(COLUMNS_QUERY),
             self.execute_sql(FOREIGN_KEYS_QUERY),
             self.execute_sql(TABLE_VALUED_FUNCTIONS_QUERY),
             self.execute_sql(TABLE_VALUED_FUNCTION_ARGUMENTS_QUERY),
             self.execute_sql(TABLE_VALUED_FUNCTION_FIELDS_QUERY))
+        catalog = create_schema_from_introspection(tables_data, columns_data, foreign_keys_data,
+                                                   table_valued_functions_data, table_valued_function_arguments_data, table_valued_function_fields_data)
+
         return catalog
 
-    def execute_sql(self, sql: str) -> SqlOutput:
+    async def execute_sql(self, sql: str, allow_mutations: bool = False) -> SqlOutput:
         headers = {"Content-type": "application/json"} | self.headers
-        data = {"sql": sql}
+        data = {"sql": sql, "disallowMutations": not allow_mutations}
         response = requests.post(self.url, json=data, headers=headers)
         if response.headers["content-length"] == "0":
             return []

@@ -3,6 +3,7 @@ from dataclasses import dataclass, asdict
 from typing import Any, Mapping, Optional
 
 from pacha.data_engine.artifacts import Artifacts
+from pacha.data_engine.context import ExecutionContext
 
 
 @dataclass
@@ -31,7 +32,7 @@ class Tool(ABC):
         ...
 
     @abstractmethod
-    def execute(self, input, artifacts: Artifacts) -> ToolOutput:
+    async def execute(self, input, context: ExecutionContext) -> ToolOutput:
         ...
 
     @abstractmethod

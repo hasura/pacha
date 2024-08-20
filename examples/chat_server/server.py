@@ -7,6 +7,7 @@ import uuid
 import argparse
 import os
 import uvicorn
+import asyncio
 
 from pacha.sdk.llm import Llm
 from pacha.sdk.tool import Tool
@@ -70,6 +71,11 @@ class MessageInput(BaseModel):
     stream: Optional[bool] = True
 
 
+class ConfirmationInput(BaseModel):
+    confirmation_id: str
+    confirm: bool
+
+
 @app.get("/threads")
 async def get_threads():
     return [thread.to_json(include_history=False) for thread in threads.values()]
@@ -101,8 +107,8 @@ async def start_thread(message_input: MessageInput = Body(default=None)):
         json_response: ThreadCreateResponseJson = {
             "thread_id": thread_id
         }
-        json_response["response"] = thread.send(
-            message_input.message).to_json(thread.chat.artifacts)
+        json_response["response"] = (await thread.send(
+            message_input.message)).to_json(thread.chat.artifacts)
         return JSONResponse(content=json_response, status_code=201)
 
 
@@ -119,7 +125,17 @@ async def send_message(thread_id: str, message_input: MessageInput):
             headers={"Cache-Control": "no-cache", "Connection": "keep-alive"}
         )
     else:
-        return JSONResponse(content=thread.send(message_input.message).to_json(thread.chat.artifacts), status_code=200)
+        return JSONResponse(content=(await thread.send(message_input.message)).to_json(thread.chat.artifacts), status_code=200)
+
+
+@app.post("/threads/{thread_id}/user_confirmation")
+async def send_user_confirmation(thread_id: str, confirmation_input: ConfirmationInput):
+    thread = threads.get(thread_id)
+    if thread is None:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    thread.chat.handle_user_confirmation(
+        confirmation_input.confirmation_id, confirmation_input.confirm)
+    return JSONResponse(content={}, status_code=200)
 
 
 @app.get("/console", response_class=HTMLResponse)
@@ -145,7 +161,7 @@ async def redirect_home():
     return RedirectResponse(url='/console')
 
 
-def main():
+async def async_setup():
     global LLM
     global PACHA_TOOL
 
@@ -155,10 +171,14 @@ def main():
     add_tool_args(parser)
     args = parser.parse_args()
     init_auth(args.secret_key)
-    PACHA_TOOL = get_pacha_tool(args, render_to_stdout=False)
+    PACHA_TOOL = await get_pacha_tool(args, render_to_stdout=False)
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
 
+
+def main():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(async_setup())
     log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
     setup_logger(log_level)
     uvicorn.run(app, host="0.0.0.0", port=5000, log_level=log_level.lower())

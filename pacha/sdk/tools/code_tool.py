@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional, TypedDict, NotRequired, cast
 from pacha.data_engine.artifacts import Artifacts
 from pacha.data_engine.catalog import Catalog
+from pacha.data_engine.context import ExecutionContext
 from pacha.data_engine.data_engine import DataEngine, SqlStatement
 from pacha.data_engine.python_executor import PythonExecutor, PythonExecutorHooks
 from pacha.sdk.llm import Llm
@@ -26,7 +27,7 @@ Always ensure that there is at least one `executor.print`{' or `executor.store_a
 
 def build_python_methods(options: PythonOptions) -> str:
     methods = """
-- `def run_sql(self, sql: str) -> list[dict[str, Any]]`:
+- `async def run_sql(self, sql: str) -> list[dict[str, Any]]`:
   This can be used to retrieve data by issuing an Apache DataFusion style SQL query. It returns a list of rows, with each row represented as a dictionary of selected column names (or aliases) to column values.
   Account for the possibilty of rows not meeting your filters in your python code or nullable columns returning None.
   Keep the SQL easy to understand (eg: no sub-selects), doing more in Python if you need to, especially if SQL is throwing errors.
@@ -58,12 +59,12 @@ def build_python_methods(options: PythonOptions) -> str:
 
     if options.enable_ai_primitives:
         methods += """
-- `def classify(self, instructions: str, inputs_to_classify: list[str], categories: list[str], allow_multiple: bool) -> list[str | list[str]]`:
+- `async def classify(self, instructions: str, inputs_to_classify: list[str], categories: list[str], allow_multiple: bool) -> list[str | list[str]]`:
   This can be used to call an AI language model to classify the given `inputs_to_classify` into the specified `categories`.
   If `allow_multiple` is True, then zero or more categories can be chosen for each input and hence the output is a list of list of categories - one list per input.
   If `allow_multiple` is False, then exactly one category is chosen for each input and the output is a list of categories - one per input.
   Any instructions for classification (eg: what the categories mean) should be clearly given in `instructions`. All the data needed for classification should be a part of `data` - the classification model cannot access any external data.
-- `def summarize(self, instructions: str, input: str) -> str`:
+- `async def summarize(self, instructions: str, input: str) -> str`:
   This can be used to call a language model to summarize the `input`. Any summarization instructions (eg: what information to preserve) must be given in `instructions`. The output is the summarized text.
 """
     return methods
@@ -78,7 +79,7 @@ def build_python_examples(options: PythonOptions) -> str:
     examples = """
 Example: Fetching the title of article with ID 5
  ```
-data = executor.run_sql("SELECT title FROM library.articles WHERE id = 5")
+data = await executor.run_sql("SELECT title FROM library.articles WHERE id = 5")
 if len(data) == 0:
   executor.print('not found')
 else:
@@ -87,14 +88,14 @@ else:
 
 Example: Fetching the date of the oldest article
 ```
-data = executor.run_sql("SELECT MIN(date) AS min_date FROM library.articles WHERE date >= '2023-01-1')
+data = await executor.run_sql("SELECT MIN(date) AS min_date FROM library.articles WHERE date >= '2023-01-1')
 min_date = data[0][min_date]
 executor.print(f'{min_date'})
 ```
 
 Example: Calling a SQL function
 ```
-data = executor.run_sql("SELECT greeting FROM HelloWorld(STRUCT('Hi' as greeting, 'Alice' as person, 5 as repeat_count)))
+data = await executor.run_sql("SELECT greeting FROM HelloWorld(STRUCT('Hi' as greeting, 'Alice' as person, 5 as repeat_count)))
 if len(data) != 5:
     executor.print('expected 5 rows')
 else:
@@ -122,7 +123,7 @@ sql = \"""
     ORDER BY articles.published_at DESC
     LIMIT 100
 \"""
-data = executor.run_sql(sql)
+data = await executor.run_sql(sql)
 if len(data) == 0:
   executor.print('no articles found')
 else:
@@ -161,7 +162,7 @@ factual, neutral, or deal with less contentious topics.
 \"""
 
 # Perform classification
-classifications = classify(instructions, article_contents, categories)
+classifications = await executor.classify(instructions, article_contents, categories)
 
 # Filter controversial articles
 controversial_indices = [i for i, classification in enumerate(classifications) if classification == 'controversial']
@@ -190,8 +191,8 @@ for article in articles:
             'recent' AS sort_by
         ))
     \"""
-    comments = executor.run_sql(sql)
-    comments_summary = executor.summarize('Given these comments on an article, summarize what they are saying', '\n'.join(comments))
+    comments = await executor.run_sql(sql)
+    comments_summary = await executor.summarize('Given these comments on an article, summarize what they are saying', '\n'.join(comments))
     article['Comments Summary'] = comments_summary
 
 # store the articles with summary in a new artifact
@@ -261,6 +262,7 @@ class PythonToolOutput(ToolOutput):
 
 
 @dataclass
+# Do not construct directly, use create_python_tool instead.
 class PachaPythonTool(Tool):
     data_engine: DataEngine
     llm: Llm
@@ -269,19 +271,16 @@ class PachaPythonTool(Tool):
     hooks: PythonExecutorHooks = field(default_factory=PythonExecutorHooks)
     catalog: Catalog = field(init=False)
 
-    def __post_init__(self):
-        self.catalog = self.data_engine.get_catalog()
-
     def name(self) -> str:
         return 'execute_python'
 
-    def execute(self, input, artifacts: Artifacts) -> PythonToolOutput:
+    async def execute(self, input, context: ExecutionContext) -> PythonToolOutput:
         input_code = input.get(CODE_ARGUMENT_NAME)
         if input_code is None:
             return PythonToolOutput(output="", error=f"Missing parameter {CODE_ARGUMENT_NAME}", sql_statements=[], modified_artifact_identifiers=[])
         executor = PythonExecutor(
-            data_engine=self.data_engine, artifacts=artifacts, hooks=self.hooks, llm=self.llm)
-        executor.exec_code(input_code)
+            data_engine=self.data_engine, context=context, hooks=self.hooks, llm=self.llm)
+        await executor.exec_code(input_code)
         return PythonToolOutput(output=executor.output_text, error=executor.error, sql_statements=executor.sql_statements, modified_artifact_identifiers=executor.modified_artifact_identifiers)
 
     def input_schema(self):
@@ -304,3 +303,9 @@ class PachaPythonTool(Tool):
 
     def input_as_text(self, input) -> str:
         return input.get(CODE_ARGUMENT_NAME, "")
+
+
+async def create_python_tool(*args, **kwargs) -> PachaPythonTool:
+    tool = PachaPythonTool(*args, **kwargs)
+    tool.catalog = await tool.data_engine.get_catalog()
+    return tool

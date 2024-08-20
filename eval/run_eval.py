@@ -1,5 +1,6 @@
 import os
 import argparse
+import asyncio
 from examples.utils.cli import add_data_engine_args, get_data_engine
 from pacha.data_engine import DataEngine
 from pacha.query_planner import QueryPlanner, QueryPlanningInput, UserTurn
@@ -22,9 +23,9 @@ def render_data_context(data_context: DataContext) -> str:
     return rendered
 
 
-def run(user_prompt: str, data_engine: DataEngine) -> str:
+async def run(user_prompt: str, data_engine: DataEngine) -> str:
     planner = QueryPlanner(data_engine)
-    data_context = planner.get_data_context(
+    data_context = await planner.get_data_context(
         QueryPlanningInput([UserTurn(user_prompt)]))
     return render_data_context(data_context)
 
@@ -45,7 +46,7 @@ def should_ignore_file(file_path, ignore_list):
     return False
 
 
-def process_files(input_dirs, output_root, ignore_list, data_engine):
+async def process_files(input_dirs, output_root, ignore_list, data_engine):
     for input_dir in input_dirs:
         for root, _, files in os.walk(input_dir):
             if should_ignore_file(root, ignore_list):
@@ -61,7 +62,7 @@ def process_files(input_dirs, output_root, ignore_list, data_engine):
                 try:
                     print(f"Processing {input_file_path}")
                     input_text = read_query_file(input_file_path)
-                    output_text = run(input_text, data_engine)
+                    output_text = await run(input_text, data_engine)
 
                     # Create corresponding output directory structure
                     relative_path = os.path.relpath(input_file_path, input_dir)
@@ -82,7 +83,7 @@ def process_files(input_dirs, output_root, ignore_list, data_engine):
                     print(f"Error processing {input_file_path}: {e}")
 
 
-def main():
+async def main():
     parser = argparse.ArgumentParser(
         description='Process test files and generate output.')
     parser.add_argument('-i', '--input-dir', dest='input_dirs', type=str, action='append', required=True,
@@ -95,9 +96,9 @@ def main():
     args = parser.parse_args()
     data_engine = get_data_engine(args)
 
-    process_files(args.input_dirs, args.output_root,
+    await process_files(args.input_dirs, args.output_root,
                   args.ignore_list, data_engine)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
