@@ -64,7 +64,7 @@ async def get_pacha_tool(args, render_to_stdout=True) -> Tool:
             return await create_python_tool(
                 data_engine=data_engine, hooks=get_python_executor_hooks_for_rendering_to_stdout(), llm=get_llm(args))
         else:
-            return await create_python_tool(data_engine=data_engine, llm=get_llm(args)) # type: ignore
+            return await create_python_tool(data_engine=data_engine, llm=get_llm(args))
     else:
         print("Invalid tool choice")
         exit(1)
@@ -79,6 +79,6 @@ def get_llm(args) -> Llm:
     if args.llm == 'openai':
         return openai.OpenAI()
     elif args.llm == 'anthropic':
-        return anthropic.Anthropic()
+        return anthropic.Anthropic(max_retries=5)
     print("Invalid LLM choice")
     exit(1)
