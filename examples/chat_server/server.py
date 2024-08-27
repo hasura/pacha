@@ -3,18 +3,20 @@ from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, Stre
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Callable
+from contextlib import asynccontextmanager
 import uuid
 import argparse
 import os
 import uvicorn
 import asyncio
+import aiosqlite
 
 from pacha.sdk.llm import Llm
 from pacha.sdk.tool import Tool
-from pacha.utils.logging import setup_logger
+from pacha.utils.logging import setup_logger, get_logger
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
 from examples.chat_server.pacha_chat import PachaChat
-from examples.chat_server.threads import Thread, ThreadCreateResponseJson
+from examples.chat_server.threads import ThreadJson, ThreadCreateResponseJson, Thread, ThreadNotFound
 
 app = FastAPI()
 
@@ -27,8 +29,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory storage for threads
-threads: Dict[str, Thread] = {}
+# SQLite database setup
+DATABASE_NAME = "pacha.db"
+
+
+async def init_db():
+    conn = await aiosqlite.connect(DATABASE_NAME)
+    await conn.executescript('''
+     CREATE TABLE IF NOT EXISTS threads (
+         thread_id TEXT PRIMARY KEY,
+         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     CREATE TABLE IF NOT EXISTS turns (
+         thread_id TEXT NOT NULL,
+         turn_id INTEGER PRIMARY KEY AUTOINCREMENT,
+         message TEXT,
+         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     CREATE TABLE IF NOT EXISTS artifacts (
+         thread_id TEXT NOT NULL,
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         artifact_id TEXT NOT NULL,
+         artifact_json TEXT,
+         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     ''')
+    await conn.commit()
+    await conn.close()
+
+
+async def get_db():
+    conn = await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
+    try:
+        yield conn
+    finally:
+        await conn.close()
+
+
+@asynccontextmanager
+async def get_async_db():
+    conn = await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
+    yield conn
+
 
 # will be initialized in main
 SECRET_KEY: Optional[str] = None
@@ -77,60 +119,93 @@ class ConfirmationInput(BaseModel):
 
 
 @app.get("/threads")
-async def get_threads():
-    return [thread.to_json(include_history=False) for thread in threads.values()]
+async def get_threads(db: aiosqlite.Connection = Depends(get_db)):
+    cursor = await db.execute("SELECT thread_id FROM threads")
+    rows = await cursor.fetchall()
+    return [ThreadJson(thread_id=row[0]) for row in rows]
 
 
 @app.get("/threads/{thread_id}")
-async def get_thread(thread_id: str):
-    thread = threads.get(thread_id)
-    if thread is None:
+async def get_thread(thread_id: str, db: aiosqlite.Connection = Depends(get_db)):
+    try:
+        default_chat = PachaChat(
+            llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        thread = await Thread.from_db(thread_id, default_chat, db)
+    except ThreadNotFound as e:
         raise HTTPException(status_code=404, detail="Thread not found")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise HTTPException(
+            status_code=500, detail="Internal error, check logs")
     return thread.to_json()
 
 
 @app.post("/threads")
-async def start_thread(message_input: MessageInput = Body(default=None)):
-    thread_id = str(uuid.uuid4())
-    thread = Thread(id=thread_id, chat=PachaChat(
-        llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT))
-    threads[thread_id] = thread
+async def start_thread(message_input: MessageInput):
 
-    if message_input.stream:
-        return StreamingResponse(
-            thread.send_streaming(message_input.message),
-            media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
-            status_code=201
-        )
-    else:
-        json_response: ThreadCreateResponseJson = {
-            "thread_id": thread_id
-        }
-        json_response["response"] = (await thread.send(
-            message_input.message)).to_json(thread.chat.artifacts)
-        return JSONResponse(content=json_response, status_code=201)
+    async with get_async_db() as db:
+        thread_id = str(uuid.uuid4())
+        query = f'''INSERT INTO threads (thread_id)
+                                        VALUES ('{thread_id}');'''
+
+        await db.execute(query)
+        thread = Thread(id=thread_id, chat=PachaChat(
+            llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
+        if message_input.stream:
+            return StreamingResponse(
+                thread.send_streaming(message_input.message),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache",
+                         "Connection": "keep-alive"},
+                status_code=201
+            )
+        else:
+            json_response: ThreadCreateResponseJson = {
+                "thread_id": thread_id
+            }
+            json_response["response"] = (await thread.send(
+                message_input.message)).to_json(thread.chat.artifacts)
+            await db.close()
+            return JSONResponse(content=json_response, status_code=201)
 
 
 @app.post("/threads/{thread_id}")
 async def send_message(thread_id: str, message_input: MessageInput):
-    thread = threads.get(thread_id)
-    if thread is None:
-        raise HTTPException(status_code=404, detail="Thread not found")
+    async with get_async_db() as db:
+        try:
+            default_chat = PachaChat(
+                llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+            thread = await Thread.from_db(thread_id, default_chat, db)
+        except ThreadNotFound as e:
+            raise HTTPException(status_code=404, detail="Thread not found")
+        except Exception as e:
+            get_logger().error(f"Exception occurred: {e}")
+            raise HTTPException(
+                status_code=500, detail="Internal error, check logs")
 
-    if message_input.stream:
-        return StreamingResponse(
-            thread.send_streaming(message_input.message),
-            media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"}
-        )
-    else:
-        return JSONResponse(content=(await thread.send(message_input.message)).to_json(thread.chat.artifacts), status_code=200)
+        if message_input.stream:
+            return StreamingResponse(
+                thread.send_streaming(message_input.message),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache",
+                         "Connection": "keep-alive"}
+            )
+        else:
+            await db.close()
+            return JSONResponse(content=(await thread.send(message_input.message)).to_json(thread.chat.artifacts), status_code=200)
 
 
 @app.post("/threads/{thread_id}/user_confirmation")
-async def send_user_confirmation(thread_id: str, confirmation_input: ConfirmationInput):
-    thread = threads.get(thread_id)
+async def send_user_confirmation(thread_id: str, confirmation_input: ConfirmationInput,  db: aiosqlite.Connection = Depends(get_db)):
+    try:
+        default_chat = PachaChat(
+            llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        thread = await Thread.from_db(thread_id, default_chat, db)
+    except ThreadNotFound as e:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Internal error, check logs")
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
     thread.chat.handle_user_confirmation(
@@ -174,6 +249,7 @@ async def async_setup():
     PACHA_TOOL = await get_pacha_tool(args, render_to_stdout=False)
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
+    await init_db()
 
 
 def main():
