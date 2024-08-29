@@ -1,9 +1,9 @@
-from dataclasses import dataclass
-from typing import Optional, AsyncGenerator
+from dataclasses import dataclass, field
+from typing import Optional, AsyncGenerator, Dict
 from pacha.data_engine.artifacts import Artifacts
 from pacha.data_engine.context import ExecutionContext
 from pacha.data_engine.user_confirmations import UserConfirmationProvider, UserConfirmationResult
-from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCallResponse
+from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, Chat, ToolCallResponse
 from pacha.sdk.llm import Llm
 from pacha.sdk.tool import ErrorToolOutput, Tool
 from pacha.utils.logging import get_logger
@@ -23,27 +23,48 @@ class UserConfirmationRequest:
     message: str
 
 
+@dataclass
+class UserConfirmationStatus:
+    confirmation_id: str
+    status: UserConfirmationResult
+
+
 AssistantEvents = AssistantTurn | ToolCallResponse | ToolResponseTurn | ChatFinish | UserConfirmationRequest
+type PachaTurn = Turn | UserConfirmationRequest
+
+
+CONFIRMATION_PROVIDERS: Dict[str, UserConfirmationProvider] = {}
 
 
 @dataclass
 class PachaChat:
+    id: str
     llm: Llm
     pacha_tool: Tool
     chat: Chat
+    turns: list[PachaTurn]
     artifacts: Artifacts
     confirmation_provider: UserConfirmationProvider
+    user_confirmations: dict[str, UserConfirmationResult]
 
     def __init__(self,
+                 id: str,
                  llm: Llm,
                  pacha_tool: Tool,
                  system_prompt: str,
                  ):
+        self.id = id
         self.llm = llm
         self.pacha_tool = pacha_tool
         artifacts = Artifacts()
         self.artifacts = artifacts
-        self.confirmation_provider = UserConfirmationProvider(event=asyncio.Event())
+        if id in CONFIRMATION_PROVIDERS.keys():
+            self.confirmation_provider = CONFIRMATION_PROVIDERS[id]
+        else:
+            CONFIRMATION_PROVIDERS[id] = UserConfirmationProvider(
+                event=asyncio.Event())
+            self.confirmation_provider = CONFIRMATION_PROVIDERS[id]
+        self.user_confirmations = {}
 
         def system_prompt_builder(turns): return f"""
             {system_prompt}
@@ -51,16 +72,18 @@ class PachaChat:
             {pacha_tool.system_prompt_fragment(artifacts)}."""
 
         self.chat = Chat(system_prompt=system_prompt_builder)
+        self.turns = []
 
     async def process_chat_streaming(self, user_query: str) -> AsyncGenerator[AssistantEvents, None]:
         logger = get_logger()
 
         self.chat.add_turn(UserTurn(user_query))
-        
+        self.turns.append(UserTurn(user_query))
 
         while True:
             assistant_turn = await self.llm.get_assistant_turn(self.chat, tools=[self.pacha_tool], temperature=0)
             self.chat.add_turn(assistant_turn)
+            self.turns.append(assistant_turn)
             yield assistant_turn
 
             if not assistant_turn.tool_calls:
@@ -90,7 +113,10 @@ class PachaChat:
                         confirmation_id = str(uuid.uuid4())
                         self.confirmation_provider.pending[confirmation_id] = self.confirmation_provider.requested
                         self.confirmation_provider.event.clear()
-                        yield UserConfirmationRequest(confirmation_id, confirmation_message)
+                        user_confirmation_request = UserConfirmationRequest(
+                            confirmation_id, confirmation_message)
+                        self.turns.append(user_confirmation_request)
+                        yield user_confirmation_request
 
                     tool_output = tool_execution_task.result()
                     logger.debug('pacha tool output: %s', tool_output)
@@ -107,6 +133,7 @@ class PachaChat:
             tool_response_turn = ToolResponseTurn(
                 tool_responses=tool_call_responses)
             self.chat.add_turn(tool_response_turn)
+            self.turns.append(tool_response_turn)
             yield tool_response_turn
 
         yield ChatFinish()  # TODO: Compute tokens and respond in finish message
@@ -149,7 +176,9 @@ class PachaChat:
         return assistant_messages
 
     def handle_user_confirmation(self, confirmation_id: str, confirmed: bool):
-        confirmation = self.confirmation_provider.pending.pop(confirmation_id, None)
+        confirmation = self.confirmation_provider.pending.pop(
+            confirmation_id, None)
         if confirmation is not None:
             confirmation.result = UserConfirmationResult.APPROVED if confirmed else UserConfirmationResult.DENIED
+            self.user_confirmations[confirmation_id] = confirmation.result
             confirmation.event.set()

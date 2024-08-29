@@ -5,7 +5,8 @@ import json
 
 from pacha.sdk.chat import Turn
 from pacha.data_engine.artifacts import Artifacts, Artifact
-from examples.chat_server.chat_json import to_turn_json, from_turn_json, from_artifact_json
+from pacha.data_engine.user_confirmations import UserConfirmationResult
+from examples.chat_server.chat_json import to_turn_json, from_turn_json, from_artifact_json, PachaTurn
 
 
 async def fetch_threads(db: aiosqlite.Connection):
@@ -27,7 +28,7 @@ async def persist_thread(db: aiosqlite.Connection, thread_id: str, title: str):
     await db.execute("INSERT INTO threads (thread_id, title) VALUES (?, ?);",  (thread_id, title))
 
 
-async def persist_turn(db: aiosqlite.Connection, thread_id: str, turn: Turn, artifacts: Artifacts):
+async def persist_turn(db: aiosqlite.Connection, thread_id: str, turn: PachaTurn, artifacts: Artifacts):
     await db.execute('''INSERT INTO turns (thread_id, message)
                         VALUES (?, ?);''', (thread_id, json.dumps(to_turn_json(turn, artifacts))))
 
@@ -46,11 +47,11 @@ async def persist_artifacts(db: aiosqlite.Connection, thread_id: str, artifacts:
                              VALUES ('{thread_id}', :artifact_id, :artifact_json);''', artifact_params)
 
 
-async def fetch_turns(db: aiosqlite.Connection, thread_id: str) -> list[Turn]:
+async def fetch_turns(db: aiosqlite.Connection, thread_id: str) -> list[PachaTurn]:
     cursor = await db.execute(
-        "SELECT message FROM turns WHERE thread_id = ? ORDER BY turn_id", (thread_id,))
+        "SELECT message FROM turns WHERE thread_id = ? ORDER BY id", (thread_id,))
     turn_rows = await cursor.fetchall()
-    turns: list[Turn] = []
+    turns: list[PachaTurn] = []
     for turn_row in turn_rows:
         turn = from_turn_json(turn_row[0])
         turns.append(turn)
@@ -66,3 +67,18 @@ async def fetch_artifacts(db: aiosqlite.Connection, thread_id: str) -> dict[str,
         artifact = from_artifact_json(artifact_row[0])
         artifacts[artifact.identifier] = artifact
     return artifacts
+
+
+async def update_user_confirmation(db: aiosqlite.Connection, thread_id: str, confirmation_id: str, confirm: bool):
+    status = UserConfirmationResult.APPROVED.value if confirm else UserConfirmationResult.DENIED.value
+    await db.execute("INSERT INTO user_confirmations (thread_id, confirmation_id, status) VALUES (?, ?, ?) ON CONFLICT(thread_id, confirmation_id) DO NOTHING;",  (thread_id, confirmation_id, status))
+
+
+async def fetch_user_confirmations(db: aiosqlite.Connection, thread_id: str):
+    cursor = await db.execute(
+        "SELECT confirmation_id, status FROM user_confirmations WHERE thread_id = ? order by id", (thread_id,))
+    confirmation_rows = await cursor.fetchall()
+    user_confirmations: dict[str, UserConfirmationResult] = {}
+    for row in confirmation_rows:
+        user_confirmations[row[0]] = UserConfirmationResult(row[1])
+    return user_confirmations

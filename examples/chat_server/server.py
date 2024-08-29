@@ -18,7 +18,7 @@ from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_t
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.chat_json import to_turn_json
 from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
-from examples.chat_server.db import fetch_threads, persist_thread
+from examples.chat_server.db import fetch_threads, persist_thread, update_user_confirmation
 
 app = FastAPI()
 
@@ -44,24 +44,26 @@ async def init_db():
          created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
      );
      CREATE TABLE IF NOT EXISTS turns (
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
          thread_id TEXT NOT NULL,
-         turn_id INTEGER PRIMARY KEY AUTOINCREMENT,
          message TEXT,
          created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
      );
      CREATE TABLE IF NOT EXISTS artifacts (
-         thread_id TEXT NOT NULL,
          id INTEGER PRIMARY KEY AUTOINCREMENT,
+         thread_id TEXT NOT NULL,
          artifact_id TEXT NOT NULL,
          artifact_json TEXT,
          created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
      );
      CREATE TABLE IF NOT EXISTS user_confirmations (
-         thread_id TEXT NOT NULL,
          id INTEGER PRIMARY KEY AUTOINCREMENT,
+         thread_id TEXT NOT NULL,
          confirmation_id TEXT NOT NULL,
          status INTEGER DEFAULT 0,
-         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+         
+         UNIQUE(thread_id, confirmation_id)
      );
      ''')
     await conn.commit()
@@ -140,8 +142,8 @@ async def get_threads(db: aiosqlite.Connection = Depends(get_db)):
 @app.get("/threads/{thread_id}")
 async def get_thread(thread_id: str, db: aiosqlite.Connection = Depends(get_db)):
     try:
-        default_chat = PachaChat(
-            llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        default_chat = PachaChat(id=thread_id,
+                                 llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
         thread = await Thread.from_db(thread_id, default_chat, db)
         return thread.to_json()
     except ThreadNotFound as e:
@@ -160,8 +162,8 @@ async def start_thread(message_input: MessageInput):
             title = message_input.message[slice(40)]
 
             await persist_thread(db, thread_id, title)
-            thread = Thread(id=thread_id, title=title, 
-                            chat=PachaChat(llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
+            thread = Thread(id=thread_id, title=title,
+                            chat=PachaChat(id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
             if message_input.stream:
                 return StreamingResponse(
                     thread.send_streaming(message_input.message),
@@ -190,8 +192,8 @@ async def start_thread(message_input: MessageInput):
 async def send_message(thread_id: str, message_input: MessageInput):
     async with get_async_db() as db:
         try:
-            default_chat = PachaChat(
-                llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+            default_chat = PachaChat(id=thread_id,
+                                     llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
             thread = await Thread.from_db(thread_id, default_chat, db)
 
             if message_input.stream:
@@ -223,9 +225,10 @@ async def send_message(thread_id: str, message_input: MessageInput):
 @app.post("/threads/{thread_id}/user_confirmation")
 async def send_user_confirmation(thread_id: str, confirmation_input: ConfirmationInput,  db: aiosqlite.Connection = Depends(get_db)):
     try:
-        default_chat = PachaChat(
-            llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        default_chat = PachaChat(id=thread_id,
+                                 llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
         thread = await Thread.from_db(thread_id, default_chat, db)
+        await update_user_confirmation(db, thread_id, confirmation_input.confirmation_id, confirmation_input.confirm)
         thread.chat.handle_user_confirmation(
             confirmation_input.confirmation_id, confirmation_input.confirm)
         return JSONResponse(content={}, status_code=200)

@@ -1,27 +1,32 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import NotRequired, TypedDict, AsyncGenerator, Any, Optional
 from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
+from pacha.data_engine.user_confirmations import UserConfirmationProvider, UserConfirmationResult, RequestedUserConfirmation
 from examples.chat_server.chat_json import (
-    TurnJson,
+    PachaTurnJson,
+    UserConfirmationStatusJson,
     to_assistant_turn_json,
     to_tool_call_response_json,
     to_turn_json,
+    to_user_confirmation_request_json
 )
 from pacha.utils.logging import get_logger
-from examples.chat_server.pacha_chat import PachaChat, ChatFinish, UserConfirmationRequest
+from examples.chat_server.pacha_chat import PachaChat, ChatFinish, UserConfirmationRequest, UserConfirmationStatus
 from examples.chat_server.db import (
     persist_turn,
     persist_turn_many,
     persist_artifacts,
     fetch_thread,
     fetch_turns,
-    fetch_artifacts
+    fetch_artifacts,
+    fetch_user_confirmations
 )
 
 
 import json
 import aiosqlite
+import asyncio
 
 
 START_EVENT = 'start'
@@ -33,28 +38,15 @@ USER_CONFIRMATION_EVENT = 'user_confirmation'
 
 class ThreadMessageResponseJson(TypedDict):
     thread_id: str
-    messages: list[TurnJson]
+    messages: list[PachaTurnJson]
 
 
 class ThreadJson(TypedDict):
     thread_id: str
     title: Optional[str]
-    history: NotRequired[list[TurnJson]]
+    history: NotRequired[list[PachaTurnJson]]
     artifacts: NotRequired[list[ArtifactJson]]
-
-
-class UserConfirmationRequestJson(TypedDict):
-    thread_id: str
-    confirmation_id: str
-    message: str
-
-
-def to_user_confirmation_request_json(request: UserConfirmationRequest, thread_id: str) -> UserConfirmationRequestJson:
-    return {
-        "confirmation_id": request.id,
-        "message": request.message,
-        "thread_id": thread_id
-    }
+    user_confirmations: NotRequired[list[UserConfirmationStatusJson]]
 
 
 @dataclass
@@ -103,8 +95,9 @@ class Thread:
                     yield render_event(FINISH_EVENT, {})
 
                 elif isinstance(chunk, UserConfirmationRequest):
+                    await persist_turn(self.db, self.id, chunk, self.chat.artifacts)
                     event_data = json.dumps(
-                        to_user_confirmation_request_json(chunk, self.id))
+                        to_user_confirmation_request_json(chunk))
                     yield render_event(USER_CONFIRMATION_EVENT, event_data)
 
                 else:
@@ -124,9 +117,11 @@ class Thread:
         }
         if include_history:
             json["history"] = [to_turn_json(turn,
-                                            self.chat.artifacts) for turn in self.chat.chat.turns]
+                                            self.chat.artifacts) for turn in self.chat.turns]
             json["artifacts"] = [artifact.to_json()
                                  for artifact in self.chat.artifacts.artifacts.values()]
+            json["user_confirmations"] = [{"confirmation_id": confirmation_id, "status": confirmation_status.value}
+                                          for confirmation_id, confirmation_status in self.chat.user_confirmations.items()]
         return json
 
     @classmethod
@@ -135,11 +130,16 @@ class Thread:
         if not thread:
             raise ThreadNotFound
         thread_id, title = thread['thread_id'], thread['title']
-        turns = await fetch_turns(db, thread_id)
+        pacha_turns = await fetch_turns(db, thread_id)
         artifacts = await fetch_artifacts(db, thread_id)
+        user_confirmations = await fetch_user_confirmations(db, thread_id)
         chat = default_chat
-        chat.chat.turns = turns
+        chat.turns = pacha_turns
+        chat.chat.turns = [
+            turn for turn in pacha_turns if isinstance(turn, Turn)]
         chat.artifacts = Artifacts(artifacts=artifacts)
+        chat.user_confirmations = user_confirmations
+
         return cls(id=thread_id, title=title, chat=chat, db=db)
 
 
@@ -149,3 +149,20 @@ class ThreadNotFound(Exception):
 
 def render_event(event_name, event_json_data) -> str:
     return f"event: {event_name}\ndata: {event_json_data}\n\n"
+
+
+# user_confirmation_requests = [
+#     turn for turn in pacha_turns if isinstance(turn, UserConfirmationRequest)]
+# pending_user_confirmation_requests = [
+#     request for request in user_confirmation_requests if request.id in user_confirmations.keys()]
+# confirmation_provider = UserConfirmationProvider(
+#     event=asyncio.Event(), pending=create_pending_confirmations(pending_user_confirmation_requests))
+# chat.confirmation_provider = confirmation_provider
+
+# def create_pending_confirmations(requests: list[UserConfirmationRequest]) -> dict[str, RequestedUserConfirmation]:
+
+#     pending_dict = {}
+#     for request in requests:
+#         pending_dict[request.id] = RequestedUserConfirmation(
+#             event=asyncio.Event(), message=request.message, result=UserConfirmationResult.PENDING)
+#     return pending_dict
