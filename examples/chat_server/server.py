@@ -18,7 +18,7 @@ from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_t
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.chat_json import to_turn_json
 from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
-from examples.chat_server.db import fetch_thread_ids, persist_thread_id
+from examples.chat_server.db import fetch_threads, persist_thread
 
 app = FastAPI()
 
@@ -40,6 +40,7 @@ async def init_db():
     await conn.executescript('''
      CREATE TABLE IF NOT EXISTS threads (
          thread_id TEXT PRIMARY KEY,
+         title TEXT,
          created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
      );
      CREATE TABLE IF NOT EXISTS turns (
@@ -53,6 +54,13 @@ async def init_db():
          id INTEGER PRIMARY KEY AUTOINCREMENT,
          artifact_id TEXT NOT NULL,
          artifact_json TEXT,
+         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     CREATE TABLE IF NOT EXISTS user_confirmations (
+         thread_id TEXT NOT NULL,
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         confirmation_id TEXT NOT NULL,
+         status INTEGER DEFAULT 0,
          created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
      );
      ''')
@@ -125,8 +133,8 @@ class ConfirmationInput(BaseModel):
 
 @app.get("/threads")
 async def get_threads(db: aiosqlite.Connection = Depends(get_db)):
-    thread_ids = await fetch_thread_ids(db)
-    return [ThreadJson(thread_id=id) for id in thread_ids]
+    threads = await fetch_threads(db)
+    return [ThreadJson(thread_id=thread['thread_id'], title=thread['title']) for thread in threads]
 
 
 @app.get("/threads/{thread_id}")
@@ -149,10 +157,11 @@ async def start_thread(message_input: MessageInput):
     async with get_async_db() as db:
         try:
             thread_id = str(uuid.uuid4())
-            await persist_thread_id(db, thread_id)
+            title = message_input.message[slice(40)]
 
-            thread = Thread(id=thread_id, chat=PachaChat(
-                llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
+            await persist_thread(db, thread_id, title)
+            thread = Thread(id=thread_id, title=title, 
+                            chat=PachaChat(llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
             if message_input.stream:
                 return StreamingResponse(
                     thread.send_streaming(message_input.message),

@@ -1,10 +1,7 @@
-from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, cast, Union, TypedDict, NotRequired, Literal
+from typing import  Optional, TypedDict, NotRequired, Literal
 from pacha.data_engine.artifacts import ArtifactJson, Artifacts, Artifact
 from pacha.data_engine.data_engine import SqlOutput, SqlStatement, SqlStatementJson
-from pacha.error import PachaException
 from pacha.sdk.chat import ToolCall, Turn, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
-from pacha.sdk.tool import ToolOutput
 from pacha.sdk.tools import PythonToolOutput, SqlToolOutput
 
 import json
@@ -176,24 +173,16 @@ TurnJson = UserTurnJson | AssistantTurnJson | ToolResponseTurnJson
 
 def from_turn_json(turn_json: str) -> Turn:
     try:
-        # Parse the JSON string into a Python dictionary
         turn_dict = json.loads(turn_json)
 
         if turn_dict.get('type') == 'user':
-            # It's a UserTurn
             return from_user_turn_json(turn_dict)
-
         elif turn_dict.get('type') == 'assistant':
-            # It's an AssistantTurn
             return from_assistant_turn_json(turn_dict)
-
         elif turn_dict.get('type') == 'tool_response':
-            # It's a ToolResponseTurn
             return from_tool_response_turn_json(turn_dict)
-
         else:
             raise ValueError("JSON doesn't match any expected turn type")
-
     except json.JSONDecodeError as e:
         raise json.JSONDecodeError(f"Invalid JSON string: {e}", e.doc, e.pos)
 

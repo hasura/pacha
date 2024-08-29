@@ -1,19 +1,23 @@
-from dataclasses import dataclass, field
-from typing import NotRequired, Optional, TypedDict, AsyncGenerator, Any
-from pacha.data_engine.artifacts import ArtifactJson, Artifacts, Artifact
+from dataclasses import dataclass
+from typing import NotRequired, TypedDict, AsyncGenerator, Any, Optional
+from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
 from examples.chat_server.chat_json import (
     TurnJson,
     to_assistant_turn_json,
     to_tool_call_response_json,
-    to_tool_response_turn_json,
-    to_user_turn_json,
     to_turn_json,
-    from_turn_json,
-    from_artifact_json)
+)
 from pacha.utils.logging import get_logger
 from examples.chat_server.pacha_chat import PachaChat, ChatFinish, UserConfirmationRequest
-from examples.chat_server.db import persist_turn, persist_turn_many, persist_artifacts, fetch_thread_id, fetch_turns, fetch_artifacts
+from examples.chat_server.db import (
+    persist_turn,
+    persist_turn_many,
+    persist_artifacts,
+    fetch_thread,
+    fetch_turns,
+    fetch_artifacts
+)
 
 
 import json
@@ -34,6 +38,7 @@ class ThreadMessageResponseJson(TypedDict):
 
 class ThreadJson(TypedDict):
     thread_id: str
+    title: Optional[str]
     history: NotRequired[list[TurnJson]]
     artifacts: NotRequired[list[ArtifactJson]]
 
@@ -51,9 +56,11 @@ def to_user_confirmation_request_json(request: UserConfirmationRequest, thread_i
         "thread_id": thread_id
     }
 
+
 @dataclass
 class Thread:
     id: str
+    title: Optional[str]
     chat: PachaChat
     db: aiosqlite.Connection
 
@@ -112,7 +119,8 @@ class Thread:
 
     def to_json(self, include_history: bool = True) -> ThreadJson:
         json: ThreadJson = {
-            "thread_id": self.id
+            "thread_id": self.id,
+            "title": self.title
         }
         if include_history:
             json["history"] = [to_turn_json(turn,
@@ -123,16 +131,16 @@ class Thread:
 
     @classmethod
     async def from_db(cls, thread_id: str, default_chat: PachaChat, db: aiosqlite.Connection) -> 'Thread':
-        thread = await fetch_thread_id(db, thread_id)
+        thread = await fetch_thread(db, thread_id)
         if not thread:
             raise ThreadNotFound
-
+        thread_id, title = thread['thread_id'], thread['title']
         turns = await fetch_turns(db, thread_id)
         artifacts = await fetch_artifacts(db, thread_id)
         chat = default_chat
         chat.chat.turns = turns
         chat.artifacts = Artifacts(artifacts=artifacts)
-        return cls(id=thread_id, chat=chat, db=db)
+        return cls(id=thread_id, title=title, chat=chat, db=db)
 
 
 class ThreadNotFound(Exception):
