@@ -17,7 +17,7 @@ from pacha.utils.logging import setup_logger, get_logger
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.chat_json import to_turn_json
-from examples.chat_server.threads import ThreadJson, ThreadCreateResponseJson, ThreadMessageResponseJson, Thread, ThreadNotFound
+from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
 from examples.chat_server.db import fetch_thread_ids, persist_thread_id
 
 app = FastAPI()
@@ -164,7 +164,7 @@ async def start_thread(message_input: MessageInput):
             else:
                 messages = await thread.send(message_input.message)
                 await db.close()
-                response: ThreadCreateResponseJson = {
+                response: ThreadMessageResponseJson = {
                     "thread_id": thread_id,
                     "messages": list(
                         map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
@@ -196,6 +196,7 @@ async def send_message(thread_id: str, message_input: MessageInput):
                 messages = await thread.send(message_input.message)
                 await db.close()
                 response: ThreadMessageResponseJson = {
+                    "thread_id": thread_id,
                     "messages": list(
                         map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
                 }

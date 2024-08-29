@@ -28,12 +28,8 @@ USER_CONFIRMATION_EVENT = 'user_confirmation'
 
 
 class ThreadMessageResponseJson(TypedDict):
-    messages: list[TurnJson]
-
-
-class ThreadCreateResponseJson(TypedDict):
     thread_id: str
-    messages: NotRequired[list[TurnJson]]
+    messages: list[TurnJson]
 
 
 class ThreadJson(TypedDict):
