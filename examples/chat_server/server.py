@@ -135,41 +135,46 @@ async def get_thread(thread_id: str, db: aiosqlite.Connection = Depends(get_db))
         default_chat = PachaChat(
             llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
         thread = await Thread.from_db(thread_id, default_chat, db)
+        return thread.to_json()
     except ThreadNotFound as e:
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
         get_logger().error(f"An unexpected error occurred: {e}")
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
-    return thread.to_json()
 
 
 @app.post("/threads")
 async def start_thread(message_input: MessageInput):
-
     async with get_async_db() as db:
-        thread_id = str(uuid.uuid4())
-        await persist_thread_id(db, thread_id)
+        try:
+            thread_id = str(uuid.uuid4())
+            await persist_thread_id(db, thread_id)
 
-        thread = Thread(id=thread_id, chat=PachaChat(
-            llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
-        if message_input.stream:
-            return StreamingResponse(
-                thread.send_streaming(message_input.message),
-                media_type="text/event-stream",
-                headers={"Cache-Control": "no-cache",
-                         "Connection": "keep-alive"},
-                status_code=201
-            )
-        else:
-            messages = await thread.send(message_input.message)
+            thread = Thread(id=thread_id, chat=PachaChat(
+                llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
+            if message_input.stream:
+                return StreamingResponse(
+                    thread.send_streaming(message_input.message),
+                    media_type="text/event-stream",
+                    headers={"Cache-Control": "no-cache",
+                             "Connection": "keep-alive"},
+                    status_code=201
+                )
+            else:
+                messages = await thread.send(message_input.message)
+                await db.close()
+                response: ThreadCreateResponseJson = {
+                    "thread_id": thread_id,
+                    "messages": list(
+                        map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
+                }
+                return JSONResponse(content=response, status_code=201)
+        except Exception as e:
             await db.close()
-            response: ThreadCreateResponseJson = {
-                "thread_id": thread_id,
-                "messages": list(
-                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
-            }
-            return JSONResponse(content=response, status_code=201)
+            get_logger().error(f"Exception occurred: {e}")
+            raise HTTPException(
+                status_code=500, detail="Internal error, check logs")
 
 
 @app.post("/threads/{thread_id}")
@@ -179,28 +184,30 @@ async def send_message(thread_id: str, message_input: MessageInput):
             default_chat = PachaChat(
                 llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
             thread = await Thread.from_db(thread_id, default_chat, db)
+
+            if message_input.stream:
+                return StreamingResponse(
+                    thread.send_streaming(message_input.message),
+                    media_type="text/event-stream",
+                    headers={"Cache-Control": "no-cache",
+                             "Connection": "keep-alive"}
+                )
+            else:
+                messages = await thread.send(message_input.message)
+                await db.close()
+                response: ThreadMessageResponseJson = {
+                    "messages": list(
+                        map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
+                }
+                return JSONResponse(content=response, status_code=200)
         except ThreadNotFound as e:
+            await db.close()
             raise HTTPException(status_code=404, detail="Thread not found")
         except Exception as e:
+            await db.close()
             get_logger().error(f"Exception occurred: {e}")
             raise HTTPException(
                 status_code=500, detail="Internal error, check logs")
-
-        if message_input.stream:
-            return StreamingResponse(
-                thread.send_streaming(message_input.message),
-                media_type="text/event-stream",
-                headers={"Cache-Control": "no-cache",
-                         "Connection": "keep-alive"}
-            )
-        else:
-            messages = await thread.send(message_input.message)
-            await db.close()
-            response: ThreadMessageResponseJson = {
-                "messages": list(
-                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
-            }
-            return JSONResponse(content=response, status_code=200)
 
 
 @app.post("/threads/{thread_id}/user_confirmation")
@@ -209,16 +216,15 @@ async def send_user_confirmation(thread_id: str, confirmation_input: Confirmatio
         default_chat = PachaChat(
             llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
         thread = await Thread.from_db(thread_id, default_chat, db)
+        thread.chat.handle_user_confirmation(
+            confirmation_input.confirmation_id, confirmation_input.confirm)
+        return JSONResponse(content={}, status_code=200)
     except ThreadNotFound as e:
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
+        get_logger().error(f"Exception occurred: {e}")
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
-    if thread is None:
-        raise HTTPException(status_code=404, detail="Thread not found")
-    thread.chat.handle_user_confirmation(
-        confirmation_input.confirmation_id, confirmation_input.confirm)
-    return JSONResponse(content={}, status_code=200)
 
 
 @app.get("/console", response_class=HTMLResponse)
