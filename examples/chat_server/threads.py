@@ -21,8 +21,8 @@ import aiosqlite
 
 
 START_EVENT = 'start'
-ASSISTANT_RESPONSE_EVENT = 'assistant_response_message'
-TOOL_RESPONSE_EVENT = 'tool_response_message'
+ASSISTANT_RESPONSE_EVENT = 'assistant_response'
+TOOL_RESPONSE_EVENT = 'tool_response'
 FINISH_EVENT = 'finish'
 USER_CONFIRMATION_EVENT = 'user_confirmation'
 
