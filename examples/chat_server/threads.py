@@ -1,119 +1,169 @@
 from dataclasses import dataclass, field
-from typing import NotRequired, Optional, TypedDict, AsyncGenerator, Any
+from typing import NotRequired, TypedDict, AsyncGenerator, Any, Optional, Dict
 from pacha.data_engine.artifacts import ArtifactJson, Artifacts
-from pacha.sdk.chat import UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
-from examples.chat_server.chat_json import AssistantTurnJson, ToolResponseTurnJson, to_assistant_turn_json, to_tool_call_response_json, to_tool_response_turn_json
+from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
+from pacha.data_engine.user_confirmations import UserConfirmationResult
+from examples.chat_server.chat_json import (
+    PachaTurnJson,
+    UserConfirmationStatusJson,
+    to_assistant_turn_json,
+    to_tool_call_response_json,
+    to_turn_json,
+    to_user_confirmation_request_json
+)
 from pacha.utils.logging import get_logger
 from examples.chat_server.pacha_chat import PachaChat, ChatFinish, UserConfirmationRequest
+from examples.chat_server.db import (
+    persist_turn,
+    persist_turn_many,
+    persist_artifacts,
+    fetch_thread,
+    fetch_turns,
+    fetch_artifacts,
+    fetch_user_confirmations
+)
+
 
 import json
+import aiosqlite
+import asyncio
 
 
 START_EVENT = 'start'
-ASSISTANT_RESPONSE_EVENT = 'assistant_response_message'
-TOOL_RESPONSE_EVENT = 'tool_response_message'
+ASSISTANT_RESPONSE_EVENT = 'assistant_response'
+TOOL_RESPONSE_EVENT = 'tool_response'
 FINISH_EVENT = 'finish'
 USER_CONFIRMATION_EVENT = 'user_confirmation'
 
 
-class ThreadMessageJson(TypedDict):
-    user_message: str
-    assistant_messages: list[AssistantTurnJson | ToolResponseTurnJson]
-
-
-class ThreadCreateResponseJson(TypedDict):
+class ThreadMessageResponseJson(TypedDict):
     thread_id: str
-    response: NotRequired[ThreadMessageJson]
+    messages: list[PachaTurnJson]
 
 
 class ThreadJson(TypedDict):
     thread_id: str
-    history: NotRequired[list[ThreadMessageJson]]
+    title: Optional[str]
+    history: NotRequired[list[PachaTurnJson]]
     artifacts: NotRequired[list[ArtifactJson]]
-
-
-class UserConfirmationRequestJson(TypedDict):
-    thread_id: str
-    confirmation_id: str
-    message: str
-
-
-def to_user_confirmation_request_json(request: UserConfirmationRequest, thread_id: str) -> UserConfirmationRequestJson:
-    return {
-        "confirmation_id": request.id,
-        "message": request.message,
-        "thread_id": thread_id
-    }
-
-
-@dataclass
-class ThreadMessage:
-    user_message: UserTurn
-    assistant_messages: list[AssistantTurn | ToolResponseTurn]
-
-    def to_json(self, artifacts: Artifacts) -> ThreadMessageJson:
-        return {
-            "user_message": self.user_message.text,
-            "assistant_messages": list(map(lambda m: to_assistant_turn_json(m) if isinstance(m, AssistantTurn) else to_tool_response_turn_json(m, artifacts), self.assistant_messages))
-        }
+    user_confirmations: NotRequired[list[UserConfirmationStatusJson]]
 
 
 @dataclass
 class Thread:
     id: str
+    title: Optional[str]
     chat: PachaChat
-    history: list[ThreadMessage] = field(default_factory=list)
+    db: aiosqlite.Connection
+    user_confirmations: Dict[str, UserConfirmationResult] = field(
+        default_factory=dict)
 
-    async def send(self, message: str) -> ThreadMessage:
+    async def send(self, message: str) -> list[Turn]:
+        user_message = UserTurn(message)
+        thread_messages: list[Turn] = [user_message]
+        await persist_turn(self.db, self.id, user_message, self.chat.artifacts)
+
         assistant_messages = await self.chat.process_chat(message)
-        thread_message = ThreadMessage(UserTurn(message), assistant_messages)
-        self.history.append(thread_message)
-        return thread_message
+        thread_messages.extend(assistant_messages)
+        await persist_turn_many(self.db, self.id, assistant_messages, self.chat.artifacts)
+        await persist_artifacts(self.db, self.id, self.chat.artifacts.artifacts)
+
+        return thread_messages
 
     async def send_streaming(self, message: str) -> AsyncGenerator[Any, None]:
-        logger = get_logger()
+        try:
+            user_message = UserTurn(message)
+            await persist_turn(self.db, self.id, user_message, self.chat.artifacts)
 
-        current_message = ThreadMessage(
-            user_message=UserTurn(message), assistant_messages=[])
+            start_event_data = json.dumps({"thread_id": self.id})
+            yield render_event(START_EVENT, start_event_data)
 
-        start_event_data = json.dumps({"thread_id": self.id})
-        yield f"event: {START_EVENT}\ndata: {start_event_data}\n\n"
+            async for chunk in self.chat.process_chat_streaming(message):
 
-        async for chunk in self.chat.process_chat_streaming(message):
+                if isinstance(chunk, AssistantTurn):
+                    await persist_turn(self.db, self.id, chunk, self.chat.artifacts)
+                    event_data = json.dumps(to_assistant_turn_json(chunk))
+                    yield render_event(ASSISTANT_RESPONSE_EVENT, event_data)
 
-            if isinstance(chunk, AssistantTurn):
-                current_message.assistant_messages.append(chunk)
-                event_data = json.dumps(to_assistant_turn_json(chunk))
-                yield f"event: {ASSISTANT_RESPONSE_EVENT}\ndata: {event_data}\n\n"
+                elif isinstance(chunk, ToolCallResponse):
+                    event_data = json.dumps(
+                        to_tool_call_response_json(chunk, self.chat.artifacts))
+                    yield render_event(TOOL_RESPONSE_EVENT, event_data)
 
-            elif isinstance(chunk, ToolCallResponse):
-                event_data = json.dumps(
-                    to_tool_call_response_json(chunk, self.chat.artifacts))
-                yield f"event: {TOOL_RESPONSE_EVENT}\ndata: {event_data}\n\n"
+                elif isinstance(chunk, ToolResponseTurn):
+                    await persist_turn(self.db, self.id, chunk, self.chat.artifacts)
 
-            elif isinstance(chunk, ToolResponseTurn):
-                current_message.assistant_messages.append(chunk)
+                elif isinstance(chunk, ChatFinish):
+                    yield render_event(FINISH_EVENT, {})
 
-            elif isinstance(chunk, ChatFinish):
-                self.history.append(current_message)
-                yield f"event: {FINISH_EVENT}\ndata: {{}}\n\n"
-            elif isinstance(chunk, UserConfirmationRequest):
-                event_data = json.dumps(
-                    to_user_confirmation_request_json(chunk, self.id))
-                yield f"event: {USER_CONFIRMATION_EVENT}\ndata: {event_data}\n\n"
-            else:
-                # handle unknown chunk types
-                event_data = json.dumps(
-                    {"unknown_data": str(chunk)[0:40]})  # log max 40 chars
-                logger.warn(f"event: unknown\ndata: {event_data}\n\n")
+                elif isinstance(chunk, UserConfirmationRequest):
+                    await persist_turn(self.db, self.id, chunk, self.chat.artifacts)
+                    event_data = json.dumps(
+                        to_user_confirmation_request_json(chunk))
+                    yield render_event(USER_CONFIRMATION_EVENT, event_data)
+
+                else:
+                    # handle unknown chunk types
+                    event_data = json.dumps(
+                        {"unknown_data": str(chunk)[0:40]})  # log max 40 chars
+                    get_logger().warn(render_event("unknown", event_data))
+
+            await persist_artifacts(self.db, self.id, self.chat.artifacts.artifacts)
+        finally:
+            await self.db.close()
 
     def to_json(self, include_history: bool = True) -> ThreadJson:
         json: ThreadJson = {
-            "thread_id": self.id
+            "thread_id": self.id,
+            "title": self.title
         }
         if include_history:
-            json["history"] = [message.to_json(
-                self.chat.artifacts) for message in self.history]
+            json["history"] = [to_turn_json(turn,
+                                            self.chat.artifacts) for turn in self.chat.turns]
             json["artifacts"] = [artifact.to_json()
                                  for artifact in self.chat.artifacts.artifacts.values()]
+            json["user_confirmations"] = [{"confirmation_id": confirmation_id, "status": confirmation_status.value}
+                                          for confirmation_id, confirmation_status in self.user_confirmations.items()]
         return json
+
+    @classmethod
+    async def from_db(cls, thread_id: str, default_chat: PachaChat, db: aiosqlite.Connection) -> 'Thread':
+        thread = await fetch_thread(db, thread_id)
+        if not thread:
+            raise ThreadNotFound
+        thread_id, title = thread['thread_id'], thread['title']
+        pacha_turns = await fetch_turns(db, thread_id)
+        artifacts = await fetch_artifacts(db, thread_id)
+        user_confirmations = await fetch_user_confirmations(db, thread_id)
+        chat = default_chat
+        chat.turns = pacha_turns
+        chat.chat.turns = [
+            turn for turn in pacha_turns if isinstance(turn, Turn)]
+        chat.artifacts = Artifacts(artifacts=artifacts)
+
+        return cls(id=thread_id, title=title, chat=chat, db=db, user_confirmations=user_confirmations)
+
+
+class ThreadNotFound(Exception):
+    pass
+
+
+def render_event(event_name, event_json_data) -> str:
+    return f"event: {event_name}\ndata: {event_json_data}\n\n"
+
+
+# user_confirmation_requests = [
+#     turn for turn in pacha_turns if isinstance(turn, UserConfirmationRequest)]
+# pending_user_confirmation_requests = [
+#     request for request in user_confirmation_requests if request.id in user_confirmations.keys()]
+# confirmation_provider = UserConfirmationProvider(
+#     event=asyncio.Event(), pending=create_pending_confirmations(pending_user_confirmation_requests))
+# chat.confirmation_provider = confirmation_provider
+
+# def create_pending_confirmations(requests: list[UserConfirmationRequest]) -> dict[str, RequestedUserConfirmation]:
+
+#     pending_dict = {}
+#     for request in requests:
+#         pending_dict[request.id] = RequestedUserConfirmation(
+#             event=asyncio.Event(), message=request.message, result=UserConfirmationResult.PENDING)
+#     return pending_dict
