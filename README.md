@@ -72,6 +72,11 @@ You can also run Pacha with OpenAI:
 OPENAI_API_KEY=<api-key> poetry run chat_with_tool -d ddn -u <DDN SQL URL> -H <header to pass to DDN> --llm openai
 ```
 
+You can also run Pacha on different Port:
+```bash
+ PORT=5555 poetry run chat_with_tool -d ddn -u <DDN SQL URL> -H <header to pass to DDN> --llm openai
+```
+
 ## Customizing
 
 ### Running against a custom SQL backend
