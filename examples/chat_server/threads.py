@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
-from typing import NotRequired, TypedDict, AsyncGenerator, Any, Optional
+from typing import NotRequired, TypedDict, AsyncGenerator, Any, Optional, Dict
 from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
-from pacha.data_engine.user_confirmations import UserConfirmationProvider, UserConfirmationResult, RequestedUserConfirmation
+from pacha.data_engine.user_confirmations import UserConfirmationResult
 from examples.chat_server.chat_json import (
     PachaTurnJson,
     UserConfirmationStatusJson,
@@ -12,7 +12,7 @@ from examples.chat_server.chat_json import (
     to_user_confirmation_request_json
 )
 from pacha.utils.logging import get_logger
-from examples.chat_server.pacha_chat import PachaChat, ChatFinish, UserConfirmationRequest, UserConfirmationStatus
+from examples.chat_server.pacha_chat import PachaChat, ChatFinish, UserConfirmationRequest
 from examples.chat_server.db import (
     persist_turn,
     persist_turn_many,
@@ -55,6 +55,8 @@ class Thread:
     title: Optional[str]
     chat: PachaChat
     db: aiosqlite.Connection
+    user_confirmations: Dict[str, UserConfirmationResult] = field(
+        default_factory=dict)
 
     async def send(self, message: str) -> list[Turn]:
         user_message = UserTurn(message)
@@ -121,7 +123,7 @@ class Thread:
             json["artifacts"] = [artifact.to_json()
                                  for artifact in self.chat.artifacts.artifacts.values()]
             json["user_confirmations"] = [{"confirmation_id": confirmation_id, "status": confirmation_status.value}
-                                          for confirmation_id, confirmation_status in self.chat.user_confirmations.items()]
+                                          for confirmation_id, confirmation_status in self.user_confirmations.items()]
         return json
 
     @classmethod
@@ -138,9 +140,8 @@ class Thread:
         chat.chat.turns = [
             turn for turn in pacha_turns if isinstance(turn, Turn)]
         chat.artifacts = Artifacts(artifacts=artifacts)
-        chat.user_confirmations = user_confirmations
 
-        return cls(id=thread_id, title=title, chat=chat, db=db)
+        return cls(id=thread_id, title=title, chat=chat, db=db, user_confirmations=user_confirmations)
 
 
 class ThreadNotFound(Exception):

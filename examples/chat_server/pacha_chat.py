@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, AsyncGenerator, Dict
+from typing import Optional, AsyncGenerator, Dict, List
 from pacha.data_engine.artifacts import Artifacts
 from pacha.data_engine.context import ExecutionContext
 from pacha.data_engine.user_confirmations import UserConfirmationProvider, UserConfirmationResult
@@ -41,38 +41,25 @@ class PachaChat:
     id: str
     llm: Llm
     pacha_tool: Tool
-    chat: Chat
-    turns: list[PachaTurn]
-    artifacts: Artifacts
-    confirmation_provider: UserConfirmationProvider
-    user_confirmations: dict[str, UserConfirmationResult]
+    system_prompt: str
+    chat: Chat = field(init=False)
+    turns: List[PachaTurn] = field(default_factory=list)
+    artifacts: Artifacts = field(default_factory=Artifacts)
+    confirmation_provider: UserConfirmationProvider = field(init=False)
 
-    def __init__(self,
-                 id: str,
-                 llm: Llm,
-                 pacha_tool: Tool,
-                 system_prompt: str,
-                 ):
-        self.id = id
-        self.llm = llm
-        self.pacha_tool = pacha_tool
-        artifacts = Artifacts()
-        self.artifacts = artifacts
-        if id in CONFIRMATION_PROVIDERS.keys():
-            self.confirmation_provider = CONFIRMATION_PROVIDERS[id]
+    def __post_init__(self):
+        if self.id in CONFIRMATION_PROVIDERS:
+            self.confirmation_provider = CONFIRMATION_PROVIDERS[self.id]
         else:
-            CONFIRMATION_PROVIDERS[id] = UserConfirmationProvider(
-                event=asyncio.Event())
-            self.confirmation_provider = CONFIRMATION_PROVIDERS[id]
-        self.user_confirmations = {}
+            self.confirmation_provider = UserConfirmationProvider(event=asyncio.Event())
+            CONFIRMATION_PROVIDERS[self.id] = self.confirmation_provider
 
-        def system_prompt_builder(turns): return f"""
-            {system_prompt}
-
-            {pacha_tool.system_prompt_fragment(artifacts)}."""
+        def system_prompt_builder(turns: List[Turn]) -> str:
+            return f"""
+                {self.system_prompt}
+                {self.pacha_tool.system_prompt_fragment(self.artifacts)}."""
 
         self.chat = Chat(system_prompt=system_prompt_builder)
-        self.turns = []
 
     async def process_chat_streaming(self, user_query: str) -> AsyncGenerator[AssistantEvents, None]:
         logger = get_logger()
@@ -180,5 +167,4 @@ class PachaChat:
             confirmation_id, None)
         if confirmation is not None:
             confirmation.result = UserConfirmationResult.APPROVED if confirmed else UserConfirmationResult.DENIED
-            self.user_confirmations[confirmation_id] = confirmation.result
             confirmation.event.set()
