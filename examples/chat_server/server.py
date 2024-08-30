@@ -181,7 +181,8 @@ def main():
     loop.run_until_complete(async_setup())
     log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
     setup_logger(log_level)
-    uvicorn.run(app, host="0.0.0.0", port=5000, log_level=log_level.lower())
+    port = os.environ.get('PORT', 5000)
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level=log_level.lower())
 
 
 if __name__ == "__main__":
