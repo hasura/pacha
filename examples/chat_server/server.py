@@ -113,6 +113,9 @@ def init_auth(secret_key):
 
 @app.middleware("http")
 async def verify_token(request: Request, call_next: Callable):
+    # Allow OPTIONS requests to pass through without authentication
+    if request.method == "OPTIONS":
+        return await call_next(request)    
     if request.url.path in PUBLIC_ROUTES or SECRET_KEY is None:
         return await call_next(request)
     token = request.headers.get('pacha_auth_token')
