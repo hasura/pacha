@@ -165,6 +165,6 @@ class PachaChat:
     def handle_user_confirmation(self, confirmation_id: str, confirmed: bool):
         confirmation = self.confirmation_provider.pending.pop(
             confirmation_id, None)
-        if confirmation is not None:
+        if confirmation is not None and confirmation.result == UserConfirmationResult.PENDING:
             confirmation.result = UserConfirmationResult.APPROVED if confirmed else UserConfirmationResult.DENIED
             confirmation.event.set()

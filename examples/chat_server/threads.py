@@ -20,7 +20,8 @@ from examples.chat_server.db import (
     fetch_thread,
     fetch_turns,
     fetch_artifacts,
-    fetch_user_confirmations
+    fetch_user_confirmations,
+    update_user_confirmation
 )
 
 
@@ -107,10 +108,23 @@ class Thread:
                     event_data = json.dumps(
                         {"unknown_data": str(chunk)[0:40]})  # log max 40 chars
                     get_logger().warn(render_event("unknown", event_data))
-
-            await persist_artifacts(self.db, self.id, self.chat.artifacts.artifacts)
+                    
+        except asyncio.CancelledError:
+            print('streaming client disconnected')
+            get_logger().debug('streaming client disconnected')
         finally:
+            print(1)
+            await persist_artifacts(self.db, self.id, self.chat.artifacts.artifacts)
+            print(2)
+            for confirmation_id, request in self.chat.confirmation_provider.pending.items():
+                print('inside pending')
+                if request.result == UserConfirmationResult.TIMED_OUT:
+                    await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.TIMED_OUT)
+                if request.result == UserConfirmationResult.PENDING:
+                    await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.CANCELED)
+            print(3)
             await self.db.close()
+            print(4)
 
     def to_json(self, include_history: bool = True) -> ThreadJson:
         json: ThreadJson = {
@@ -122,7 +136,7 @@ class Thread:
                                             self.chat.artifacts) for turn in self.chat.turns]
             json["artifacts"] = [artifact.to_json()
                                  for artifact in self.chat.artifacts.artifacts.values()]
-            json["user_confirmations"] = [{"confirmation_id": confirmation_id, "status": confirmation_status.value}
+            json["user_confirmations"] = [{"confirmation_id": confirmation_id, "status": confirmation_status.name}
                                           for confirmation_id, confirmation_status in self.user_confirmations.items()]
         return json
 
