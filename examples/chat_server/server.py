@@ -10,6 +10,7 @@ import os
 import uvicorn
 import asyncio
 import aiosqlite
+import httpx
 
 from pacha.sdk.llm import Llm
 from pacha.sdk.tool import Tool
@@ -77,6 +78,7 @@ async def get_db():
         yield conn
     finally:
         await conn.close()
+
 
 async def get_db_open():
     return await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
@@ -244,6 +246,45 @@ async def send_user_confirmation(thread_id: str, confirmation_input: Confirmatio
         get_logger().error(f"Exception occurred: {e}")
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
+
+
+class FeedbackInput(BaseModel):
+    mode: Optional[str] = "no_data"
+    thread_id: str
+    message: Optional[str] = None
+    feedback_enum: int
+    feedback_text: Optional[str]
+
+
+@app.post("/submit-feedback")
+async def submit_feedback(feedback_input: FeedbackInput):
+
+    telemtry_url = "https://telemetry.hasura.io/v1/http"
+    # Prepare the payload
+    data = {
+        "thread_id": feedback_input.thread_id,
+        "feedback_enum": feedback_input.feedback_enum,
+    }
+    if feedback_input.mode == "consent_data" and feedback_input.message:
+        data["message"] = feedback_input.message
+
+    if feedback_input.feedback_text:
+        data["feedback_text"] = feedback_input.feedback_text
+
+    payload = {
+        "topic": "pacha_chat",
+        "data": data
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(telemtry_url, json=payload)
+            response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
+
+        return {"status": "success", "message": "Feedback submitted successfully"}
+    except httpx.HTTPError as e:
+        get_logger().error(f"Error submitting feedback: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error submitting feedback")
 
 
 @app.get("/console", response_class=HTMLResponse)
