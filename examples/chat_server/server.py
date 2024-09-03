@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Depends, Body
+from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -13,6 +13,7 @@ import aiosqlite
 
 from pacha.sdk.llm import Llm
 from pacha.sdk.tool import Tool
+from pacha.data_engine.user_confirmations import UserConfirmationResult
 from pacha.utils.logging import setup_logger, get_logger
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
 from examples.chat_server.pacha_chat import PachaChat
@@ -60,7 +61,7 @@ async def init_db():
          id INTEGER PRIMARY KEY AUTOINCREMENT,
          thread_id TEXT NOT NULL,
          confirmation_id TEXT NOT NULL,
-         status INTEGER DEFAULT 0,
+         status TEXT,
          created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
          
          UNIQUE(thread_id, confirmation_id)
@@ -77,14 +78,12 @@ async def get_db():
     finally:
         await conn.close()
 
-# get_async_db does not close connection when the function calling it has finished, needs to be handled explicitly
-# required in streaming functions
+async def get_db_open():
+    return await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
 
 
-@asynccontextmanager
-async def get_async_db():
-    conn = await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
-    yield conn
+async def closedb(db: aiosqlite.Connection):
+    await db.close()
 
 
 # will be initialized in main
@@ -115,7 +114,7 @@ def init_auth(secret_key):
 async def verify_token(request: Request, call_next: Callable):
     # Allow OPTIONS requests to pass through without authentication
     if request.method == "OPTIONS":
-        return await call_next(request)    
+        return await call_next(request)
     if request.url.path in PUBLIC_ROUTES or SECRET_KEY is None:
         return await call_next(request)
     token = request.headers.get('pacha_auth_token')
@@ -159,70 +158,73 @@ async def get_thread(thread_id: str, db: aiosqlite.Connection = Depends(get_db))
 
 @app.post("/threads")
 async def start_thread(message_input: MessageInput):
-    async with get_async_db() as db:
-        try:
-            thread_id = str(uuid.uuid4())
-            title = message_input.message[slice(40)]
-
-            await persist_thread(db, thread_id, title)
-            thread = Thread(id=thread_id, title=title,
-                            chat=PachaChat(id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
-            if message_input.stream:
-                return StreamingResponse(
-                    thread.send_streaming(message_input.message),
-                    media_type="text/event-stream",
-                    headers={"Cache-Control": "no-cache",
-                             "Connection": "keep-alive"},
-                    status_code=201
-                )
-            else:
-                messages = await thread.send(message_input.message)
-                await db.close()
-                response: ThreadMessageResponseJson = {
-                    "thread_id": thread_id,
-                    "messages": list(
-                        map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
-                }
-                return JSONResponse(content=response, status_code=201)
-        except Exception as e:
-            await db.close()
-            get_logger().error(f"Exception occurred: {e}")
-            raise HTTPException(
-                status_code=500, detail="Internal error, check logs")
+    try:
+        db = await get_db_open()
+        thread_id = str(uuid.uuid4())
+        title = message_input.message[slice(40)]
+        await persist_thread(db, thread_id, title)
+        thread = Thread(id=thread_id, title=title,
+                        chat=PachaChat(id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
+        background_tasks = BackgroundTasks()
+        background_tasks.add_task(closedb, db)
+        if message_input.stream:
+            return StreamingResponse(
+                thread.send_streaming(message_input.message),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache",
+                         "Connection": "keep-alive"},
+                status_code=201,
+                background=background_tasks
+            )
+        else:
+            messages = await thread.send(message_input.message)
+            response: ThreadMessageResponseJson = {
+                "thread_id": thread_id,
+                "messages": list(
+                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
+            }
+            return JSONResponse(content=response, status_code=201, background=background_tasks)
+    except Exception as e:
+        await db.close()
+        get_logger().error(f"Exception occurred: {e}")
+        raise HTTPException(
+            status_code=500, detail="Internal error, check logs")
 
 
 @app.post("/threads/{thread_id}")
 async def send_message(thread_id: str, message_input: MessageInput):
-    async with get_async_db() as db:
-        try:
-            default_chat = PachaChat(id=thread_id,
-                                     llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
-            thread = await Thread.from_db(thread_id, default_chat, db)
-
-            if message_input.stream:
-                return StreamingResponse(
-                    thread.send_streaming(message_input.message),
-                    media_type="text/event-stream",
-                    headers={"Cache-Control": "no-cache",
-                             "Connection": "keep-alive"}
-                )
-            else:
-                messages = await thread.send(message_input.message)
-                await db.close()
-                response: ThreadMessageResponseJson = {
-                    "thread_id": thread_id,
-                    "messages": list(
-                        map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
-                }
-                return JSONResponse(content=response, status_code=200)
-        except ThreadNotFound as e:
+    try:
+        db = await get_db_open()
+        default_chat = PachaChat(id=thread_id,
+                                 llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        thread = await Thread.from_db(thread_id, default_chat, db)
+        background_tasks = BackgroundTasks()
+        background_tasks.add_task(closedb, db)
+        if message_input.stream:
+            return StreamingResponse(
+                thread.send_streaming(message_input.message),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache",
+                         "Connection": "keep-alive"},
+                background=background_tasks
+            )
+        else:
+            messages = await thread.send(message_input.message)
             await db.close()
-            raise HTTPException(status_code=404, detail="Thread not found")
-        except Exception as e:
-            await db.close()
-            get_logger().error(f"Exception occurred: {e}")
-            raise HTTPException(
-                status_code=500, detail="Internal error, check logs")
+            response: ThreadMessageResponseJson = {
+                "thread_id": thread_id,
+                "messages": list(
+                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
+            }
+            return JSONResponse(content=response, status_code=200, background=background_tasks)
+    except ThreadNotFound as e:
+        await db.close()
+        raise HTTPException(status_code=404, detail="Thread not found")
+    except Exception as e:
+        await db.close()
+        get_logger().error(f"Exception occurred: {e}")
+        raise HTTPException(
+            status_code=500, detail="Internal error, check logs")
 
 
 @app.post("/threads/{thread_id}/user_confirmation")
@@ -231,7 +233,8 @@ async def send_user_confirmation(thread_id: str, confirmation_input: Confirmatio
         default_chat = PachaChat(id=thread_id,
                                  llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
         thread = await Thread.from_db(thread_id, default_chat, db)
-        await update_user_confirmation(db, thread_id, confirmation_input.confirmation_id, confirmation_input.confirm)
+        confirmation_result = UserConfirmationResult.APPROVED if confirmation_input.confirm else UserConfirmationResult.DENIED
+        await update_user_confirmation(db, thread_id, confirmation_input.confirmation_id, confirmation_result)
         thread.chat.handle_user_confirmation(
             confirmation_input.confirmation_id, confirmation_input.confirm)
         return JSONResponse(content={}, status_code=200)

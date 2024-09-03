@@ -36,14 +36,16 @@ async def persist_turn(db: aiosqlite.Connection, thread_id: str, turn: PachaTurn
 async def persist_turn_many(db: aiosqlite.Connection, thread_id: str, turns: Sequence[Turn], artifacts: Artifacts):
     params = [{'message': json.dumps(to_turn_json(
         msg, artifacts))} for msg in turns]
-    await db.executemany(f'''INSERT INTO turns (thread_id, message)
+    if len(params) > 0:
+        await db.executemany(f'''INSERT INTO turns (thread_id, message)
                              VALUES  ('{thread_id}', :message);''', params)
 
 
 async def persist_artifacts(db: aiosqlite.Connection, thread_id: str, artifacts: dict[str, Artifact]):
     artifact_params = [{'artifact_id': artifact.identifier, 'artifact_json': json.dumps(artifact.to_json())}
                        for artifact in artifacts.values()]
-    await db.executemany(f'''INSERT INTO artifacts (thread_id, artifact_id, artifact_json)
+    if len(artifact_params) > 0:
+        await db.executemany(f'''INSERT INTO artifacts (thread_id, artifact_id, artifact_json)
                              VALUES ('{thread_id}', :artifact_id, :artifact_json);''', artifact_params)
 
 
@@ -69,9 +71,10 @@ async def fetch_artifacts(db: aiosqlite.Connection, thread_id: str) -> dict[str,
     return artifacts
 
 
-async def update_user_confirmation(db: aiosqlite.Connection, thread_id: str, confirmation_id: str, confirm: bool):
-    status = UserConfirmationResult.APPROVED.value if confirm else UserConfirmationResult.DENIED.value
-    await db.execute("INSERT INTO user_confirmations (thread_id, confirmation_id, status) VALUES (?, ?, ?) ON CONFLICT(thread_id, confirmation_id) DO NOTHING;",  (thread_id, confirmation_id, status))
+async def update_user_confirmation(db: aiosqlite.Connection, thread_id: str, confirmation_id: str, status: UserConfirmationResult):
+    await db.execute(
+            '''INSERT INTO user_confirmations (thread_id, confirmation_id, status)
+            VALUES (?, ?, ?) ON CONFLICT(thread_id, confirmation_id) DO NOTHING;''', (thread_id, confirmation_id, status.name))
 
 
 async def fetch_user_confirmations(db: aiosqlite.Connection, thread_id: str):
@@ -80,5 +83,5 @@ async def fetch_user_confirmations(db: aiosqlite.Connection, thread_id: str):
     confirmation_rows = await cursor.fetchall()
     user_confirmations: dict[str, UserConfirmationResult] = {}
     for row in confirmation_rows:
-        user_confirmations[row[0]] = UserConfirmationResult(row[1])
+        user_confirmations[row[0]] = UserConfirmationResult[row[1]]
     return user_confirmations

@@ -35,13 +35,13 @@ def from_user_confirmation_request_json(request_json: UserConfirmationRequestJso
 
 class UserConfirmationStatusJson(TypedDict):
     confirmation_id: str
-    status: int
+    status: str
 
 
 def to_user_confirmation_status_json(self) -> UserConfirmationStatusJson:
     return {
         "confirmation_id": self.confirmation_id,
-        "status": self.status.value
+        "status": self.status.name
     }
 
 

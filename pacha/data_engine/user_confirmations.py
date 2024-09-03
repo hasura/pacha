@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import asyncio
 import uuid
 
-CONFIRMATION_TIMEOUT_SECS = 120
+CONFIRMATION_TIMEOUT_SECS = 60
 
 
 class UserConfirmationResult(Enum):
@@ -12,6 +12,7 @@ class UserConfirmationResult(Enum):
     APPROVED = 1
     DENIED = 2
     TIMED_OUT = 3
+    CANCELED = 4
 
 
 @dataclass
