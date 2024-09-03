@@ -3,6 +3,7 @@ from typing import NotRequired, TypedDict, AsyncGenerator, Any, Optional, Dict
 from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
 from pacha.data_engine.user_confirmations import UserConfirmationResult
+from pacha.sdk.tools import PythonToolOutput
 from examples.chat_server.chat_json import (
     PachaTurnJson,
     UserConfirmationStatusJson,
@@ -87,6 +88,10 @@ class Thread:
                     yield render_event(ASSISTANT_RESPONSE_EVENT, event_data)
 
                 elif isinstance(chunk, ToolCallResponse):
+                    if isinstance(chunk.output, PythonToolOutput):
+                        modified_artifacts = {identifier: self.chat.artifacts.artifacts[identifier]
+                                              for identifier in chunk.output.modified_artifact_identifiers}
+                        await persist_artifacts(self.db, self.id, modified_artifacts)
                     event_data = json.dumps(
                         to_tool_call_response_json(chunk, self.chat.artifacts))
                     yield render_event(TOOL_RESPONSE_EVENT, event_data)
@@ -109,20 +114,14 @@ class Thread:
                         {"unknown_data": str(chunk)[0:40]})  # log max 40 chars
                     get_logger().warn(render_event("unknown", event_data))
                     
-        except asyncio.CancelledError:
-            print('streaming client disconnected')
-            get_logger().debug('streaming client disconnected')
         finally:
-            print(1)
-            await persist_artifacts(self.db, self.id, self.chat.artifacts.artifacts)
-            print(2)
-            for confirmation_id, request in self.chat.confirmation_provider.pending.items():
-                print('inside pending')
-                if request.result == UserConfirmationResult.TIMED_OUT:
-                    await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.TIMED_OUT)
-                if request.result == UserConfirmationResult.PENDING:
-                    await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.CANCELED)
-            print(3)
+            # #TODO: Add to background task
+            # # for confirmation_id, request in self.chat.confirmation_provider.pending.items():
+            # #     if request.result == UserConfirmationResult.TIMED_OUT:
+            # #         await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.TIMED_OUT)
+            # #     if request.result == UserConfirmationResult.PENDING:
+            # #         await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.CANCELED)
+            # print(3)
             await self.db.close()
             print(4)
 
@@ -164,20 +163,3 @@ class ThreadNotFound(Exception):
 
 def render_event(event_name, event_json_data) -> str:
     return f"event: {event_name}\ndata: {event_json_data}\n\n"
-
-
-# user_confirmation_requests = [
-#     turn for turn in pacha_turns if isinstance(turn, UserConfirmationRequest)]
-# pending_user_confirmation_requests = [
-#     request for request in user_confirmation_requests if request.id in user_confirmations.keys()]
-# confirmation_provider = UserConfirmationProvider(
-#     event=asyncio.Event(), pending=create_pending_confirmations(pending_user_confirmation_requests))
-# chat.confirmation_provider = confirmation_provider
-
-# def create_pending_confirmations(requests: list[UserConfirmationRequest]) -> dict[str, RequestedUserConfirmation]:
-
-#     pending_dict = {}
-#     for request in requests:
-#         pending_dict[request.id] = RequestedUserConfirmation(
-#             event=asyncio.Event(), message=request.message, result=UserConfirmationResult.PENDING)
-#     return pending_dict

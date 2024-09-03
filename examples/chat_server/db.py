@@ -72,9 +72,9 @@ async def fetch_artifacts(db: aiosqlite.Connection, thread_id: str) -> dict[str,
 
 
 async def update_user_confirmation(db: aiosqlite.Connection, thread_id: str, confirmation_id: str, status: UserConfirmationResult):
-    print(thread_id, confirmation_id, status.name)
-    await db.execute("INSERT INTO user_confirmations (thread_id, confirmation_id, status) VALUES (?, ?, ?) ON CONFLICT(thread_id, confirmation_id) DO NOTHING;",  (thread_id, confirmation_id, status.name))
-    print('updated user confirmation')
+    await db.execute(
+            '''INSERT INTO user_confirmations (thread_id, confirmation_id, status)
+            VALUES (?, ?, ?) ON CONFLICT(thread_id, confirmation_id) DO NOTHING;''', (thread_id, confirmation_id, status.name))
 
 
 async def fetch_user_confirmations(db: aiosqlite.Connection, thread_id: str):
