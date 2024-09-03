@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Depends, Body
+from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -78,14 +78,12 @@ async def get_db():
     finally:
         await conn.close()
 
-# get_async_db does not close connection when the function calling it has finished, needs to be handled explicitly
-# required in streaming functions
+async def get_db_open():
+    return await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
 
 
-@asynccontextmanager
-async def get_async_db():
-    conn = await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
-    yield conn
+async def closedb(db: aiosqlite.Connection):
+    await db.close()
 
 
 # will be initialized in main
@@ -160,70 +158,73 @@ async def get_thread(thread_id: str, db: aiosqlite.Connection = Depends(get_db))
 
 @app.post("/threads")
 async def start_thread(message_input: MessageInput):
-    async with get_async_db() as db:
-        try:
-            thread_id = str(uuid.uuid4())
-            title = message_input.message[slice(40)]
-
-            await persist_thread(db, thread_id, title)
-            thread = Thread(id=thread_id, title=title,
-                            chat=PachaChat(id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
-            if message_input.stream:
-                return StreamingResponse(
-                    thread.send_streaming(message_input.message),
-                    media_type="text/event-stream",
-                    headers={"Cache-Control": "no-cache",
-                             "Connection": "keep-alive"},
-                    status_code=201
-                )
-            else:
-                messages = await thread.send(message_input.message)
-                await db.close()
-                response: ThreadMessageResponseJson = {
-                    "thread_id": thread_id,
-                    "messages": list(
-                        map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
-                }
-                return JSONResponse(content=response, status_code=201)
-        except Exception as e:
-            await db.close()
-            get_logger().error(f"Exception occurred: {e}")
-            raise HTTPException(
-                status_code=500, detail="Internal error, check logs")
+    try:
+        db = await get_db_open()
+        thread_id = str(uuid.uuid4())
+        title = message_input.message[slice(40)]
+        await persist_thread(db, thread_id, title)
+        thread = Thread(id=thread_id, title=title,
+                        chat=PachaChat(id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
+        background_tasks = BackgroundTasks()
+        background_tasks.add_task(closedb, db)
+        if message_input.stream:
+            return StreamingResponse(
+                thread.send_streaming(message_input.message),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache",
+                         "Connection": "keep-alive"},
+                status_code=201,
+                background=background_tasks
+            )
+        else:
+            messages = await thread.send(message_input.message)
+            response: ThreadMessageResponseJson = {
+                "thread_id": thread_id,
+                "messages": list(
+                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
+            }
+            return JSONResponse(content=response, status_code=201, background=background_tasks)
+    except Exception as e:
+        await db.close()
+        get_logger().error(f"Exception occurred: {e}")
+        raise HTTPException(
+            status_code=500, detail="Internal error, check logs")
 
 
 @app.post("/threads/{thread_id}")
 async def send_message(thread_id: str, message_input: MessageInput):
-    async with get_async_db() as db:
-        try:
-            default_chat = PachaChat(id=thread_id,
-                                     llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
-            thread = await Thread.from_db(thread_id, default_chat, db)
-
-            if message_input.stream:
-                return StreamingResponse(
-                    thread.send_streaming(message_input.message),
-                    media_type="text/event-stream",
-                    headers={"Cache-Control": "no-cache",
-                             "Connection": "keep-alive"}
-                )
-            else:
-                messages = await thread.send(message_input.message)
-                await db.close()
-                response: ThreadMessageResponseJson = {
-                    "thread_id": thread_id,
-                    "messages": list(
-                        map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
-                }
-                return JSONResponse(content=response, status_code=200)
-        except ThreadNotFound as e:
+    try:
+        db = await get_db_open()
+        default_chat = PachaChat(id=thread_id,
+                                 llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        thread = await Thread.from_db(thread_id, default_chat, db)
+        background_tasks = BackgroundTasks()
+        background_tasks.add_task(closedb, db)
+        if message_input.stream:
+            return StreamingResponse(
+                thread.send_streaming(message_input.message),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache",
+                         "Connection": "keep-alive"},
+                background=background_tasks
+            )
+        else:
+            messages = await thread.send(message_input.message)
             await db.close()
-            raise HTTPException(status_code=404, detail="Thread not found")
-        except Exception as e:
-            await db.close()
-            get_logger().error(f"Exception occurred: {e}")
-            raise HTTPException(
-                status_code=500, detail="Internal error, check logs")
+            response: ThreadMessageResponseJson = {
+                "thread_id": thread_id,
+                "messages": list(
+                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
+            }
+            return JSONResponse(content=response, status_code=200, background=background_tasks)
+    except ThreadNotFound as e:
+        await db.close()
+        raise HTTPException(status_code=404, detail="Thread not found")
+    except Exception as e:
+        await db.close()
+        get_logger().error(f"Exception occurred: {e}")
+        raise HTTPException(
+            status_code=500, detail="Internal error, check logs")
 
 
 @app.post("/threads/{thread_id}/user_confirmation")

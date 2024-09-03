@@ -115,15 +115,12 @@ class Thread:
                     get_logger().warn(render_event("unknown", event_data))
                     
         finally:
-            # #TODO: Add to background task
-            # # for confirmation_id, request in self.chat.confirmation_provider.pending.items():
-            # #     if request.result == UserConfirmationResult.TIMED_OUT:
-            # #         await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.TIMED_OUT)
-            # #     if request.result == UserConfirmationResult.PENDING:
-            # #         await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.CANCELED)
-            # print(3)
-            await self.db.close()
-            print(4)
+            #persist any pending user confirmation requests as canceled or timed out
+            for confirmation_id, request in self.chat.confirmation_provider.pending.items():
+                if request.result == UserConfirmationResult.TIMED_OUT:
+                    await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.TIMED_OUT)
+                if request.result == UserConfirmationResult.PENDING:
+                    await update_user_confirmation(self.db, self.id, confirmation_id, UserConfirmationResult.CANCELED)
 
     def to_json(self, include_history: bool = True) -> ThreadJson:
         json: ThreadJson = {
