@@ -3,13 +3,14 @@ from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, Stre
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Callable
-from contextlib import asynccontextmanager
+from enum import Enum
 import uuid
 import argparse
 import os
 import uvicorn
 import asyncio
 import aiosqlite
+import httpx
 
 from pacha.sdk.llm import Llm
 from pacha.sdk.tool import Tool
@@ -77,6 +78,7 @@ async def get_db():
         yield conn
     finally:
         await conn.close()
+
 
 async def get_db_open():
     return await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
@@ -244,6 +246,52 @@ async def send_user_confirmation(thread_id: str, confirmation_input: Confirmatio
         get_logger().error(f"Exception occurred: {e}")
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
+
+
+class FeedbackMode(str, Enum):
+    NO_DATA = "no_data"
+    CONSENT_MESSAGE = "consent_message"
+    CONSENT_FULL = "consent_full"
+
+class FeedbackInput(BaseModel):
+    mode: Optional[FeedbackMode] = FeedbackMode.NO_DATA
+    message: Optional[str] = None
+    feedback_enum: int
+    feedback_text: Optional[str]
+
+
+@app.post("/threads/{thread_id}/submit-feedback")
+async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
+
+    telemtry_url = "https://telemetry.hasura.io/v1/http"
+
+    data = {
+        "thread_id": thread_id,
+        "mode": feedback_input.mode,
+        "feedback_enum": feedback_input.feedback_enum,
+    }
+
+    # do not add message if mode is no_data
+    if feedback_input.mode != FeedbackMode.NO_DATA and feedback_input.message:
+        data["message"] = feedback_input.message
+
+    if feedback_input.feedback_text:
+        data["feedback_text"] = feedback_input.feedback_text
+
+    payload = {
+        "topic": "pacha_chat",
+        "data": data
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(telemtry_url, json=payload)
+            response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
+
+        return {"status": "success", "message": "Feedback submitted successfully"}
+    except httpx.HTTPError as e:
+        get_logger().error(f"Error submitting feedback: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error submitting feedback")
 
 
 @app.get("/console", response_class=HTMLResponse)
