@@ -40,34 +40,46 @@ DATABASE_NAME = "pacha.db"
 async def init_db():
     conn = await aiosqlite.connect(DATABASE_NAME)
     await conn.executescript('''
-     CREATE TABLE IF NOT EXISTS threads (
-         thread_id TEXT PRIMARY KEY,
-         title TEXT,
-         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-     );
-     CREATE TABLE IF NOT EXISTS turns (
-         id INTEGER PRIMARY KEY AUTOINCREMENT,
-         thread_id TEXT NOT NULL,
-         message TEXT,
-         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-     );
-     CREATE TABLE IF NOT EXISTS artifacts (
-         id INTEGER PRIMARY KEY AUTOINCREMENT,
-         thread_id TEXT NOT NULL,
-         artifact_id TEXT NOT NULL,
-         artifact_json TEXT,
-         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-     );
-     CREATE TABLE IF NOT EXISTS user_confirmations (
-         id INTEGER PRIMARY KEY AUTOINCREMENT,
-         thread_id TEXT NOT NULL,
-         confirmation_id TEXT NOT NULL,
-         status TEXT,
-         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-         
-         UNIQUE(thread_id, confirmation_id)
-     );
-     ''')
+    CREATE TABLE IF NOT EXISTS threads (
+        thread_id TEXT PRIMARY KEY,
+        title TEXT,
+        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+    CREATE TABLE IF NOT EXISTS turns (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        thread_id TEXT NOT NULL,
+        message TEXT,
+        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+    CREATE TABLE IF NOT EXISTS artifacts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        thread_id TEXT NOT NULL,
+        artifact_id TEXT NOT NULL,
+        artifact_json TEXT,
+        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+    CREATE TABLE IF NOT EXISTS user_confirmations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        thread_id TEXT NOT NULL,
+        confirmation_id TEXT NOT NULL,
+        status TEXT,
+        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+        
+        UNIQUE(thread_id, confirmation_id)
+    );
+    -- Index for threads table
+    CREATE INDEX IF NOT EXISTS idx_threads_created_at ON threads(created_at);     
+ 
+    -- Indexes for turns table
+    CREATE INDEX IF NOT EXISTS idx_turns_thread_id ON turns(thread_id);
+
+    -- Indexes for artifacts table
+    CREATE INDEX IF NOT EXISTS idx_artifacts_thread_id ON artifacts(thread_id);
+
+    -- Indexes for user_confirmations table
+    CREATE INDEX IF NOT EXISTS idx_user_confirmations_thread_id ON user_confirmations(thread_id);
+
+   ''')
     await conn.commit()
     await conn.close()
 
