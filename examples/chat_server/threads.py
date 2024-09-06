@@ -121,7 +121,7 @@ class Thread:
                     
         except AssertionError as e:
             get_logger().error(str(e))
-            yield render_event(ERROR_EVENT, {'error': str(e)})  
+            yield render_event(ERROR_EVENT, json.dumps({'error': str(e)}))
         except Exception as e:
             get_logger().error(str(e))
             yield render_event(ERROR_EVENT, json.dumps({'error': 'Internal server error, check logs. Try a new thread maybe?'}))  
