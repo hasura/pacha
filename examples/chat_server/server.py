@@ -116,7 +116,7 @@ def init_system_prompt(pacha_tool):
         """
 
 
-PUBLIC_ROUTES = ['/', '/console']
+PUBLIC_ROUTES = ['/', '/console', '/healthz']
 
 
 def init_auth(secret_key):
@@ -307,6 +307,10 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
 
 @app.get("/healthz",response_class=PlainTextResponse)
 async def health_check():
+    return "OK"
+
+@app.get("/config-check",response_class=PlainTextResponse)
+async def config_check():
     return "OK"
 
 @app.get("/console", response_class=HTMLResponse)
