@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Callable
@@ -305,6 +305,9 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
         raise HTTPException(
             status_code=500, detail=f"Error submitting feedback")
 
+@app.get("/healthz",response_class=PlainTextResponse)
+async def health_check():
+    return "OK"
 
 @app.get("/console", response_class=HTMLResponse)
 async def serve_console():
