@@ -36,6 +36,7 @@ ASSISTANT_RESPONSE_EVENT = 'assistant_response'
 TOOL_RESPONSE_EVENT = 'tool_response'
 FINISH_EVENT = 'finish'
 USER_CONFIRMATION_EVENT = 'user_confirmation'
+ERROR_EVENT = 'error'
 
 
 class ThreadMessageResponseJson(TypedDict):
@@ -74,6 +75,10 @@ class Thread:
 
     async def send_streaming(self, message: str) -> AsyncGenerator[Any, None]:
         try:
+            # if existing turns exist in conversation, verify initial state is correct
+            if len(self.chat.chat.turns) > 0:
+                assert(isinstance(self.chat.chat.turns[-1], AssistantTurn )), "Conversation must alternate between user and assistant, try a new thread"
+            
             user_message = UserTurn(message)
             await persist_turn(self.db, self.id, user_message, self.chat.artifacts)
 
@@ -113,6 +118,13 @@ class Thread:
                     event_data = json.dumps(
                         {"unknown_data": str(chunk)[0:40]})  # log max 40 chars
                     get_logger().warn(render_event("unknown", event_data))
+                    
+        except AssertionError as e:
+            get_logger().error(str(e))
+            yield render_event(ERROR_EVENT, {'error': str(e)})  
+        except Exception as e:
+            get_logger().error(str(e))
+            yield render_event(ERROR_EVENT, {'error': 'Internal server error, check logs. Try a new thread maybe?'})  
                     
         finally:
             #persist any pending user confirmation requests as canceled or timed out
