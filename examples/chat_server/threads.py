@@ -4,6 +4,7 @@ from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
 from pacha.data_engine.user_confirmations import UserConfirmationResult
 from pacha.sdk.tools import PythonToolOutput
+from pacha.sdk.llm import LlmException
 from examples.chat_server.chat_json import (
     PachaTurnJson,
     UserConfirmationStatusJson,
@@ -122,6 +123,14 @@ class Thread:
         except AssertionError as e:
             get_logger().error(str(e))
             yield render_event(ERROR_EVENT, json.dumps({'error': str(e)}))
+        except LlmException as e:
+            get_logger().error(str(e))
+            assistant_turn = AssistantTurn(text="Exception raised")
+            await persist_turn(self.db, self.id, assistant_turn, self.chat.artifacts)
+            event_data = json.dumps(to_assistant_turn_json(assistant_turn))
+            yield render_event(ASSISTANT_RESPONSE_EVENT, event_data) 
+            yield render_event(ERROR_EVENT, json.dumps({'error': 'Error thrown by LLM, check logs. Try a new thread maybe?'}))
+            
         except Exception as e:
             get_logger().error(str(e))
             yield render_event(ERROR_EVENT, json.dumps({'error': 'Internal server error, check logs. Try a new thread maybe?'}))  
