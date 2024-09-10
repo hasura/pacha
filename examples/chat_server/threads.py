@@ -125,12 +125,11 @@ class Thread:
             yield render_event(ERROR_EVENT, json.dumps({'error': str(e)}))
         except LlmException as e:
             get_logger().error(str(e))
-            assistant_turn = AssistantTurn(text="Exception raised")
+            assistant_turn = AssistantTurn(text="Internal error: Could not process")
             await persist_turn(self.db, self.id, assistant_turn, self.chat.artifacts)
             event_data = json.dumps(to_assistant_turn_json(assistant_turn))
             yield render_event(ASSISTANT_RESPONSE_EVENT, event_data) 
-            yield render_event(ERROR_EVENT, json.dumps({'error': 'Error thrown by LLM, check logs. Try a new thread maybe?'}))
-            
+            yield render_event(ERROR_EVENT, json.dumps({'error': 'Error thrown by LLM, check logs and retry. Try a new thread maybe?'}))
         except Exception as e:
             get_logger().error(str(e))
             yield render_event(ERROR_EVENT, json.dumps({'error': 'Internal server error, check logs. Try a new thread maybe?'}))  
