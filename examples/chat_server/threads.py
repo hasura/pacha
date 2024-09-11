@@ -124,7 +124,7 @@ class Thread:
             get_logger().error(str(e))
             yield render_event(ERROR_EVENT, json.dumps({'error': str(e)}))
         except Exception as e:
-            get_logger().error(str(e))
+            get_logger().exception(str(e))
             yield render_event(ERROR_EVENT, json.dumps({'error': 'Internal server error, check logs. Try a new thread maybe?'}))  
         finally:
             #persist any pending user confirmation requests as canceled or timed out
