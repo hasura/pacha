@@ -336,7 +336,7 @@ async def redirect_home():
     return RedirectResponse(url='/console')
 
 
-async def async_setup():
+async def async_setup(secret_key: str | None = None):
     global LLM
     global PACHA_TOOL
 
@@ -345,7 +345,7 @@ async def async_setup():
     add_llm_args(parser)
     add_tool_args(parser)
     args = parser.parse_args()
-    init_auth(args.secret_key)
+    init_auth(secret_key=secret_key)
     PACHA_TOOL = await get_pacha_tool(args, render_to_stdout=False)
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
@@ -354,7 +354,8 @@ async def async_setup():
 
 def main():
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(async_setup())
+    secret_key = os.environ.get("SECRET_KEY", None)
+    loop.run_until_complete(async_setup(secret_key=secret_key))
     log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
     setup_logger(log_level)
     port = int(os.environ.get('PORT', 5000))
