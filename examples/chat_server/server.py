@@ -165,7 +165,7 @@ async def get_thread(thread_id: str, db: aiosqlite.Connection = Depends(get_db))
     except ThreadNotFound as e:
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
-        get_logger().error(f"An unexpected error occurred: {e}")
+        get_logger().exception(str(e))
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
 
@@ -200,7 +200,7 @@ async def start_thread(message_input: MessageInput):
             return JSONResponse(content=response, status_code=201, background=background_tasks)
     except Exception as e:
         await db.close()
-        get_logger().error(f"Exception occurred: {e}")
+        get_logger().exception(str(e))
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
 
@@ -236,7 +236,7 @@ async def send_message(thread_id: str, message_input: MessageInput):
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
         await db.close()
-        get_logger().error(f"Exception occurred: {e}")
+        get_logger().exception(str(e))
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
 
@@ -255,7 +255,7 @@ async def send_user_confirmation(thread_id: str, confirmation_input: Confirmatio
     except ThreadNotFound as e:
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
-        get_logger().error(f"Exception occurred: {e}")
+        get_logger().exception(str(e))
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
 
