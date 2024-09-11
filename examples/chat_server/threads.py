@@ -4,6 +4,7 @@ from pacha.data_engine.artifacts import ArtifactJson, Artifacts
 from pacha.sdk.chat import Turn, UserTurn, AssistantTurn, ToolResponseTurn, ToolCallResponse
 from pacha.data_engine.user_confirmations import UserConfirmationResult
 from pacha.sdk.tools import PythonToolOutput
+from pacha.sdk.llm import LlmException
 from examples.chat_server.chat_json import (
     PachaTurnJson,
     UserConfirmationStatusJson,
@@ -125,7 +126,6 @@ class Thread:
         except Exception as e:
             get_logger().error(str(e))
             yield render_event(ERROR_EVENT, json.dumps({'error': 'Internal server error, check logs. Try a new thread maybe?'}))  
-                    
         finally:
             #persist any pending user confirmation requests as canceled or timed out
             for confirmation_id, request in self.chat.confirmation_provider.pending.items():
