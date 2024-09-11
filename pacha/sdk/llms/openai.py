@@ -85,7 +85,8 @@ class OpenAI(Llm):
                 }} for tool in tools]
             )
         except Exception as e:
-            raise LlmException(str(e))
+            get_logger().error(str(e))
+            return AssistantTurn(text="Exception raised by LLM, check logs and try again?")
         else:
             get_logger().info(f"Token Usage: {response.usage}")
 

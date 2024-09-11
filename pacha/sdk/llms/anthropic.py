@@ -74,7 +74,8 @@ class Anthropic(Llm):
                     "input_schema": tool.input_schema()
                 } for tool in tools])
         except Exception as e:
-            raise LlmException(str(e))
+            get_logger().error(str(e))
+            return AssistantTurn(text="Exception raised by LLM, check logs and try again?")
         else:
             # print(raw_response.headers)
             response: Message = raw_response.parse()
