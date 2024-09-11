@@ -27,7 +27,7 @@ app = FastAPI()
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[os.environ.get("ORIGIN", "*")], # Allow origin to be passed via env variable for deployment
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
