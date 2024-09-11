@@ -175,3 +175,4 @@ examples/chat_server/.DS_Store
 examples/utils/.DS_Store
 eval/.DS_Store
 
+*.db
