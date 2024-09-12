@@ -10,6 +10,9 @@ from examples.chat_server.pacha_chat import UserConfirmationRequest, PachaTurn
 
 import json
 
+from pacha.sdk.tools.code_tool import CODE_ARGUMENT_NAME
+from pacha.sdk.tools.graphql_tool import GRAPHQL_ARGUMENT_NAME, GraphQlToolOutput
+
 
 class UserConfirmationRequestJson(TypedDict):
     confirmation_id: str
@@ -45,7 +48,6 @@ def to_user_confirmation_status_json(self) -> UserConfirmationStatusJson:
     }
 
 
-
 class ToolCallJson(TypedDict):
     name: str
     call_id: str
@@ -53,6 +55,10 @@ class ToolCallJson(TypedDict):
 
 
 def to_tool_call_json(tool_call: ToolCall) -> ToolCallJson:
+    graphql_query = tool_call.input.get(GRAPHQL_ARGUMENT_NAME)
+    input = tool_call.input if graphql_query is None else {
+        CODE_ARGUMENT_NAME: graphql_query}
+
     return ToolCallJson(
         name=tool_call.name,
         call_id=tool_call.call_id,
@@ -119,6 +125,16 @@ def to_tool_call_response_json(tool_call_response: ToolCallResponse, artifacts: 
         return ToolCallResponseJson(
             call_id=tool_call_response.call_id,
             output=sql_tool_output
+        )
+    elif isinstance(tool_call_response.output, GraphQlToolOutput):
+        return ToolCallResponseJson(
+            call_id=tool_call_response.call_id,
+            output=PythonToolOutputJson(
+                output=tool_call_response.output.output,
+                error=tool_call_response.output.error,
+                sql_statements=[],
+                modified_artifacts=[]
+            )
         )
     elif isinstance(tool_call_response.output, ErrorToolOutput):
         error_tool_output = error_tool_output_to_json(

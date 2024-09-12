@@ -54,10 +54,10 @@ async def async_main():
             output("Assistant", ASSISTANT_RESPONSE_COLOR, assistant_turn.text)
         for tool_call in assistant_turn.tool_calls:
             if tool_call.name == pacha_tool.name():
-                output("Pacha Input", QUERY_PLAN_COLOR, str(tool_call.input))
+                output("Tool Input", QUERY_PLAN_COLOR, str(tool_call.input))
                 tool_output = await pacha_tool.execute(tool_call.input, ExecutionContext(artifacts))
-                output("Pacha Output", QUERY_PLAN_COLOR,
-                       tool_output.get_response())
+                output("Tool Output", QUERY_PLAN_COLOR,
+                       tool_output.get_response()[:3000])
                 tool_call_responses.append(ToolCallResponse(
                     call_id=tool_call.call_id, output=tool_output))
             else:

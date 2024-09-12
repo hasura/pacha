@@ -7,6 +7,7 @@ from pacha.data_engine.postgres import PostgresDataEngine
 from pacha.query_planner.query_planner import QueryPlanner
 from pacha.sdk.tool import Tool
 from pacha.sdk.tools.code_tool import PachaPythonTool, create_python_tool
+from pacha.sdk.tools.graphql_tool import HasuraConnection, create_graphql_tool
 from pacha.sdk.tools.nl_tool import PachaNlTool
 from pacha.sdk.tools.sql_tool import PachaSqlTool, create_sql_tool
 from pacha.sdk.llms import openai, anthropic
@@ -44,7 +45,7 @@ def get_data_engine(args: argparse.Namespace) -> DataEngine:
 def add_tool_args(parser: argparse.ArgumentParser):
     add_data_engine_args(parser)
     parser.add_argument('-t', '--tool', type=str,
-                        choices=['nl', 'sql', 'python'], default='python')
+                        choices=['nl', 'sql', 'python', 'graphql'], default='python')
 
 
 def add_auth_args(parser: argparse.ArgumentParser):
@@ -65,6 +66,14 @@ async def get_pacha_tool(args, render_to_stdout=True) -> Tool:
                 data_engine=data_engine, hooks=get_python_executor_hooks_for_rendering_to_stdout(), llm=get_llm(args))
         else:
             return await create_python_tool(data_engine=data_engine, llm=get_llm(args))
+    elif args.tool == 'graphql':
+        headers_dict = {}
+        for header in args.headers:
+            header: str = header
+            header_name, header_value = header.split(':', 1)
+            headers_dict[header_name] = header_value.lstrip()
+
+        return await create_graphql_tool(client=HasuraConnection(graphql_endpoint=args.url, additional_headers=headers_dict))
     else:
         print("Invalid tool choice")
         exit(1)
