@@ -51,7 +51,8 @@ class PachaChat:
         if self.id in CONFIRMATION_PROVIDERS:
             self.confirmation_provider = CONFIRMATION_PROVIDERS[self.id]
         else:
-            self.confirmation_provider = UserConfirmationProvider(event=asyncio.Event())
+            self.confirmation_provider = UserConfirmationProvider(
+                event=asyncio.Event())
             CONFIRMATION_PROVIDERS[self.id] = self.confirmation_provider
 
         def system_prompt_builder(turns: List[Turn]) -> str:
@@ -79,7 +80,7 @@ class PachaChat:
             tool_call_responses = []
             for tool_call in assistant_turn.tool_calls:
                 if tool_call.name == self.pacha_tool.name():
-                    logger.debug('called pacha tool with input: %s',
+                    logger.debug('Pacha tool input: %s',
                                  tool_call.input)
                     tool_execution_task = asyncio.create_task(self.pacha_tool.execute(
                         tool_call.input, ExecutionContext(self.artifacts, self.confirmation_provider)))
@@ -106,10 +107,11 @@ class PachaChat:
                         yield user_confirmation_request
 
                     tool_output = tool_execution_task.result()
-                    logger.debug('pacha tool output: %s', tool_output)
+                    logger.debug('Pacha tool output: %s', tool_output)
                     tool_call_response = ToolCallResponse(
                         call_id=tool_call.call_id, output=tool_output)
                     tool_call_responses.append(tool_call_response)
+
                     yield tool_call_response
                 else:
                     error = f"""No such tool: {
