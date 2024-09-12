@@ -16,88 +16,11 @@ from pacha.sdk.llm import Llm
 from pacha.sdk.tool import Tool
 from pacha.data_engine.user_confirmations import UserConfirmationResult
 from pacha.utils.logging import setup_logger, get_logger
-from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
+from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.chat_json import to_turn_json
 from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
-from examples.chat_server.db import fetch_threads, persist_thread, update_user_confirmation
-
-app = FastAPI()
-
-# Enable CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# SQLite database setup
-DATABASE_NAME = "pacha.db"
-
-
-async def init_db():
-    conn = await aiosqlite.connect(DATABASE_NAME)
-    await conn.executescript('''
-    CREATE TABLE IF NOT EXISTS threads (
-        thread_id TEXT PRIMARY KEY,
-        title TEXT,
-        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-    );
-    CREATE TABLE IF NOT EXISTS turns (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        thread_id TEXT NOT NULL,
-        message TEXT,
-        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-    );
-    CREATE TABLE IF NOT EXISTS artifacts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        thread_id TEXT NOT NULL,
-        artifact_id TEXT NOT NULL,
-        artifact_json TEXT,
-        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-    );
-    CREATE TABLE IF NOT EXISTS user_confirmations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        thread_id TEXT NOT NULL,
-        confirmation_id TEXT NOT NULL,
-        status TEXT,
-        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-        
-        UNIQUE(thread_id, confirmation_id)
-    );
-    -- Index for threads table
-    CREATE INDEX IF NOT EXISTS idx_threads_created_at ON threads(created_at);     
- 
-    -- Indexes for turns table
-    CREATE INDEX IF NOT EXISTS idx_turns_thread_id ON turns(thread_id);
-
-    -- Indexes for artifacts table
-    CREATE INDEX IF NOT EXISTS idx_artifacts_thread_id ON artifacts(thread_id);
-
-    -- Indexes for user_confirmations table
-    CREATE INDEX IF NOT EXISTS idx_user_confirmations_thread_id ON user_confirmations(thread_id);
-
-   ''')
-    await conn.commit()
-    await conn.close()
-
-
-async def get_db():
-    conn = await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
-    try:
-        yield conn
-    finally:
-        await conn.close()
-
-
-async def get_db_open():
-    return await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
-
-
-async def closedb(db: aiosqlite.Connection):
-    await db.close()
+from examples.chat_server.db import init_db, fetch_threads, persist_thread, update_user_confirmation
 
 
 # will be initialized in main
@@ -105,6 +28,42 @@ SECRET_KEY: Optional[str] = None
 LLM: Llm = None  # type: ignore
 PACHA_TOOL: Tool = None  # type: ignore
 SYSTEM_PROMPT: str = "You are a helpful assistant"
+DATABASE_PATH: str = "pacha.db"
+CORS_ORIGINS: List[str] = ["*"]
+
+
+app = FastAPI()
+
+# initialize cors
+origins = os.environ.get("CORS_ORIGINS", "*")
+CORS_ORIGINS = [origin.strip() for origin in origins.split(",")]
+
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    # Allow origin to be passed via env variable for deployment
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+async def get_db():
+    conn = await aiosqlite.connect(database=DATABASE_PATH, autocommit=True)
+    try:
+        yield conn
+    finally:
+        await conn.close()
+
+
+async def get_db_open():
+    return await aiosqlite.connect(database=DATABASE_PATH, autocommit=True)
+
+
+async def closedb(db: aiosqlite.Connection):
+    await db.close()
 
 
 def init_system_prompt(pacha_tool):
@@ -265,6 +224,7 @@ class FeedbackMode(str, Enum):
     CONSENT_MESSAGE = "consent_message"
     CONSENT_FULL = "consent_full"
 
+
 class FeedbackInput(BaseModel):
     mode: Optional[FeedbackMode] = FeedbackMode.NO_DATA
     message: Optional[str] = None
@@ -305,13 +265,16 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
         raise HTTPException(
             status_code=500, detail=f"Error submitting feedback")
 
-@app.get("/healthz",response_class=PlainTextResponse)
+
+@app.get("/healthz", response_class=PlainTextResponse)
 async def health_check():
     return "OK"
 
-@app.get("/config-check",response_class=PlainTextResponse)
+
+@app.get("/config-check", response_class=PlainTextResponse)
 async def config_check():
     return "OK"
+
 
 @app.get("/console", response_class=HTMLResponse)
 async def serve_console():
@@ -339,22 +302,29 @@ async def redirect_home():
 async def async_setup():
     global LLM
     global PACHA_TOOL
+    global DATABASE_PATH
+    global CORS_ORIGINS
 
     parser = argparse.ArgumentParser(description='Pacha Chat Server')
-    add_auth_args(parser)
     add_llm_args(parser)
     add_tool_args(parser)
     args = parser.parse_args()
-    init_auth(args.secret_key)
     PACHA_TOOL = await get_pacha_tool(args, render_to_stdout=False)
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
-    await init_db()
+
+    # initialize auth
+    secret_key = os.environ.get("SECRET_KEY", None)
+    init_auth(secret_key=secret_key)
+
+    # initialize sqlite db
+    DATABASE_PATH = os.environ.get("SQLITE_PATH", "pacha.db")
+    await init_db(DATABASE_PATH)
 
 
 def main():
     asyncio.run(async_setup())
-    log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
+    log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
     setup_logger(log_level)
     port = int(os.environ.get('PORT', 5000))
     uvicorn.run(app, host="0.0.0.0", port=port, log_level=log_level.lower())
