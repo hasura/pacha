@@ -48,10 +48,6 @@ def add_tool_args(parser: argparse.ArgumentParser):
                         choices=['nl', 'sql', 'python', 'graphql'], default='python')
 
 
-def add_auth_args(parser: argparse.ArgumentParser):
-    parser.add_argument('-k', '--secret-key', type=str)
-
-
 async def get_pacha_tool(args, render_to_stdout=True) -> Tool:
     data_engine = get_data_engine(args)
     if args.tool == 'nl':
