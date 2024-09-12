@@ -353,8 +353,7 @@ async def async_setup():
 
 
 def main():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(async_setup())
+    asyncio.run(async_setup())
     log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
     setup_logger(log_level)
     port = int(os.environ.get('PORT', 5000))

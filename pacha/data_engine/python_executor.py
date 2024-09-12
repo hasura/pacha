@@ -33,8 +33,6 @@ class PythonExecutor:
     output_text: str = ""
     error: Optional[str] = None
     modified_artifact_identifiers: list[str] = field(default_factory=list)
-    loop: asyncio.AbstractEventLoop = field(
-        default_factory=asyncio.get_event_loop)
 
     def maybe_cancel(self):
         current_task = asyncio.current_task()
@@ -56,7 +54,8 @@ class PythonExecutor:
             else:
                 raise
         if data is None:
-            raise PachaException(f"User did not approve execution of SQL mutation: {sql}")
+            raise PachaException(
+                f"User did not approve execution of SQL mutation: {sql}")
 
         self.hooks.sql.on_sql_response(data)
         self.sql_statements.append(SqlStatement(sql, data))
@@ -65,21 +64,22 @@ class PythonExecutor:
         return data
 
     # The below 3 functions all do the same thing. They all exist because we're experimenting with what's the best name to use for an LLM.
-    def output(self, text):
+    def output(self, text: str):
         self.maybe_cancel()
         self.output_text += str(text) + '\n'
 
-    def observe(self, text):
+    def observe(self, text: str):
         self.output(text)
 
-    def print(self, text):
+    def print(self, text: str):
         self.output(text)
 
     def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData):
         self.maybe_cancel()
-        output = self.context.artifacts.store_artifact(
+        (output, is_stored) = self.context.artifacts.store_artifact(
             identifier, title, artifact_type, data)
-        self.modified_artifact_identifiers.append(identifier)
+        if is_stored:
+            self.modified_artifact_identifiers.append(identifier)
         self.output(output)
 
     def get_artifact(self, identifier: str) -> ArtifactData:
