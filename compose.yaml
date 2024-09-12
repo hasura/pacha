@@ -10,6 +10,5 @@ services:
     extra_hosts:
       - local.hasura.dev=host-gateway
     volumes:
-      - ./data/pacha.db:/app/pacha.db
-volumes:
-  data:
+    # NOTE: pacha.db must exist on host: `touch pacha.db` before running
+      - ./pacha.db:/app/pacha.db

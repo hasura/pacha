@@ -16,11 +16,20 @@ from pacha.sdk.llm import Llm
 from pacha.sdk.tool import Tool
 from pacha.data_engine.user_confirmations import UserConfirmationResult
 from pacha.utils.logging import setup_logger, get_logger
-from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool, add_auth_args
+from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.chat_json import to_turn_json
 from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
 from examples.chat_server.db import init_db, fetch_threads, persist_thread, update_user_confirmation
+
+
+# will be initialized in main
+SECRET_KEY: Optional[str] = None
+LLM: Llm = None  # type: ignore
+PACHA_TOOL: Tool = None  # type: ignore
+SYSTEM_PROMPT: str = "You are a helpful assistant"
+DATABASE_PATH: str = "pacha.db"
+CORS_ORIGINS: List[str] = ["*"]
 
 app = FastAPI()
 
@@ -28,18 +37,11 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     # Allow origin to be passed via env variable for deployment
-    allow_origins=[os.environ.get("ORIGIN", "*")],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# will be initialized in main
-SECRET_KEY: Optional[str] = None
-LLM: Llm = None  # type: ignore
-PACHA_TOOL: Tool = None  # type: ignore
-SYSTEM_PROMPT: str = "You are a helpful assistant"
-DATABASE_PATH: str = None # type: ignore
 
 
 async def get_db():
@@ -295,19 +297,27 @@ async def async_setup():
     global LLM
     global PACHA_TOOL
     global DATABASE_PATH
+    global CORS_ORIGINS
 
     parser = argparse.ArgumentParser(description='Pacha Chat Server')
-    add_auth_args(parser)
     add_llm_args(parser)
     add_tool_args(parser)
     args = parser.parse_args()
     PACHA_TOOL = await get_pacha_tool(args, render_to_stdout=False)
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
+
+    # initialize auth
     secret_key = os.environ.get("SECRET_KEY", None)
-    init_auth(secret_key=secret_key)   
+    init_auth(secret_key=secret_key)
+
+    # initialize sqlite db
     DATABASE_PATH = os.environ.get("SQLITE_PATH", "pacha.db")
     await init_db(DATABASE_PATH)
+
+    # initialize cors
+    origins = os.environ.get("CORS_ORIGINS", "*")
+    CORS_ORIGINS = [origin.strip() for origin in origins.split(",")]
 
 
 def main():
