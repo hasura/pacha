@@ -31,7 +31,13 @@ SYSTEM_PROMPT: str = "You are a helpful assistant"
 DATABASE_PATH: str = "pacha.db"
 CORS_ORIGINS: List[str] = ["*"]
 
+
 app = FastAPI()
+
+# initialize cors
+origins = os.environ.get("CORS_ORIGINS", "*")
+CORS_ORIGINS = [origin.strip() for origin in origins.split(",")]
+
 
 # Enable CORS
 app.add_middleware(
@@ -314,10 +320,6 @@ async def async_setup():
     # initialize sqlite db
     DATABASE_PATH = os.environ.get("SQLITE_PATH", "pacha.db")
     await init_db(DATABASE_PATH)
-
-    # initialize cors
-    origins = os.environ.get("CORS_ORIGINS", "*")
-    CORS_ORIGINS = [origin.strip() for origin in origins.split(",")]
 
 
 def main():
