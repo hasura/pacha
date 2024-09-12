@@ -94,8 +94,6 @@ class Thread:
                     yield render_event(ASSISTANT_RESPONSE_EVENT, event_data)
 
                 elif isinstance(chunk, ToolCallResponse):
-                    #temp hack till we resolve race condition
-                    await asyncio.sleep(1)
                     if isinstance(chunk.output, PythonToolOutput):
                         modified_artifacts = {identifier: self.chat.artifacts.artifacts[identifier]
                                               for identifier in chunk.output.modified_artifact_identifiers}
