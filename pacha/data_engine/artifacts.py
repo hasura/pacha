@@ -1,6 +1,6 @@
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Literal, TypedDict, cast
+from typing import Any, Literal, TypedDict, cast, Tuple
 
 ArtifactType = Literal['table', 'text']
 ArtifactData = list[dict[str, Any]] | str
@@ -61,17 +61,17 @@ class Artifacts:
     # Map of artifact identifier to artifact
     artifacts: dict[str, Artifact] = field(default_factory=dict)
 
-    def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData) -> str:
+    def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData) -> Tuple[str, bool]:
 
         artifact = Artifact(
             identifier=identifier, title=title, artifact_type=artifact_type, data=data)
         validation_error = artifact.get_validation_error()
         if validation_error is not None:
-            return f"Invalid artifact {identifier} not stored: {validation_error}"
+            return (f"Invalid artifact {identifier} not stored: {validation_error}", False)
 
         rendered = artifact.render_for_prompt()
         self.artifacts[identifier] = artifact
-        return f"Stored {rendered}"
+        return (f"Stored {rendered}", True)
 
     def get_artifact(self, identifier: str) -> ArtifactData:
         return self.artifacts[identifier].data

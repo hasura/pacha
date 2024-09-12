@@ -20,72 +20,30 @@ from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_t
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.chat_json import to_turn_json
 from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
-from examples.chat_server.db import fetch_threads, persist_thread, update_user_confirmation
+from examples.chat_server.db import init_db, fetch_threads, persist_thread, update_user_confirmation
 
 app = FastAPI()
 
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.environ.get("ORIGIN", "*")], # Allow origin to be passed via env variable for deployment
+    # Allow origin to be passed via env variable for deployment
+    allow_origins=[os.environ.get("ORIGIN", "*")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# SQLite database setup
-DATABASE_NAME = "pacha.db"
-
-
-async def init_db():
-    conn = await aiosqlite.connect(DATABASE_NAME)
-    await conn.executescript('''
-    CREATE TABLE IF NOT EXISTS threads (
-        thread_id TEXT PRIMARY KEY,
-        title TEXT,
-        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-    );
-    CREATE TABLE IF NOT EXISTS turns (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        thread_id TEXT NOT NULL,
-        message TEXT,
-        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-    );
-    CREATE TABLE IF NOT EXISTS artifacts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        thread_id TEXT NOT NULL,
-        artifact_id TEXT NOT NULL,
-        artifact_json TEXT,
-        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-    );
-    CREATE TABLE IF NOT EXISTS user_confirmations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        thread_id TEXT NOT NULL,
-        confirmation_id TEXT NOT NULL,
-        status TEXT,
-        created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-        
-        UNIQUE(thread_id, confirmation_id)
-    );
-    -- Index for threads table
-    CREATE INDEX IF NOT EXISTS idx_threads_created_at ON threads(created_at);     
- 
-    -- Indexes for turns table
-    CREATE INDEX IF NOT EXISTS idx_turns_thread_id ON turns(thread_id);
-
-    -- Indexes for artifacts table
-    CREATE INDEX IF NOT EXISTS idx_artifacts_thread_id ON artifacts(thread_id);
-
-    -- Indexes for user_confirmations table
-    CREATE INDEX IF NOT EXISTS idx_user_confirmations_thread_id ON user_confirmations(thread_id);
-
-   ''')
-    await conn.commit()
-    await conn.close()
+# will be initialized in main
+SECRET_KEY: Optional[str] = None
+LLM: Llm = None  # type: ignore
+PACHA_TOOL: Tool = None  # type: ignore
+SYSTEM_PROMPT: str = "You are a helpful assistant"
+DATABASE_PATH: str = None # type: ignore
 
 
 async def get_db():
-    conn = await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
+    conn = await aiosqlite.connect(database=DATABASE_PATH, autocommit=True)
     try:
         yield conn
     finally:
@@ -93,18 +51,11 @@ async def get_db():
 
 
 async def get_db_open():
-    return await aiosqlite.connect(database=DATABASE_NAME, autocommit=True)
+    return await aiosqlite.connect(database=DATABASE_PATH, autocommit=True)
 
 
 async def closedb(db: aiosqlite.Connection):
     await db.close()
-
-
-# will be initialized in main
-SECRET_KEY: Optional[str] = None
-LLM: Llm = None  # type: ignore
-PACHA_TOOL: Tool = None  # type: ignore
-SYSTEM_PROMPT: str = "You are a helpful assistant"
 
 
 def init_system_prompt(pacha_tool):
@@ -265,6 +216,7 @@ class FeedbackMode(str, Enum):
     CONSENT_MESSAGE = "consent_message"
     CONSENT_FULL = "consent_full"
 
+
 class FeedbackInput(BaseModel):
     mode: Optional[FeedbackMode] = FeedbackMode.NO_DATA
     message: Optional[str] = None
@@ -305,13 +257,16 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
         raise HTTPException(
             status_code=500, detail=f"Error submitting feedback")
 
-@app.get("/healthz",response_class=PlainTextResponse)
+
+@app.get("/healthz", response_class=PlainTextResponse)
 async def health_check():
     return "OK"
 
-@app.get("/config-check",response_class=PlainTextResponse)
+
+@app.get("/config-check", response_class=PlainTextResponse)
 async def config_check():
     return "OK"
+
 
 @app.get("/console", response_class=HTMLResponse)
 async def serve_console():
@@ -336,27 +291,28 @@ async def redirect_home():
     return RedirectResponse(url='/console')
 
 
-async def async_setup(secret_key: str | None = None):
+async def async_setup():
     global LLM
     global PACHA_TOOL
+    global DATABASE_PATH
 
     parser = argparse.ArgumentParser(description='Pacha Chat Server')
     add_auth_args(parser)
     add_llm_args(parser)
     add_tool_args(parser)
     args = parser.parse_args()
-    init_auth(secret_key=secret_key)
     PACHA_TOOL = await get_pacha_tool(args, render_to_stdout=False)
     LLM = get_llm(args)
     init_system_prompt(PACHA_TOOL)
-    await init_db()
+    secret_key = os.environ.get("SECRET_KEY", None)
+    init_auth(secret_key=secret_key)   
+    DATABASE_PATH = os.environ.get("SQLITE_PATH", "pacha.db")
+    await init_db(DATABASE_PATH)
 
 
 def main():
-    loop = asyncio.get_event_loop()
-    secret_key = os.environ.get("SECRET_KEY", None)
-    loop.run_until_complete(async_setup(secret_key=secret_key))
-    log_level = os.environ.get('PACHA_LOG_LEVEL', 'INFO').upper()
+    asyncio.run(async_setup())
+    log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
     setup_logger(log_level)
     port = int(os.environ.get('PORT', 5000))
     uvicorn.run(app, host="0.0.0.0", port=port, log_level=log_level.lower())
