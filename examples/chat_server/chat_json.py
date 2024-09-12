@@ -55,14 +55,19 @@ class ToolCallJson(TypedDict):
 
 
 def to_tool_call_json(tool_call: ToolCall) -> ToolCallJson:
-    graphql_query = tool_call.input.get(GRAPHQL_ARGUMENT_NAME)
-    input = tool_call.input if graphql_query is None else {
-        CODE_ARGUMENT_NAME: graphql_query}
+   
+    name = tool_call.name 
+    if tool_call.name == 'execute_graphql':
+        name = 'execute_python'
+        graphql_query = tool_call.input.get(GRAPHQL_ARGUMENT_NAME)
+        input = { CODE_ARGUMENT_NAME: graphql_query }
+    else:
+        input = tool_call.input
 
     return ToolCallJson(
-        name=tool_call.name,
+        name=name,
         call_id=tool_call.call_id,
-        input=tool_call.input
+        input=input
     )
 
 
