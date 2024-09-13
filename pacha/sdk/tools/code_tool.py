@@ -59,6 +59,9 @@ def build_python_methods(options: PythonOptions) -> str:
 
     if options.enable_ai_primitives:
         methods += """
+  When working with tasks involving text analysis, categorization, or summarization, always use executor.classify and/or executor.summarize, instead of writing custom python functions. 
+  Use the classify primitive for: Categorizing text (e.g., sentiment, topics, urgency, characteristics). Keywords: categorize, label, identify, determine, assess, detect, sort, group
+  Use the summarize primitive for: Condensing text (e.g., key points, abstracts, overviews) Keywords: summarize, condense, extract, overview, digest, abstract, synopsis        
 - `async def classify(self, instructions: str, inputs_to_classify: list[str], categories: list[str], allow_multiple: bool) -> list[str | list[str]]`:
   This can be used to call an AI language model to classify the given `inputs_to_classify` into the specified `categories`.
   If `allow_multiple` is True, then zero or more categories can be chosen for each input and hence the output is a list of list of categories - one list per input.
@@ -170,6 +173,69 @@ controversial_articles = [articles[i] for i in controversial_indices]
 
 # store the controversial articles in a new artifact
 executor.store_artifact('most_recent_controversial_articles', 'most recent controversial articles', controversial_articles)
+```
+Example: Analyze which leads are at risk of going cold
+```
+# Get previously retrieved leads from an artifact
+leads = executor.get_artifact('active_leads')
+
+# Get lead email IDs and prepare data for processing
+lead_emails = [lead['email'] for lead in leads]
+
+# Fetch email threads for each lead
+all_thread_summaries = []
+lead_overall_summaries = []
+for email in lead_emails:
+    # Get thread IDs for the lead
+    thread_sql = f\"""SELECT thread_id FROM SearchEmailThreads(STRUCT('{email}' AS participant))\"""
+    threads = executor.run_sql(thread_sql)
+    
+    lead_summaries = []
+    for thread in threads:
+        # Get all email messages in the thread
+        message_sql = f\"""SELECT subject, body FROM GetThreadMessages(STRUCT('{thread['thread_id']}' AS thread_id))\"""
+        messages = executor.run_sql(message_sql)
+        
+        # Prepare email content for summarization
+        email_content = "\n\n".join([f"Subject: {msg['subject']}\n{msg['body']}" for msg in messages])
+        
+        # Summarize the thread
+        summary_instructions = "Summarize this email thread, focusing on the overall tone, urgency, and any indications of the lead's interest level or potential issues."
+        thread_summary = executor.summarize(summary_instructions, email_content)
+        lead_summaries.append(thread_summary)
+    
+    # Combine all thread summaries for this lead
+    lead_thread_summaries = "\n\n".join(lead_summaries)
+    all_thread_summaries.append(lead_thread_summaries)
+    
+    # Summarize all conversations for this lead
+    overall_summary_instructions = "Provide an overall summary of all email conversations with this lead, highlighting key points, interest level, and any potential risks or opportunities."
+    lead_overall_summary = executor.summarize(overall_summary_instructions, lead_thread_summaries)
+    lead_overall_summaries.append(lead_overall_summary)
+
+# Classify leads based on their email thread summaries
+classification_instructions = \"""
+Classify each lead into one of the following categories based on their email thread summaries:
+- 'hot': Very engaged, likely to convert soon
+- 'warm': Showing interest, but may need more nurturing
+- 'cooling': Engagement is decreasing, may need attention
+- 'cold': Little to no engagement, at high risk of losing interest
+
+Consider factors such as response times, tone of emails, frequency of communication, and expressed interest or concerns.
+\"""
+categories = ['hot', 'warm', 'cooling', 'cold']
+lead_classifications = executor.classify(classification_instructions, all_thread_summaries, categories, allow_multiple=False)
+
+# Prepare the final data for the artifact
+analyzed_leads = []
+for lead, classification, overall_summary in zip(leads, lead_classifications, lead_overall_summaries):
+    analyzed_lead = lead.copy()  # Create a copy to avoid modifying the original lead data
+    analyzed_lead['risk_classification'] = classification
+    analyzed_lead['conversation_summary'] = overall_summary
+    analyzed_leads.append(analyzed_lead)
+
+# Store the analyzed leads in a new artifact
+executor.store_artifact('analyzed_leads', 'Leads analyzed for risk of going cold', 'table', analyzed_leads)
 ```
 
 Example: Adding a summary of the comments to the previously retrieved controversial articles
