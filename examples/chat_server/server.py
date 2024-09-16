@@ -131,6 +131,7 @@ async def get_thread(thread_id: str, db: aiosqlite.Connection = Depends(get_db))
 
 @app.post("/threads")
 async def start_thread(message_input: MessageInput):
+    db = None
     try:
         db = await get_db_open()
         thread_id = str(uuid.uuid4())
@@ -158,7 +159,8 @@ async def start_thread(message_input: MessageInput):
             }
             return JSONResponse(content=response, status_code=201, background=background_tasks)
     except Exception as e:
-        await db.close()
+        if db is not None:
+            await db.close()
         get_logger().exception(str(e))
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
@@ -166,6 +168,7 @@ async def start_thread(message_input: MessageInput):
 
 @app.post("/threads/{thread_id}")
 async def send_message(thread_id: str, message_input: MessageInput):
+    db = None
     try:
         db = await get_db_open()
         default_chat = PachaChat(id=thread_id,
@@ -191,10 +194,12 @@ async def send_message(thread_id: str, message_input: MessageInput):
             }
             return JSONResponse(content=response, status_code=200, background=background_tasks)
     except ThreadNotFound as e:
-        await db.close()
+        if db is not None:
+            await db.close()
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
-        await db.close()
+        if db is not None:
+            await db.close()
         get_logger().exception(str(e))
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
