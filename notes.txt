@@ -1,0 +1,8 @@
+Notes
+
+OTEL_SERVICE_NAME=pacha \
+OTEL_TRACES_EXPORTER=console,otlp \
+OTEL_METRICS_EXPORTER=console,otlp \
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4317 CORS_ORIGINS="https://console.hasura.io" \
+opentelemetry-instrument \
+    python -m examples.chat_server.server -d ddn -u http://localhost:4000/v1/sql -H "x-hasura-role: admin"

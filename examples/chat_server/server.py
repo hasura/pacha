@@ -1,8 +1,11 @@
+from opentelemetry.trace import Span
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.sdk.resources import Resource
 from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, Dict, List, Callable
+from typing import Optional, Dict, List, Callable, Any
 from enum import Enum
 import uuid
 import argparse
@@ -23,6 +26,36 @@ from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, 
 from examples.chat_server.db import init_db, fetch_threads, persist_thread, update_user_confirmation
 
 
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider, SynchronousMultiSpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+
+
+# Create a resource representing the service
+resource = Resource(attributes={"service.name": "pacha"})
+
+# Create the OTLP exporter
+otlp_exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
+
+# Create a BatchSpanProcessor with the exporter
+span_processor = BatchSpanProcessor(otlp_exporter)
+
+
+# Set the tracer provider and include the span processor in the constructor
+tracer_provider = TracerProvider(resource=resource)
+tracer_provider.add_span_processor(span_processor)
+trace.set_tracer_provider(tracer_provider)
+
+
+
+# # Set the global tracer provider
+# trace.set_tracer_provider(tracer_provider)
+
+# tracer = trace.get_tracer(__name__)
+
+
 # will be initialized in main
 SECRET_KEY: Optional[str] = None
 LLM: Llm = None  # type: ignore
@@ -30,6 +63,9 @@ PACHA_TOOL: Tool = None  # type: ignore
 SYSTEM_PROMPT: str = "You are a helpful assistant"
 DATABASE_PATH: str = "pacha.db"
 CORS_ORIGINS: List[str] = ["*"]
+
+
+print(f"Service Name: {resource.attributes.get('service.name')}")
 
 
 app = FastAPI()
@@ -320,6 +356,29 @@ async def async_setup():
     # initialize sqlite db
     DATABASE_PATH = os.environ.get("SQLITE_PATH", "pacha.db")
     await init_db(DATABASE_PATH)
+
+
+def server_request_hook(span: Span, scope: dict[str, Any]):
+    if span and span.is_recording():
+        span.set_attribute(
+            "custom_user_attribute_from_request_hook", "some-value")
+
+
+def client_request_hook(span: Span, scope: dict[str, Any], message: dict[str, Any]):
+    if span and span.is_recording():
+        span.set_attribute(
+            "custom_user_attribute_from_client_request_hook", "some-value")
+
+
+def client_response_hook(span: Span, scope: dict[str, Any], message: dict[str, Any]):
+    if span and span.is_recording():
+        span.set_attribute(
+            "custom_user_attribute_from_response_hook", "some-value")
+
+FastAPIInstrumentor().instrument_app(app=app, server_request_hook=server_request_hook,
+                                     client_request_hook=client_request_hook, 
+                                     client_response_hook=client_response_hook,
+                                     tracer_provider=tracer_provider)
 
 
 def main():
