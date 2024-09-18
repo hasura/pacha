@@ -1,14 +1,15 @@
-import { BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import "./App.css";
 
-function Home() {
-  return <h2>Home Page</h2>;
-}
+// function Home() {
+//   return <h2>Home Page</h2>;
+// }
 
 import { AppShell, Burger, Group, Skeleton, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { ChatRouter } from "./ChatRouter";
 
-export function Dummy() {
+export function Login() {
   const [opened, { toggle }] = useDisclosure();
 
   return (
@@ -40,8 +41,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Dummy />} />
-        <Route path="/test" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<ChatRouter />} />
+        <Route path="/chat" element={<ChatRouter />} />
+        <Route path="/chat/*" element={<ChatRouter />} />
       </Routes>
     </Router>
   );

@@ -303,6 +303,7 @@ async def serve_console():
 
 # Frontend route (only for root path)
 @app.get("/")
+@app.get("/chat/{path:path}")
 async def serve_frontend_root():
     return FileResponse("frontend/dist/index.html")
 

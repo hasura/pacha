@@ -1,15 +1,16 @@
-import { ReactNode } from 'react';
-import { modals as mantineModals } from '@mantine/modals';
-import { OpenConfirmModal } from '@mantine/modals/lib/context';
-import clsx from 'clsx';
+import { ReactNode } from "react";
+import { modals as mantineModals } from "@mantine/modals";
+import clsx from "clsx";
 
-import { Text } from '@/ui/core';
+type OpenConfirmModal = Parameters<typeof mantineModals.openConfirmModal>[0];
 
-import './confirm.css';
+import { Text } from "@/ui/core";
+
+import "./confirm.css";
 
 export type ConfirmProps = Omit<
   OpenConfirmModal,
-  'labels' | 'title' | 'children'
+  "labels" | "title" | "children"
 > & {
   labels?: { confirm?: ReactNode; cancel?: ReactNode };
   title: string;
@@ -23,8 +24,8 @@ export type ConfirmProps = Omit<
 export const confirm = (payload: ConfirmProps) => {
   const { labels, title, children, ...rest } = payload;
   mantineModals.openConfirmModal({
-    cancelProps: { color: 'gray', variant: 'light' },
-    confirmProps: payload.destructive === true ? { color: 'red' } : undefined,
+    cancelProps: { color: "gray", variant: "light" },
+    confirmProps: payload.destructive === true ? { color: "red" } : undefined,
     // always pass the title string to an xl <Text> component
     title: (
       <Text size="lg" fw={500}>
@@ -34,19 +35,19 @@ export const confirm = (payload: ConfirmProps) => {
     // by default, render in a medium <Text> component, but allow the caller to override
     // with a ReactNode
     children:
-      typeof payload.children === 'string' ? (
-        <Text mb={'lg'}>{payload.children}</Text>
+      typeof payload.children === "string" ? (
+        <Text mb={"lg"}>{payload.children}</Text>
       ) : (
         payload.children
       ),
     classNames: {
-      root: clsx(payload.hideCancelButton && 'hide-cancel-button'),
+      root: clsx(payload.hideCancelButton && "hide-cancel-button"),
       // add a class to the body that makes it easier to specify styles
-      body: 'confirm-body',
+      body: "confirm-body",
     },
     labels: {
-      confirm: labels?.confirm ?? 'Confirm',
-      cancel: labels?.cancel ?? 'Cancel',
+      confirm: labels?.confirm ?? "Confirm",
+      cancel: labels?.cancel ?? "Cancel",
     },
     ...rest,
   });

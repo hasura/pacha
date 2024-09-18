@@ -12,7 +12,7 @@ const base00 = staticTheme.colors.dark[9], // '#2E3235',
   base04 = 'var(--tw-color-secondary-500-hex)', // '#d0d0d0',
   base05 = 'var(--tw-color-secondary-700-hex)', // '#e0e0e0',
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  base06 = 'var(--tw-color-secondary-800-hex)', // '#808080',
+  // base06 = 'var(--tw-color-secondary-800-hex)', // '#808080',
   base07 = 'var(--tw-color-secondary-950-hex)', // '#000000',
   base08 = 'var(--tw-color-red-400-hex)', // '#A54543',
   base09 = 'var(--tw-color-amber-400-hex)', // '#fc6d24',
