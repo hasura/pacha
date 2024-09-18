@@ -38,12 +38,11 @@ class UserConfirmationStatusJson(TypedDict):
     status: str
 
 
-def to_user_confirmation_status_json(self) -> UserConfirmationStatusJson:
+def to_user_confirmation_status_json(userconfirm) -> UserConfirmationStatusJson:
     return {
-        "confirmation_id": self.confirmation_id,
-        "status": self.status.name
+        "confirmation_id": userconfirm.confirmation_id,
+        "status": userconfirm.status.name
     }
-
 
 
 class ToolCallJson(TypedDict):
@@ -267,3 +266,15 @@ def from_artifact_json(artifact_json: str) -> Artifact:
         artifact_type=artifact_dict['artifact_type'],
         data=artifact_dict['data']
     )
+
+
+class ThreadMessageResponseJson(TypedDict):
+    thread_id: str
+    messages: list[PachaTurnJson]
+
+class ThreadJson(TypedDict):
+    thread_id: str
+    title: Optional[str]
+    history: NotRequired[list[PachaTurnJson]]
+    artifacts: NotRequired[list[ArtifactJson]]
+    user_confirmations: NotRequired[list[UserConfirmationStatusJson]]
