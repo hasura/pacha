@@ -32,7 +32,7 @@ export const getRandomNumericStr = (length: number) => {
   let str = '';
   Array(length)
     .fill(null)
-    .forEach((_, i) => {
+    .forEach((_) => {
       str += Math.floor(Math.random() * 10);
     });
   return str;

@@ -1,4 +1,4 @@
-import React, { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense } from 'react';
 import {
   Box,
   LoadingOverlay,

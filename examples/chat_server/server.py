@@ -110,12 +110,6 @@ class ConfirmationInput(BaseModel):
     confirmation_id: str
     confirm: bool
 
-@app.get("/{full_path:path}")
-async def serve_frontend(full_path: str):
-    if full_path.startswith("api/"):
-        raise HTTPException(status_code=404, detail="API route not found")
-    return FileResponse("frontend/dist/index.html")
-
 
 @app.get("/threads")
 async def get_threads(db: aiosqlite.Connection = Depends(get_db)):
@@ -307,6 +301,10 @@ async def serve_console():
     </html>
     """
 
+# Frontend route (only for root path)
+@app.get("/")
+async def serve_frontend_root():
+    return FileResponse("frontend/dist/index.html")
 
 
 async def async_setup():

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Button,
   Center,
@@ -9,11 +9,11 @@ import {
   ScrollArea,
   Stack,
   Text,
-} from '@mantine/core';
+} from "@mantine/core";
 
-import { Icons } from '@/ui/icons/Icons';
-import { AcceptableListItem } from './AcceptableListItem';
-import { AcceptableListProps } from './types';
+import { Icons } from "@/ui/icons/Icons";
+import { AcceptableListItem } from "./AcceptableListItem";
+import { AcceptableListProps } from "./types";
 
 export function AcceptableList<ItemType = unknown>({
   items,
@@ -25,35 +25,35 @@ export function AcceptableList<ItemType = unknown>({
   decliningIds,
   getItemId,
   renderItemDetail,
-  acceptLabel = 'Accept',
-  declineLabel = 'Decline',
+  acceptLabel = "Accept",
+  declineLabel = "Decline",
 }: AcceptableListProps<ItemType>) {
   return (
     <Paper className="!rounded-t-none">
       {acceptAllButton && (
         <>
-          <Group justify="flex-end" py={8} px={'sm'}>
+          <Group justify="flex-end" py={8} px={"sm"}>
             <Button
               rightSection={<Icons.CheckAll />}
               variant="subtle"
               {...acceptAllButton}
               // these are not allowed to be customized
-              loaderProps={{ type: 'dots' }}
+              loaderProps={{ type: "dots" }}
               loading={acceptingAll}
-              disabled={items.length === 0 ?? acceptAllButton.disabled}
+              disabled={items.length === 0 || acceptAllButton.disabled}
               data-testid="accept-all-invitations"
             >
-              {acceptAllButton.label ?? 'Accept All'}
+              {acceptAllButton.label ?? "Accept All"}
             </Button>
           </Group>
           <Divider />
         </>
       )}
-      <ScrollArea.Autosize type="auto" mah={'35dvh'}>
-        <Stack gap={0} mx={'sm'} my={'xs'} pos={'relative'}>
+      <ScrollArea.Autosize type="auto" mah={"35dvh"}>
+        <Stack gap={0} mx={"sm"} my={"xs"} pos={"relative"}>
           <LoadingOverlay visible={acceptingAll} />
           {items.length === 0 && (
-            <Center my={'lg'}>
+            <Center my={"lg"}>
               <Text c="dimmed">No items to display</Text>
             </Center>
           )}
