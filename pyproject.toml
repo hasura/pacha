@@ -23,6 +23,7 @@ chat_with_tool = "examples.chat_with_tool:main"
 eval = "eval.run_eval:main"
 chat_server = "examples.chat_server.server:main"
 ddn_setup = "scripts.ddn_setup:main"
+build-frontend = "scripts.build_frontend:main"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.25.0"
