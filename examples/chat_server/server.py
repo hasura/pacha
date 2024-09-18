@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Callable
@@ -33,6 +34,8 @@ CORS_ORIGINS: List[str] = ["*"]
 
 
 app = FastAPI()
+# Mount the static files
+app.mount("/assets", StaticFiles(directory="frontend/dist/assets"), name="static")
 
 # initialize cors
 origins = os.environ.get("CORS_ORIGINS", "*")
@@ -106,6 +109,12 @@ class MessageInput(BaseModel):
 class ConfirmationInput(BaseModel):
     confirmation_id: str
     confirm: bool
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="API route not found")
+    return FileResponse("frontend/dist/index.html")
 
 
 @app.get("/threads")
@@ -299,10 +308,6 @@ async def serve_console():
     """
 
 
-@app.get("/", response_class=RedirectResponse)
-async def redirect_home():
-    return RedirectResponse(url='/console')
-
 
 async def async_setup():
     global LLM
@@ -332,6 +337,11 @@ def main():
     log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
     setup_logger(log_level)
     port = int(os.environ.get('PORT', 5000))
+
+    # Check if the frontend build exists
+    if not os.path.exists("frontend/dist"):
+        get_logger().warning("Frontend build not found. Make sure to build the React app and place it in frontend/dist")
+
     uvicorn.run(app, host="0.0.0.0", port=port, log_level=log_level.lower())
 
 

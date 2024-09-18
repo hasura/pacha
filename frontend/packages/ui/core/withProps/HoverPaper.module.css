@@ -1,0 +1,3 @@
+.root:hover {
+  background-color: var(--mantine-color-background-3) !important;
+}
