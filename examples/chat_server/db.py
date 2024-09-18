@@ -40,7 +40,8 @@ async def init_db(database_path):
         UNIQUE(thread_id, confirmation_id)
     );
     -- Index for threads table
-    CREATE INDEX IF NOT EXISTS idx_threads_created_at ON threads(created_at);     
+    CREATE INDEX IF NOT EXISTS idx_threads_created_at ON threads(created_at);
+    CREATE INDEX IF NOT EXISTS idx_threads_thread_id ON threads(thread_id);
  
     -- Indexes for turns table
     CREATE INDEX IF NOT EXISTS idx_turns_thread_id ON turns(thread_id);
