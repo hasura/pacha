@@ -40,3 +40,9 @@
 .read-the-docs {
   color: #888;
 } */
+/* This layer piece helps keep tailwind from interfering with mantine */
+@layer tailwind {
+  @tailwind base;
+}
+@tailwind components;
+@tailwind utilities;

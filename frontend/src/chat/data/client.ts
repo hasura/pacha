@@ -1,12 +1,12 @@
-import { AUTH_TOKEN_HEADER_KEY } from '../constants';
+import { AUTH_TOKEN_HEADER_KEY } from "../constants";
 import {
   AIResponse,
   GetThreadRequest,
   GetThreadsResponse,
   SendMessageRequest,
   StartThreadResponse,
-} from './api-types';
-import { Thread } from './api-types-v2';
+} from "./api-types";
+import { Thread } from "./api-types-v2";
 
 export class ChatClient {
   private headers: HeadersInit;
@@ -19,12 +19,15 @@ export class ChatClient {
     authToken,
   }: {
     headers?: HeadersInit;
-    baseUrl: string;
+    baseUrl?: string;
     authToken: string;
   }) {
     this.headers = headers ?? {};
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl ?? "";
     this.authToken = authToken;
+  }
+  private getUrl(path: string): string {
+    return this.baseUrl ? `${this.baseUrl}${path}` : path;
   }
 
   createChatStreamReader = ({
@@ -43,9 +46,9 @@ export class ChatClient {
     onComplete: () => void;
   }) => {
     const reader = this.sendMessageStream({ threadId, message }).then(
-      response => {
+      (response) => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
         return response.body!.getReader();
       }
@@ -54,10 +57,10 @@ export class ChatClient {
     const decoder = new TextDecoder();
 
     // Buffering logic to handle scenarios where a chunk contains multiple events and partial events.
-    let buffer = '';
+    let buffer = "";
     const processBuffer = () => {
       // separates the buffer into potential events.
-      const events = buffer.split('\n\n');
+      const events = buffer.split("\n\n");
 
       // takes all but the last element, ensuring we only process complete events.
       const completeEvents = events.slice(0, -1);
@@ -65,14 +68,14 @@ export class ChatClient {
       //keeps the last (potentially partial) event in the buffer for the next processing cycle.
       buffer = events[events.length - 1];
 
-      completeEvents.forEach(event => {
+      completeEvents.forEach((event) => {
         // as per the spec, each event should have two lines
-        const [eventLine, dataLine] = event.split('\n');
+        const [eventLine, dataLine] = event.split("\n");
         if (eventLine && dataLine) {
-          const eventName = eventLine.replace('event: ', '');
-          const eventData = dataLine.replace('data: ', '');
+          const eventName = eventLine.replace("event: ", "");
+          const eventData = dataLine.replace("data: ", "");
 
-          if (eventName === 'start') {
+          if (eventName === "start") {
             const newThreadId = JSON.parse(eventData).thread_id;
             onThreadIdChange(newThreadId);
           } else {
@@ -101,9 +104,9 @@ export class ChatClient {
   };
 
   async getThreads(): Promise<GetThreadsResponse> {
-    const response = await fetch(`${this.baseUrl}/threads`, {
-      method: 'GET',
-      credentials: 'include',
+    const response = await fetch(this.getUrl("/threads"), {
+      method: "GET",
+      credentials: "include",
       headers: {
         ...(this.headers ?? {}),
         [AUTH_TOKEN_HEADER_KEY]: this.authToken,
@@ -115,9 +118,9 @@ export class ChatClient {
     return response.json();
   }
   async getPachaConnectionConfigCheck(): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/config-check`, {
-      method: 'GET',
-      credentials: 'include',
+    const response = await fetch(this.getUrl("/config-check"), {
+      method: "GET",
+      credentials: "include",
       headers: {
         ...(this.headers ?? {}),
         [AUTH_TOKEN_HEADER_KEY]: this.authToken,
@@ -130,9 +133,9 @@ export class ChatClient {
   }
 
   async getThread({ threadId }: GetThreadRequest): Promise<Thread> {
-    const response = await fetch(`${this.baseUrl}/threads/${threadId}`, {
-      method: 'GET',
-      credentials: 'include',
+    const response = await fetch(this.getUrl(`/threads/${threadId}`), {
+      method: "GET",
+      credentials: "include",
       headers: {
         ...(this.headers ?? {}),
         [AUTH_TOKEN_HEADER_KEY]: this.authToken,
@@ -145,12 +148,12 @@ export class ChatClient {
   }
 
   async startThread(): Promise<StartThreadResponse> {
-    const response = await fetch(`${this.baseUrl}/threads`, {
-      method: 'POST',
-      credentials: 'include',
+    const response = await fetch(this.getUrl(`/threads`), {
+      method: "POST",
+      credentials: "include",
       headers: {
         ...(this.headers ?? {}),
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         [AUTH_TOKEN_HEADER_KEY]: this.authToken,
       },
       body: JSON.stringify({}),
@@ -167,13 +170,13 @@ export class ChatClient {
     threadId,
     message,
   }: SendMessageRequest): Promise<AIResponse> {
-    const threadsUrl = `${this.baseUrl}/threads${threadId ? `/${threadId}` : ''}`;
+    const threadsUrl = this.getUrl(`/threads${threadId ? `/${threadId}` : ""}`);
     const response = await fetch(threadsUrl, {
-      method: 'POST',
-      credentials: 'include',
+      method: "POST",
+      credentials: "include",
       headers: {
         ...(this.headers ?? {}),
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         [AUTH_TOKEN_HEADER_KEY]: this.authToken,
       },
       body: JSON.stringify({ message }),
@@ -189,15 +192,15 @@ export class ChatClient {
     threadId,
     message,
   }: SendMessageRequest): Promise<Response> {
-    const threadsUrl = `${this.baseUrl}/threads${threadId ? `/${threadId}` : ''}`;
+    const threadsUrl = this.getUrl(`/threads${threadId ? `/${threadId}` : ""}`);
     const controller = new AbortController();
     const signal = controller.signal;
     return fetch(threadsUrl, {
-      method: 'POST',
-      credentials: 'include',
+      method: "POST",
+      credentials: "include",
       headers: {
         ...(this.headers ?? {}),
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         [AUTH_TOKEN_HEADER_KEY]: this.authToken,
       },
       body: JSON.stringify({ message }),
@@ -214,12 +217,12 @@ export class ChatClient {
     confirmationId: string;
     confirm: boolean;
   }): Promise<Response> {
-    return fetch(`${this.baseUrl}/threads/${threadId}/user_confirmation`, {
-      method: 'POST',
-      credentials: 'include',
+    return fetch(this.getUrl(`/threads/${threadId}/user_confirmation`), {
+      method: "POST",
+      credentials: "include",
       headers: {
         ...(this.headers ?? {}),
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         [AUTH_TOKEN_HEADER_KEY]: this.authToken,
       },
       body: JSON.stringify({
@@ -241,12 +244,12 @@ export class ChatClient {
     message?: string;
     feedbackText?: string;
   }): Promise<Response> {
-    return fetch(`${this.baseUrl}/threads/${threadId}/submit-feedback`, {
-      method: 'POST',
-      credentials: 'include',
+    return fetch(this.getUrl(`/threads/${threadId}/submit-feedback`), {
+      method: "POST",
+      credentials: "include",
       headers: {
         ...(this.headers ?? {}),
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         [AUTH_TOKEN_HEADER_KEY]: this.authToken,
       },
       body: JSON.stringify({
@@ -254,7 +257,7 @@ export class ChatClient {
         mode,
         feedback_enum: feedbackEnum,
         message,
-        feedback_text: feedbackText ?? '',
+        feedback_text: feedbackText ?? "",
       }),
     });
   }
