@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
+from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks, Query
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -18,9 +18,10 @@ from pacha.data_engine.user_confirmations import UserConfirmationResult
 from pacha.utils.logging import setup_logger, get_logger
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool
 from examples.chat_server.pacha_chat import PachaChat
-from examples.chat_server.chat_json import to_turn_json
-from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
+from examples.chat_server.chat_json import to_turn_json, ThreadJson, ThreadMessageResponseJson
+from examples.chat_server.threads import Thread, ThreadNotFound
 from examples.chat_server.db import init_db, fetch_threads, persist_thread, update_user_confirmation
+from datetime import datetime
 
 
 # will be initialized in main
@@ -109,9 +110,13 @@ class ConfirmationInput(BaseModel):
 
 
 @app.get("/threads")
-async def get_threads(db: aiosqlite.Connection = Depends(get_db)):
-    threads = await fetch_threads(db)
-    return [ThreadJson(thread_id=thread['thread_id'], title=thread['title']) for thread in threads]
+async def get_threads(db: aiosqlite.Connection = Depends(get_db),
+                      limit: int = Query(default=100, ge=1, le=1000),
+                      offset: int = Query(default=0, ge=0),
+                      created_after: Optional[datetime] = Query(default=None),
+                      include_history: bool = Query(default=False)):
+    threads = await fetch_threads(db, limit, offset, created_after, include_history)
+    return threads
 
 
 @app.get("/threads/{thread_id}")
@@ -159,8 +164,7 @@ async def start_thread(message_input: MessageInput):
             }
             return JSONResponse(content=response, status_code=201, background=background_tasks)
     except Exception as e:
-        if db is not None:
-            await db.close()
+        await db.close() if db is not None else None
         get_logger().exception(str(e))
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
@@ -194,12 +198,10 @@ async def send_message(thread_id: str, message_input: MessageInput):
             }
             return JSONResponse(content=response, status_code=200, background=background_tasks)
     except ThreadNotFound as e:
-        if db is not None:
-            await db.close()
+        await db.close() if db is not None else None
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
-        if db is not None:
-            await db.close()
+        await db.close() if db is not None else None
         get_logger().exception(str(e))
         raise HTTPException(
             status_code=500, detail="Internal error, check logs")
