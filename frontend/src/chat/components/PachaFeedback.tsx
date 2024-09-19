@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 
 import { useConsoleParams } from '@/routing';
 import { ActionIcon, Paper } from '@/ui/core';
@@ -49,7 +49,7 @@ const PachaFeedback = () => {
           message: message,
         });
       })
-      .catch(_ => {
+      .catch(error => {
         notifications.show({
           type: 'error',
           title: 'Oops! Something went wrong',

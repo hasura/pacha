@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import { Box, BoxProps, Loader, Paper, ScrollArea, Stack } from '@/ui/core';
 import { useSchemeColors } from '@/ui/hooks';

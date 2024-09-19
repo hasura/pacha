@@ -5,6 +5,7 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
+            '@console': path.resolve(__dirname, './packages/console'),
             '@': path.resolve(__dirname, './packages'),
         },
     },

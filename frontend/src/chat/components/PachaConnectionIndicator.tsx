@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 
 import { Loader, ThemeIcon, Tooltip } from '@/ui/core';
 import { Icons } from '@/ui/icons';

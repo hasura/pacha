@@ -11,9 +11,9 @@ export const PachaChatContext = React.createContext<{
   setAuthToken: (token: string) => void;
 }>({
   isMinimized: false,
-  setIsMinimized: _ => {},
+  setIsMinimized: b => {},
   pachaEndpoint: DEFAULT_PACHA_ENDPOINT,
-  setPachaEndpoint: _ => {},
+  setPachaEndpoint: endpoint => {},
   authToken: '',
-  setAuthToken: _ => {},
+  setAuthToken: token => {},
 });

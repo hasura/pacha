@@ -67,7 +67,7 @@ export const ToolChainMessage = ({
   }
 
   if (response?.output?.error && response?.output?.error !== '') {
-    output = `${output}
+    output = `${output ?? ''}
 
     ${response?.output?.error}`;
 

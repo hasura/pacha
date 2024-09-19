@@ -25,6 +25,7 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "vite/client"],
     "paths": {
+      "@console/*": ["./packages/console/*"],
       "@/*": ["./packages/*"]
     }
 
