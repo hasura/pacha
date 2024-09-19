@@ -1,13 +1,15 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import "./App.css";
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+
+import './App.css';
 
 // function Home() {
 //   return <h2>Home Page</h2>;
 // }
 
-import { AppShell, Burger, Group, Skeleton, Text } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { ChatRouter } from "./ChatRouter";
+import { AppShell, Burger, Group, Skeleton, Text } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+
+import { ChatRouter } from './ChatRouter';
 
 export function Login() {
   const [opened, { toggle }] = useDisclosure();
@@ -15,7 +17,7 @@ export function Login() {
   return (
     <AppShell
       header={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }}
+      navbar={{ width: 300, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
     >
       <AppShell.Header>

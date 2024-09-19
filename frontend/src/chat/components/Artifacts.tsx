@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
-import { ErrorBoundary } from "@/common/ErrorBoundary";
+import { useEffect, useRef } from 'react';
 
+import { ErrorBoundary } from '@/common/ErrorBoundary';
 import {
   Accordion,
   Badge,
@@ -15,13 +15,13 @@ import {
   Paper,
   Text,
   Title,
-} from "@/ui/core";
-import { useSchemeColors } from "@/ui/hooks";
-import { Icons } from "@/ui/icons";
-import { Artifact } from "../types";
-import useSelectedArtifacts from "../useSelectedArtifacts";
-import { downloadObjectAsCsv, downloadObjectAsJson } from "../utils";
-import DynamicTable from "./DynamicTable";
+} from '@/ui/core';
+import { useSchemeColors } from '@/ui/hooks';
+import { Icons } from '@/ui/icons';
+import { Artifact } from '../types';
+import useSelectedArtifacts from '../useSelectedArtifacts';
+import { downloadObjectAsCsv, downloadObjectAsJson } from '../utils';
+import DynamicTable from './DynamicTable';
 
 export const Artifacts = ({
   artifacts,
@@ -60,16 +60,16 @@ export const Artifacts = ({
         style={{
           right: 0,
           top: 0,
-          transition: "all 0.3s ease-in-out",
+          transition: 'all 0.3s ease-in-out',
           opacity: canShowArtifactsExpandButton ? 1 : 0,
           transform: canShowArtifactsExpandButton
-            ? "translateY(0)"
-            : "translateY(-20px)",
-          pointerEvents: canShowArtifactsExpandButton ? "auto" : "none",
+            ? 'translateY(0)'
+            : 'translateY(-20px)',
+          pointerEvents: canShowArtifactsExpandButton ? 'auto' : 'none',
         }}
       >
         <Button
-          color={"gray"}
+          color={'gray'}
           variant="outline"
           onClick={() => setIsMinimized(false)}
           leftSection={<Icons.Artifacts size={18} />}
@@ -113,7 +113,7 @@ export const Artifacts = ({
             </Group>
             <Divider />
             <Box
-              style={{ overflowY: "auto", height: `calc(${height} - 100px)` }}
+              style={{ overflowY: 'auto', height: `calc(${height} - 100px)` }}
             >
               <Card p={0} radius="md" m="lg" withBorder>
                 <ArtifactsList artifacts={artifacts} />
@@ -130,7 +130,7 @@ const ArtifactsList = ({ artifacts }: { artifacts: Artifact[] }) => {
   const { selectedArtifacts, updateSelectedArtifacts } = useSelectedArtifacts();
 
   const handleDownload = (artifact: Artifact) => {
-    if (artifact.artifact_type === "table") {
+    if (artifact.artifact_type === 'table') {
       downloadObjectAsCsv(artifact.data, artifact.title);
     } else {
       downloadObjectAsJson(artifact.data, artifact.title);
@@ -143,10 +143,10 @@ const ArtifactsList = ({ artifacts }: { artifacts: Artifact[] }) => {
       value={selectedArtifacts}
       onChange={updateSelectedArtifacts}
     >
-      {artifacts.map((artifact) => (
+      {artifacts.map(artifact => (
         <Accordion.Item key={artifact.identifier} value={artifact.identifier}>
           <Accordion.Control icon={<Icons.Table />}>
-            <Group justify="space-between" style={{ width: "100%" }}>
+            <Group justify="space-between" style={{ width: '100%' }}>
               <Text>{artifact.title}</Text>
               {selectedArtifacts.includes(artifact.identifier) && (
                 <Group px="xs">
@@ -160,7 +160,7 @@ const ArtifactsList = ({ artifacts }: { artifacts: Artifact[] }) => {
                     variant="subtle"
                     color="gray"
                     size="compact-sm"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       handleDownload(artifact);
                     }}
@@ -181,15 +181,15 @@ const ArtifactsList = ({ artifacts }: { artifacts: Artifact[] }) => {
 };
 
 const ArtifactViewer = ({ artifact }: { artifact: Artifact }) => {
-  return artifact.artifact_type === "table" ? (
+  return artifact.artifact_type === 'table' ? (
     <ErrorBoundary
-      errorHandler={(err) => <GenericError message={err?.message ?? ""} />}
+      errorHandler={err => <GenericError message={err?.message ?? ''} />}
     >
       <DynamicTable data={artifact.data} />
     </ErrorBoundary>
   ) : (
     <ErrorBoundary
-      errorHandler={(err) => <GenericError message={err?.message ?? ""} />}
+      errorHandler={err => <GenericError message={err?.message ?? ''} />}
     >
       <Text size="sm">{JSON.stringify(artifact.data, null, 2)}</Text>
     </ErrorBoundary>

@@ -1,13 +1,14 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { MantineProviders } from "@/ui/mantine";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 
-import App from "./App.tsx";
-import "@/ui/styles/app-styles";
+import { MantineProviders } from '@/ui/mantine';
+import App from './App.tsx';
 
-import { queryClient, QueryClientProvider } from "@/utils/react-query/index.ts";
+import '@/ui/styles/app-styles';
 
-createRoot(document.getElementById("root")!).render(
+import { queryClient, QueryClientProvider } from '@/utils/react-query/index.ts';
+
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MantineProviders>
       <QueryClientProvider client={queryClient}>

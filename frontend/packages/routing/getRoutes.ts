@@ -3,7 +3,7 @@
 export const getRoutes = () => {
   return {
     localDev: {
-      chat: () => "/chat",
+      chat: () => '/chat',
     },
   };
 };

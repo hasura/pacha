@@ -1,4 +1,5 @@
 import { modals as mantineModals } from '@mantine/modals';
+
 import { Title } from './components/Title';
 
 type ModalSettings = Parameters<typeof mantineModals.open>[0];

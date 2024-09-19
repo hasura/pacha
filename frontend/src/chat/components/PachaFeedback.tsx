@@ -1,12 +1,12 @@
-import { useRef } from "react";
+import { useRef } from 'react';
 
-import { useConsoleParams } from "@/routing";
-import { ActionIcon, Paper } from "@/ui/core";
-import { Icons } from "@/ui/icons";
-import { modals } from "@/ui/modals";
-import { notifications } from "@/ui/notifications";
-import { usePachaLocalChatClient } from "../data/hooks";
-import { PachaFeedbackForm } from "./PachFeedbackForm";
+import { useConsoleParams } from '@/routing';
+import { ActionIcon, Paper } from '@/ui/core';
+import { Icons } from '@/ui/icons';
+import { modals } from '@/ui/modals';
+import { notifications } from '@/ui/notifications';
+import { usePachaLocalChatClient } from '../data/hooks';
+import { PachaFeedbackForm } from './PachFeedbackForm';
 
 const PachaFeedback = () => {
   const { threadId } = useConsoleParams();
@@ -18,41 +18,41 @@ const PachaFeedback = () => {
   const sendFeedback = (feedback_enum: number, feedbackText?: string) => {
     if (threadId === undefined) return;
 
-    const feedbackType = feedback_enum === 1 ? "positive" : "negative";
+    const feedbackType = feedback_enum === 1 ? 'positive' : 'negative';
 
     localChatClient
       .submitFeedback({
         threadId,
-        mode: "no_data",
+        mode: 'no_data',
         feedbackEnum: feedback_enum,
         feedbackText,
       })
       .then(() => {
         let title, message;
 
-        if (feedbackType === "positive") {
-          title = "Thanks for the thumbs up!";
+        if (feedbackType === 'positive') {
+          title = 'Thanks for the thumbs up!';
           message =
             "We're glad you found this helpful. Your positive feedback helps us improve.";
         } else {
-          title = "Thanks for your feedback";
+          title = 'Thanks for your feedback';
           message =
             "We appreciate your input. We'll use this to make improvements.";
         }
 
         if (feedbackText) {
-          message += " Your additional comments have been recorded.";
+          message += ' Your additional comments have been recorded.';
         }
         notifications.show({
-          type: "success",
+          type: 'success',
           title: title,
           message: message,
         });
       })
-      .catch((_) => {
+      .catch(_ => {
         notifications.show({
-          type: "error",
-          title: "Oops! Something went wrong",
+          type: 'error',
+          title: 'Oops! Something went wrong',
           message: "We couldn't submit your feedback. Please try again later.",
         });
       });
@@ -62,11 +62,11 @@ const PachaFeedback = () => {
     isClosing.current = false;
 
     modals.open({
-      id: "pacha-feedback",
-      title: "Feedback",
+      id: 'pacha-feedback',
+      title: 'Feedback',
       children: (
         <PachaFeedbackForm
-          onSubmit={(values) => {
+          onSubmit={values => {
             isClosing.current = true;
             sendFeedback(feedback_enum, values?.feedback || undefined);
           }}
@@ -86,13 +86,13 @@ const PachaFeedback = () => {
   return (
     <Paper
       style={{
-        whiteSpace: "pre-wrap",
-        alignSelf: "flex-end",
+        whiteSpace: 'pre-wrap',
+        alignSelf: 'flex-end',
       }}
       maw={100}
-      p={"xs"}
+      p={'xs'}
       withBorder
-      radius={"lg"}
+      radius={'lg'}
     >
       <ActionIcon variant="subtle" onClick={() => handlePachaFeedback(1)}>
         <Icons.LikeMessage />

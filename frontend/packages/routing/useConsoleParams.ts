@@ -1,8 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { useParams } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 export const SUBROUTE_PARAMS = Object.freeze({
-  threadId: ":threadId",
+  threadId: ':threadId',
 });
 
 export type SubRouteParams = keyof typeof SUBROUTE_PARAMS;

@@ -1,11 +1,11 @@
-import { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { lazy, Suspense } from 'react';
+import { Route, Routes } from 'react-router-dom';
 
-import { SUBROUTE_PARAMS } from "@/routing";
-import { LoadingMessage } from "@/ui/core";
+import { SUBROUTE_PARAMS } from '@/routing';
+import { LoadingMessage } from '@/ui/core';
 
 const Chat = lazy(() =>
-  import("./chat/ChatV2").then((m) => ({
+  import('./chat/ChatV2').then(m => ({
     default: m.ChatPageShell,
   }))
 );

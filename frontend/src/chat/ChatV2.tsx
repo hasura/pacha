@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   ActionIcon,
@@ -9,22 +9,22 @@ import {
   Stack,
   Textarea,
   usePageShellContext,
-} from "@/ui/core";
-import { useSchemeColors } from "@/ui/hooks";
-import { Icons } from "@/ui/icons";
-import Artifacts from "./components/Artifacts";
-import ChatResponse from "./components/ChatResponse";
-import ErrorIndicator from "./components/ErrorIndicator";
-import PachaChatHistorySidebar from "./components/PachaChatHistorySidebar";
-import PachaChatProvider from "./PachaChat.Provider";
-import { PachaChatContext } from "./PachaChatContext";
-import usePachaChatV2 from "./usePachaChatV2";
+} from '@/ui/core';
+import { useSchemeColors } from '@/ui/hooks';
+import { Icons } from '@/ui/icons';
+import Artifacts from './components/Artifacts';
+import ChatResponse from './components/ChatResponse';
+import ErrorIndicator from './components/ErrorIndicator';
+import PachaChatHistorySidebar from './components/PachaChatHistorySidebar';
+import PachaChatProvider from './PachaChat.Provider';
+import { PachaChatContext } from './PachaChatContext';
+import usePachaChatV2 from './usePachaChatV2';
 
 const handleTextareaEnterKey =
   (callback: (e: React.KeyboardEvent) => void) =>
   (event: React.KeyboardEvent) => {
     if (
-      event.key === "Enter" &&
+      event.key === 'Enter' &&
       !event.shiftKey && // skip shift + Enter
       !event.nativeEvent.isComposing
     ) {
@@ -33,26 +33,24 @@ const handleTextareaEnterKey =
     }
   };
 
-
-  
 const WIDTH_CONFIG = {
   MAX: {
-    md: "30rem",
-    lg: "35rem",
-    xl: "55rem",
-    xxl: "50rem",
+    md: '30rem',
+    lg: '35rem',
+    xl: '55rem',
+    xxl: '50rem',
   },
   SMALL: {
-    md: "30rem",
-    lg: "35rem",
-    xl: "37rem",
-    xxl: "50rem",
+    md: '30rem',
+    lg: '35rem',
+    xl: '37rem',
+    xxl: '50rem',
   },
   MEDIUM: {
-    md: "30rem",
-    lg: "38rem",
-    xl: "45rem",
-    xxl: "50rem",
+    md: '30rem',
+    lg: '38rem',
+    xl: '45rem',
+    xxl: '50rem',
   },
 };
 
@@ -69,7 +67,7 @@ export const Chat = () => {
     threadsError,
   } = usePachaChatV2();
 
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const { sidebarOpen } = usePageShellContext();
   const { isMinimized, setIsMinimized } = useContext(PachaChatContext);
   const [textareaHeight, setTextareaHeight] = useState(100);
@@ -90,7 +88,7 @@ export const Chat = () => {
     if (!message) return;
 
     sendMessage(message);
-    setMessage("");
+    setMessage('');
   }
   const chatBodyWidthConfig = useMemo(() => {
     if (artifacts?.length > 0 && sidebarOpen) {
@@ -118,15 +116,15 @@ export const Chat = () => {
       />
       <PageShell.Main>
         <PageShell.Content>
-          {(height) => (
+          {height => (
             <Grid overflow="hidden">
               <Grid.Col
                 span={showWide ? 12 : 6}
                 style={{
-                  transition: "all 0.3s ease-in-out",
+                  transition: 'all 0.3s ease-in-out',
                 }}
               >
-                <Stack mah={height} gap={0} flex={1} pos={"relative"}>
+                <Stack mah={height} gap={0} flex={1} pos={'relative'}>
                   {/* Main Chat Body: */}
 
                   <ChatResponse
@@ -136,7 +134,7 @@ export const Chat = () => {
                     mih={
                       data?.length
                         ? `calc(${height} - ${textareaHeight - 10}px)`
-                        : "10vh"
+                        : '10vh'
                     }
                     toolCallResponses={toolCallResponses}
                     isQuestionPending={isQuestionPending}
@@ -145,19 +143,19 @@ export const Chat = () => {
                   {/* Message Input: */}
                   <Stack h={`${textareaHeight + 10}px`} justify="center">
                     <Group
-                      w={"100%"}
+                      w={'100%'}
                       justify="center"
-                      p={"md"}
+                      p={'md'}
                       ref={textareaRef}
                     >
                       <Textarea
-                        mb={"xl"}
+                        mb={'xl'}
                         variant="filled"
                         size="xl"
                         placeholder={
                           isQuestionPending
-                            ? "Generating response..."
-                            : "Act with your data 🙌"
+                            ? 'Generating response...'
+                            : 'Act with your data 🙌'
                         }
                         styles={{
                           input: {
@@ -169,8 +167,8 @@ export const Chat = () => {
                         w="100%"
                         maw={chatBodyWidthConfig}
                         radius="xl"
-                        value={isQuestionPending ? "" : message}
-                        onChange={(e) => setMessage(e.target.value)}
+                        value={isQuestionPending ? '' : message}
+                        onChange={e => setMessage(e.target.value)}
                         onKeyDown={handleTextareaEnterKey(() => {
                           handleSendMessage();
                         })}
@@ -181,8 +179,8 @@ export const Chat = () => {
                               handleSendMessage();
                             }}
                             disabled={!message}
-                            radius={"xl"}
-                            size={"lg"}
+                            radius={'xl'}
+                            size={'lg'}
                           >
                             <Icons.ArrowUp size={20} />
                           </ActionIcon>
