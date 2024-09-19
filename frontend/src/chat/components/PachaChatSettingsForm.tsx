@@ -39,9 +39,9 @@ export function PachaChatSettingsForm({
         label="Pacha URL"
         placeholder="http://localhost:5000"
         disabled={loading}
+        description="Leave empty if you are running Pacha server on the same domain"
         value={pachaEndpoint}
         data-autofocus
-        withAsterisk
         {...form.getInputProps('pachaUrl')}
       />
       <TextInput
