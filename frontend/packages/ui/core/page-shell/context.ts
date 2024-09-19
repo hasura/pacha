@@ -2,6 +2,7 @@ import * as React from 'react';
 import { StyleProp } from '@mantine/core';
 
 import { ExtendedCustomColors } from '@/types';
+import { ReactState } from '@/utils/js-utils';
 
 export const PageShellContext = React.createContext<
   | {

@@ -12,8 +12,7 @@ import {
 import { EditorView, keymap, placeholder, ViewUpdate } from '@codemirror/view';
 
 import { basicSetup, BasicSetupOptions } from './basicSetup';
-import { hasuraDark } from './hasuraDarkTheme';
-import { hasuraLight } from './hasuraLightTheme';
+import { hasuraDark, hasuraLight } from './hasuraTheme';
 import { getStatistics, Statistics } from './utils';
 
 const External = Annotation.define<boolean>();

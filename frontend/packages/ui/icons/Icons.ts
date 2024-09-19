@@ -68,6 +68,7 @@ import {
   PiCloud,
   PiCloudLightning,
   PiCodeBlock,
+  PiCodeSimple,
   PiCompass,
   PiCompassFill,
   PiCopy,
@@ -85,7 +86,6 @@ import {
   PiEnvelope,
   PiEye,
   PiEyeSlash,
-  PiFileCode,
   PiFloppyDisk,
   PiFunnel,
   PiFunnelFill,
@@ -166,7 +166,7 @@ import { TbCircleDotted, TbNotes } from 'react-icons/tb';
 import { VscDebugAlt, VscPinned } from 'react-icons/vsc';
 
 export const CoreIcons = {
-  Metadata: PiFileCode,
+  Metadata: PiCodeSimple,
   Environment: PiProhibit,
   Project: PiCube,
   Build: PiGitBranch,

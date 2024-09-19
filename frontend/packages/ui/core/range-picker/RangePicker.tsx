@@ -42,7 +42,7 @@ export function RangePicker({
             }
           : false
       }
-      disabledDate={(current, { from }) => {
+      disabledDate={(current, { from, type }) => {
         // If format is hourly, make sure users can select a range of time within the same day
         if (timeFormat === 'hourly' && from) {
           return !isSameDay(current, from);

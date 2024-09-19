@@ -24,6 +24,7 @@ import {
   Switch,
   Tabs,
   TextInput,
+  Tooltip,
 } from '@mantine/core';
 
 import { ExtendedCustomColors } from '@/types';
@@ -203,6 +204,14 @@ export const mantineTheme = createTheme({
       defaultProps: {
         wrap: 'nowrap',
         gap: 'xs',
+      },
+    }),
+    Tooltip: Tooltip.extend({
+      defaultProps: {
+        openDelay: 250,
+        transitionProps: {
+          transition: 'pop',
+        },
       },
     }),
   },

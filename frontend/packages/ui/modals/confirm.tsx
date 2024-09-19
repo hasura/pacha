@@ -2,11 +2,11 @@ import { ReactNode } from 'react';
 import { modals as mantineModals } from '@mantine/modals';
 import clsx from 'clsx';
 
+type OpenConfirmModal = Parameters<typeof mantineModals.openConfirmModal>[0];
+
 import { Text } from '@/ui/core';
 
 import './confirm.css';
-
-type OpenConfirmModal = Parameters<typeof mantineModals.openConfirmModal>[0];
 
 export type ConfirmProps = Omit<
   OpenConfirmModal,
