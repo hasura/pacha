@@ -24,11 +24,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Poetry
 RUN pip install --no-cache-dir poetry
 
-# Copy Python project files
-COPY pyproject.toml poetry.lock ./
-COPY pacha ./pacha
-COPY examples ./examples
-COPY scripts ./scripts
+# Copy project files except /frontend
+COPY . /app
+RUN rm -rf /app/frontend
 
 # Copy built frontend from the frontend-builder stage
 COPY --from=frontend-builder /frontend/dist ./frontend/dist
@@ -38,4 +36,4 @@ RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi --no-dev
 
 # Run the chat server with specified arguments
-CMD ["poetry", "run", "chat_server", "-d", "ddn", "-u", "$SQL_URL", "-H", "x-hasura-role: admin"]
+CMD poetry run chat_server -d ddn -u "$SQL_URL" -H 'x-hasura-role: admin'

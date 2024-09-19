@@ -1,4 +1,4 @@
-export const DEFAULT_PACHA_ENDPOINT = '/';
+export const DEFAULT_PACHA_ENDPOINT = ""; // default to empty string and hence relative path
 
 export const PACHA_CHAT_CONFIG_LOCAL_STORAGE_KEY = 'pacha-chat-config';
 
