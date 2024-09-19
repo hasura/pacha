@@ -85,16 +85,34 @@ def init_auth(secret_key):
     SECRET_KEY = secret_key
 
 
+
 @app.middleware("http")
 async def verify_token(request: Request, call_next: Callable):
     # Allow OPTIONS requests to pass through without authentication
     if request.method == "OPTIONS":
         return await call_next(request)
     
-    # Check if the path starts with any of the public routes
-    if any(request.url.path.startswith(route) for route in PUBLIC_ROUTES) or SECRET_KEY is None:
+    # Exact match for root path
+    if request.url.path == '/':
         return await call_next(request)
     
+    # Check for exact matches or correct prefixes for public routes
+    if any(
+        request.url.path == route or  # Exact match for the route
+        (
+            route != '/' and  # Exclude root path from prefix matching
+            request.url.path.startswith(f"{route}/")  # Match route followed by '/', this is to allow access to assets in the frontend
+        )
+        for route in PUBLIC_ROUTES
+    ):
+        # If it's a public route, allow the request to proceed
+        return await call_next(request)
+    
+    # If SECRET_KEY is not set, all routes are public
+    if SECRET_KEY is None:
+        return await call_next(request)
+    
+    # For all other routes, verify the token
     token = request.headers.get('pacha_auth_token')
     if not token or token != SECRET_KEY:
         return JSONResponse(status_code=401, content={"error": "pacha token invalid or not found"})
