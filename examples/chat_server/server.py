@@ -82,6 +82,7 @@ PUBLIC_ROUTES = [
     '/',
     '/console',
     '/healthz',
+    '/chat',
     '/chat/*',
     '/assets/*'
 ]
