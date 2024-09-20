@@ -1,0 +1,6 @@
+.item:where([data-disabled], :disabled) {
+  opacity: 0.6;
+
+  /* reset the color to whatever was passed */
+  color: var(--menu-item-color, var(--mantine-color-text));
+}

@@ -178,3 +178,5 @@ eval/.DS_Store
 
 *.db
 
+frontend/node_modules
+frontend//dist
