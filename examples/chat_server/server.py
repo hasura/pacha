@@ -95,6 +95,9 @@ def init_auth(secret_key):
 
 @app.middleware("http")
 async def verify_token(request: Request, call_next: Callable):
+    # If SECRET_KEY is not set, all routes are public
+    if SECRET_KEY is None:
+        return await call_next(request)
     # Allow OPTIONS requests to pass through without authentication
     if request.method == "OPTIONS":
         return await call_next(request)
@@ -111,9 +114,6 @@ async def verify_token(request: Request, call_next: Callable):
             if path == public_route:
                 return await call_next(request)
     
-    # If SECRET_KEY is not set, all routes are public
-    if SECRET_KEY is None:
-        return await call_next(request)
     
     # For all other routes, verify the token
     token = request.headers.get('pacha_auth_token')
