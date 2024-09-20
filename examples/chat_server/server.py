@@ -306,24 +306,6 @@ async def health_check():
 async def config_check():
     return "OK"
 
-
-@app.get("/console", response_class=HTMLResponse)
-async def serve_console():
-    return """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pacha Chat</title>
-    </head>
-    <body>
-        <h1>Welcome</h1>
-        <p>Head to <a href='https://console.hasura.io/local/chat'>https://console.hasura.io/local/chat</a></p>
-    </body>
-    </html>
-    """
-
 # Frontend route (only for root path)
 @app.get("/")
 @app.get("/chat/{path:path}")
