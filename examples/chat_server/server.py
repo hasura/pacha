@@ -78,7 +78,13 @@ def init_system_prompt(pacha_tool):
         """
 
 
-PUBLIC_ROUTES = ['/', '/console', '/healthz', '/chat', '/assets']
+PUBLIC_ROUTES = [
+    '/',
+    '/console',
+    '/healthz',
+    '/chat/*',
+    '/assets/*'
+]
 
 def init_auth(secret_key):
     global SECRET_KEY
@@ -92,21 +98,17 @@ async def verify_token(request: Request, call_next: Callable):
     if request.method == "OPTIONS":
         return await call_next(request)
     
-    # Exact match for root path
-    if request.url.path == '/':
-        return await call_next(request)
-    
-    # Check for exact matches or correct prefixes for public routes
-    if any(
-        request.url.path == route or  # Exact match for the route
-        (
-            route != '/' and  # Exclude root path from prefix matching
-            request.url.path.startswith(f"{route}/")  # Match route followed by '/', this is to allow access to assets in the frontend
-        )
-        for route in PUBLIC_ROUTES
-    ):
-        # If it's a public route, allow the request to proceed
-        return await call_next(request)
+    # Check if the path matches any of the public routes
+    path = request.url.path
+    for route in PUBLIC_ROUTES:
+        if route.endswith('*'):
+            # For routes ending with *, check if the path starts with the route (excluding *)
+            if path.startswith(route[:-1]):
+                return await call_next(request)
+        else:
+            # For routes without *, require an exact match
+            if path == route:
+                return await call_next(request)
     
     # If SECRET_KEY is not set, all routes are public
     if SECRET_KEY is None:
