@@ -1,11 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-import './App.css';
-
-// function Home() {
-//   return <h2>Home Page</h2>;
-// }
-
 import { AppShell, Burger, Group, Skeleton, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
