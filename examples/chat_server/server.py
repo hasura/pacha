@@ -102,7 +102,7 @@ async def verify_token(request: Request, call_next: Callable):
     # Check if the path matches any of the public routes
     path = request.url.path
     for public_route in PUBLIC_ROUTES:
-        if public_route.endswith('*'):
+        if public_route[-1] == "*":
             # For routes ending with *, check if the path starts with the route (excluding *)
             if path.startswith(public_route[:-1]):
                 return await call_next(request)
