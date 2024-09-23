@@ -1,0 +1,48 @@
+.mantine-Notification-description {
+  color: var(--mantine-color-text);
+}
+/* 
+ our default props for the mantine app-shell add contain: content
+ This changes how position:fixed works for any element inside the app-shell
+ By adding our custom Id as the selector, we are targeting the mrt tables in fullscreen mode when they are inside our customized app-shell
+*/
+#hasura-app-shell .mantine-AppShell-main .mrt-table-paper-fullscreen {
+  /* This can be "auto" because inset: 0 takes care of stretching it */
+  width: auto !important;
+  border-radius: 0 !important;
+}
+
+:where([data-mantine-color-scheme='light']) {
+  /* By default, it's --mantine-color-gray-0, which is poorly contrasted to most bg colors */
+  .mantine-Accordion-item {
+    --item-filled-color: var(--mantine-color-body);
+  }
+
+  .mantine-CodeHighlight-root,
+  .mantine-InlineCodeHighlight-code {
+    --code-text-color: var(--mantine-color-gray-7);
+    --code-background: var(--mantine-color-gray-1);
+    --code-comment-color: var(--mantine-color-gray-6);
+    --code-keyword-color: var(--mantine-color-violet-8);
+    --code-tag-color: var(--mantine-color-red-9);
+    --code-literal-color: var(--mantine-color-blue-6);
+    --code-string-color: var(--mantine-color-blue-9);
+    --code-variable-color: var(--mantine-color-teal-9);
+    --code-class-color: var(--mantine-primary-color-9);
+  }
+}
+
+:where([data-mantine-color-scheme='dark']) {
+  .mantine-CodeHighlight-root,
+  .mantine-InlineCodeHighlight-code {
+    --code-text-color: var(--mantine-color-dark-1);
+    --code-background: var(--mantine-color-dark-9);
+    --code-comment-color: var(--mantine-color-dark-3);
+    --code-keyword-color: var(--mantine-color-violet-3);
+    --code-tag-color: var(--mantine-color-yellow-4);
+    --code-literal-color: var(--mantine-color-blue-4);
+    --code-string-color: var(--mantine-color-teal-6);
+    --code-variable-color: var(--mantine-color-teal-2);
+    --code-class-color: var(--mantine-primary-color-3);
+  }
+}

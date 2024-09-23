@@ -1,0 +1,13 @@
+/* .description,
+.title,
+.close-button {
+  color: white;
+}
+
+.root {
+  background-color: var(--mantine-color-slate-6);
+} */
+
+.root {
+  box-shadow: 0 0 5px rgb(0 0 0 / 33%) !important;
+}
