@@ -1,6 +1,7 @@
 import { MantineRadius, MantineSpacing } from '@mantine/core';
 
-export const APP_SHELL_HEADER_HEIGHT = 0;
+// test sync 
+export const APP_SHELL_HEADER_HEIGHT = 54;
 export const PAGE_SHELL_TAB_BAR_HEIGHT = 46;
 export const PROJECT_APP_SHELL_NAVBAR_WIDTH = 64;
 export const HASURA_BLUE = '#3970FD';
