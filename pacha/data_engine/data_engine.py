@@ -22,6 +22,13 @@ class SqlStatement:
             "result": self.result
         }
 
+    @classmethod
+    def from_json(cls, json_data: SqlStatementJson) -> 'SqlStatement':
+        return cls(
+            sql=json_data['sql'],
+            result=json_data['result']
+        )
+
 
 def noop(*args, **kwargs):
     pass

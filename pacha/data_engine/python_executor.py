@@ -42,7 +42,34 @@ class PythonExecutor:
     def output(self, text: str):
         self.maybe_cancel()
         self.output_text += str(text) + '\n'
-        
+
+    # async def summarize(self, instructions: str, input: str) -> str:
+    #     self.maybe_cancel()
+    #     system_prompt = f"""
+    #         You are a summarization tool. Given the input from the user, summarize it according to these instructions. Response only with the summarized text and nothing else (eg: no fluff words like "here is the summary", and no chatting to the user).
+    #         {instructions}
+    #     """
+    #     return await self.llm.ask(input, system_prompt)
+
+    # run_sql:
+        # self.hooks.sql.on_sql_request(sql)
+
+        # data = None
+        # try:
+        #     data = await self.data_engine.execute_sql(sql)
+        # except Exception as e:
+        #     if "Mutations are requested to be disallowed as part of the request" in str(e) and self.context.confirmation_provider is not None:
+        #         confirmation = await self.context.confirmation_provider.request_confirmation(sql)
+        #         if confirmation == UserConfirmationResult.APPROVED:
+        #             data = await self.data_engine.execute_sql(sql, allow_mutations=True)
+        #     else:
+        #         raise
+        # if data is None:
+        #     raise PachaException(
+        #         f"User did not approve execution of SQL mutation: {sql}")
+
+        # return data
+    
     async def exec_code(self, code: str):
         try:
             from websockets.asyncio.client import connect
@@ -69,9 +96,12 @@ class PythonExecutor:
                             self.output(message['text'])
                         case "store_artifact":
                             contents = loads(message['contents'])
-                            output = self.context.artifacts.store_artifact(
+                            
+                            self.maybe_cancel()
+                            (output, is_stored) = self.context.artifacts.store_artifact(
                                 message['identifier'], contents['title'], contents['artifact_type'], contents['data'])
-                            self.modified_artifact_identifiers.append(message['identifier'])
+                            if is_stored:
+                                self.modified_artifact_identifiers.append(message['identifier'])
                             self.output(output)
                         case "get_artifact":
                             artifact = copy.deepcopy(self.context.artifacts.get_artifact(message['identifier']))
@@ -79,8 +109,16 @@ class PythonExecutor:
                                 "orig_msg_id": message['msg_id'],
                                 "contents": artifact
                             }))
-
-            
+                        case "confirm_mutation":
+                            confirmation = await self.context.confirmation_provider.request_confirmation(sql)
+                            await websocket.send(dumps({
+                                "orig_msg_id": message['msg_id'],
+                                "ok": confirmation == UserConfirmationResult.APPROVED
+                            }))
+                        case _:
+                            raise PachaException(
+                                f"Unsupported message type from Python sandbox server: {message['type']}")
+                            
             self.hooks.on_python_output(self.output_text)
         except Exception as e:
             limit = 1 - len(traceback.extract_tb(e.__traceback__))
