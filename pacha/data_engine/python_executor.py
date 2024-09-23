@@ -10,8 +10,6 @@ from pacha.error import PachaException
 from pacha.sdk.llm import Llm
 import copy
 import asyncio
-import os
-import requests
 
 def noop(*args, **kwargs):
     pass
@@ -27,6 +25,7 @@ class PythonExecutorHooks:
 @dataclass
 class PythonExecutor:
     hooks: PythonExecutorHooks
+    llm: Llm
     context: ExecutionContext
     sql_statements: list[SqlStatement] = field(default_factory=list)
     output_text: str = ""
@@ -43,32 +42,61 @@ class PythonExecutor:
         self.maybe_cancel()
         self.output_text += str(text) + '\n'
 
-    # async def summarize(self, instructions: str, input: str) -> str:
-    #     self.maybe_cancel()
-    #     system_prompt = f"""
-    #         You are a summarization tool. Given the input from the user, summarize it according to these instructions. Response only with the summarized text and nothing else (eg: no fluff words like "here is the summary", and no chatting to the user).
-    #         {instructions}
-    #     """
-    #     return await self.llm.ask(input, system_prompt)
+    async def classify(self, instructions: str, inputs_to_classify: list[str], categories: list[str], allow_multiple: bool) -> list[str | list[str]]:
+        self.maybe_cancel()
+        if allow_multiple:
+            system_prompt = f"""
+                You are a classifier that classifies the user input into zero or more of these categories: {categories}
+                {instructions}
+                Your response must contain the list of applicable categories, one per line. If no cateogies apply, then simply respond with "None".
+                Your response should contain with no fluff words (eg: nothing like "here is the category") or fluff characters (eg: no extra punctuation)
+            """
+        else:
+            system_prompt = f"""
+                You are a classifier that classifies the user input into one of these categories: {categories}
+                {instructions}
+                Your response must exactly be one of the possible categories with no fluff words (eg: nothing like "here is the category") or fluff characters (eg: no extra punctuation)
+            """
+
+        output: list[str | list[str]] = []
+        for input in inputs_to_classify:
+            answer = (await self.llm.ask(input, system_prompt)).strip()
+            self.maybe_cancel()
+            if allow_multiple:
+                if answer == 'None':
+                    output.append([])
+                else:
+                    output.append(answer.split('\n'))
+            else:
+                output.append(answer)
+        return output
+    
+    async def summarize(self, instructions: str, input: str) -> str:
+        self.maybe_cancel()
+        system_prompt = f"""
+            You are a summarization tool. Given the input from the user, summarize it according to these instructions. Response only with the summarized text and nothing else (eg: no fluff words like "here is the summary", and no chatting to the user).
+            {instructions}
+        """
+        return await self.llm.ask(input, system_prompt)
 
     # run_sql:
-        # self.hooks.sql.on_sql_request(sql)
+    #     self.hooks.sql.on_sql_request(sql)
 
-        # data = None
-        # try:
-        #     data = await self.data_engine.execute_sql(sql)
-        # except Exception as e:
-        #     if "Mutations are requested to be disallowed as part of the request" in str(e) and self.context.confirmation_provider is not None:
-        #         confirmation = await self.context.confirmation_provider.request_confirmation(sql)
-        #         if confirmation == UserConfirmationResult.APPROVED:
-        #             data = await self.data_engine.execute_sql(sql, allow_mutations=True)
-        #     else:
-        #         raise
-        # if data is None:
-        #     raise PachaException(
-        #         f"User did not approve execution of SQL mutation: {sql}")
+    #     data = None
+    #     try:
+    #         data = await self.data_engine.execute_sql(sql)
+    #     except Exception as e:
+    #         if "Mutations are requested to be disallowed as part of the request" in str(e) and self.context.confirmation_provider is not None:
+    #             confirmation = await self.context.confirmation_provider.request_confirmation(sql)
+    #             if confirmation == UserConfirmationResult.APPROVED:
+    #                 data = await self.data_engine.execute_sql(sql, allow_mutations=True)
+    #         else:
+    #             raise
+    #     if data is None:
+    #         raise PachaException(
+    #             f"User did not approve execution of SQL mutation: {sql}")
 
-        # return data
+    #     return data
     
     async def exec_code(self, code: str):
         try:
@@ -82,7 +110,6 @@ class PythonExecutor:
                     "python": code, 
                     "config": {
                         "engine_url": "http://localhost:3000",
-                        "anthropic_api_key": os.environ.get('ANTHROPIC_API_KEY')
                     }
                 }
                 
@@ -108,6 +135,18 @@ class PythonExecutor:
                             await websocket.send(dumps({
                                 "orig_msg_id": message['msg_id'],
                                 "contents": artifact
+                            }))
+                        case "classify":
+                            results = await self.classify(message['instructions'], message['inputs_to_classify'], message['categories'], message['allow_multiple'])
+                            await websocket.send(dumps({
+                                "orig_msg_id": message['msg_id'],
+                                "results": results
+                            }))
+                        case "summarize":
+                            summary = await self.summarize(message['instructions'], message['input'])
+                            await websocket.send(dumps({
+                                "orig_msg_id": message['msg_id'],
+                                "summary": summary
                             }))
                         case "confirm_mutation":
                             confirmation = await self.context.confirmation_provider.request_confirmation(sql)
