@@ -5,8 +5,8 @@ import { SUBROUTE_PARAMS } from '@/routing';
 import { LoadingMessage } from '@/ui/core';
 
 const Chat = lazy(() =>
-  import('./chat/ChatV2').then(m => ({
-    default: m.ChatPageShell,
+  import('./ChatAppShell').then(m => ({
+    default: m.ChatAppShell,
   }))
 );
 
