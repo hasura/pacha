@@ -25,6 +25,58 @@ git clone https://github.com/hasura/pacha.git
 cd pacha
 ```
 
+### Quick Start with Docker
+
+#### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) installed on your system
+- [Hasura CLI](https://hasura.io/docs/latest/hasura-cli/install-hasura-cli/) (optional, for local development)
+
+#### Setup
+
+1. Clone the Pacha repository:
+   ```bash
+   git clone https://github.com/your-org/pacha.git
+   cd pacha
+   ```
+
+2. Copy the example environment file and configure it:
+   ```bash
+   cp .pacha.env.example .pacha.env
+   ```
+   Edit the `.pacha.env` file and fill in the required details:
+   ```
+   PORT=5001
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   SECRET_KEY=your_secret_key
+   CORS_ORIGINS="https://console.hasura.io"
+   ```
+
+3. Build and start the Pacha server:
+   ```bash
+   docker compose up --build
+   ```
+
+#### Accessing Pacha UI
+
+
+1. Open [https://console.hasura.io/local/chat](https://console.hasura.io/local/chat) to open Pacha UI on Hasura Console. 
+
+2. Use the settings icon (gear) next to the "Pacha Chat" title to configure:
+   - Pacha server URL (e.g., `http://localhost:5001` if running locally)
+   - Secret token (if you've set one in your `.pacha.env` file)
+
+#### Development Notes
+
+- For local development or custom builds, you can modify the `Dockerfile` in the `engine` directory.
+- Ensure all required environment variables are set in your `.pacha.env` file or passed to the Docker container.
+
+#### Troubleshooting
+
+- If you encounter CORS issues, verify the `CORS_ORIGINS` setting in your `.pacha.env` file.
+- For API key related errors, double-check your `ANTHROPIC_API_KEY` in the `.pacha.env` file.
+ 
+
+
 ### Install Python Dependencies
 
 - Install [Poetry](https://python-poetry.org/docs/)
