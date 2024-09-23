@@ -38,8 +38,13 @@ cd pacha
    git clone https://github.com/your-org/pacha.git
    cd pacha
    ```
+2. Create an empty SQLite database file:
+   ```bash
+   touch pacha.db
+   ```
+   This creates an empty `pacha.db` file in the current directory, which will be used as the SQLite database for Pacha.
 
-2. Copy the example environment file and configure it:
+3. Copy the example environment file and configure it:
    ```bash
    cp .pacha.env.example .pacha.env
    ```
@@ -51,7 +56,7 @@ cd pacha
    CORS_ORIGINS="https://console.hasura.io"
    ```
 
-3. Build and start the Pacha server:
+4. Build and start the Pacha server:
    ```bash
    docker compose up --build
    ```
