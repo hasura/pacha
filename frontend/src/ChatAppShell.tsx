@@ -23,7 +23,6 @@ export const ChatAppShell = () => {
             >
               <Icons.Hasura />
             </Group>
-            <div>Pacha Chat</div>
           </Group>
         </AppShell.Header>
         <AppShell.Main>
