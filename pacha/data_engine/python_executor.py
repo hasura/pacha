@@ -83,12 +83,25 @@ class PythonExecutor:
     
     async def exec_code(self, code: str):
         try:
+            from os import getenv
             from websockets.asyncio.client import connect
             from json import dumps, loads
             
             self.hooks.on_python_execute(code)
             
-            async with connect("ws://localhost:3001/") as websocket:
+            token = getenv("PROMPTQL_SECRET_KEY")
+            if token is None:
+                raise PachaException("Expected PROMPTQL_SECRET_KEY")            
+            
+            headers = {
+                "Authorization": f"Bearer {token}"
+            }
+            
+            uri = getenv("PROMPTQL_URI")
+            if uri is None:
+                raise PachaException("Expected PROMPTQL_URI environment variable")
+            
+            async with connect(uri, additional_headers=headers) as websocket:
                 data = {
                     "python": code, 
                     "config": {}
