@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ErrorBoundary } from '@console/ui/common';
+
 import {
   Accordion,
   Badge,
