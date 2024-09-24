@@ -11,6 +11,7 @@ from pacha.sdk.llm import Llm
 import copy
 import asyncio
 
+
 def noop(*args, **kwargs):
     pass
 
@@ -32,7 +33,7 @@ class PythonExecutor:
     output_text: str = ""
     error: Optional[str] = None
     modified_artifact_identifiers: list[str] = field(default_factory=list)
-    
+
     def maybe_cancel(self):
         current_task = asyncio.current_task()
         if current_task is not None and current_task.cancelled():
