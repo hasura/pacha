@@ -24,6 +24,7 @@ class PythonExecutorHooks:
 
 @dataclass
 class PythonExecutor:
+    data_engine: DataEngine
     hooks: PythonExecutorHooks
     llm: Llm
     context: ExecutionContext
@@ -78,25 +79,6 @@ class PythonExecutor:
             {instructions}
         """
         return await self.llm.ask(input, system_prompt)
-
-    # run_sql:
-    #     self.hooks.sql.on_sql_request(sql)
-
-    #     data = None
-    #     try:
-    #         data = await self.data_engine.execute_sql(sql)
-    #     except Exception as e:
-    #         if "Mutations are requested to be disallowed as part of the request" in str(e) and self.context.confirmation_provider is not None:
-    #             confirmation = await self.context.confirmation_provider.request_confirmation(sql)
-    #             if confirmation == UserConfirmationResult.APPROVED:
-    #                 data = await self.data_engine.execute_sql(sql, allow_mutations=True)
-    #         else:
-    #             raise
-    #     if data is None:
-    #         raise PachaException(
-    #             f"User did not approve execution of SQL mutation: {sql}")
-
-    #     return data
     
     async def exec_code(self, code: str):
         try:
@@ -148,11 +130,28 @@ class PythonExecutor:
                                 "orig_msg_id": message['msg_id'],
                                 "summary": summary
                             }))
-                        case "confirm_mutation":
-                            confirmation = await self.context.confirmation_provider.request_confirmation(sql)
+                        case "run_sql":
+                            sql = message['sql']
+                            
+                            self.hooks.sql.on_sql_request(sql)
+
+                            data = None
+                            try:
+                                data = await self.data_engine.execute_sql(sql)
+                            except Exception as e:
+                                if "Mutations are requested to be disallowed as part of the request" in str(e) and self.context.confirmation_provider is not None:
+                                    confirmation = await self.context.confirmation_provider.request_confirmation(sql)
+                                    if confirmation == UserConfirmationResult.APPROVED:
+                                        data = await self.data_engine.execute_sql(sql, allow_mutations=True)
+                                else:
+                                    raise
+                            if data is None:
+                                raise PachaException(
+                                    f"User did not approve execution of SQL mutation: {sql}")
+                            
                             await websocket.send(dumps({
                                 "orig_msg_id": message['msg_id'],
-                                "ok": confirmation == UserConfirmationResult.APPROVED
+                                "data": data
                             }))
                         case _:
                             raise PachaException(

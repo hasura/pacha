@@ -72,7 +72,7 @@ class QueryPlanner:
         self.catalog = await self.data_engine.get_catalog()
 
     async def exec_code(self, code: str) -> QueryPlanExecutionResult:
-        executor = PythonExecutor(context=ExecutionContext(), hooks=self.hooks.python, llm=self.planner_llm)
+        executor = PythonExecutor(self.data_engine, context=ExecutionContext(), hooks=self.hooks.python, llm=self.planner_llm)
         await executor.exec_code(code)
         return QueryPlanExecutionResult(executor.output_text, executor.sql_statements, executor.error)
 

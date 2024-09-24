@@ -279,6 +279,7 @@ class PachaPythonTool(Tool):
         if input_code is None:
             return PythonToolOutput(output="", error=f"Missing parameter {CODE_ARGUMENT_NAME}", sql_statements=[], modified_artifact_identifiers=[])
         executor = PythonExecutor(
+            data_engine=self.data_engine,
             context=context, hooks=self.hooks, llm=self.llm)
         await executor.exec_code(input_code)
         return PythonToolOutput(output=executor.output_text, error=executor.error, sql_statements=executor.sql_statements, modified_artifact_identifiers=executor.modified_artifact_identifiers)
