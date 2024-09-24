@@ -90,9 +90,7 @@ class PythonExecutor:
             async with connect("ws://localhost:3001/") as websocket:
                 data = {
                     "python": code, 
-                    "config": {
-                        "engine_url": "http://localhost:3000",
-                    }
+                    "config": {}
                 }
                 
                 await websocket.send(dumps(data))
