@@ -1,0 +1,7 @@
+/* Hides the cancel button if the specified class is present */
+.mantine-Modal-root.hide-cancel-button
+  .confirm-body
+  > .mantine-Group-root
+  > button:first-child {
+  display: none;
+}

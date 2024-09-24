@@ -1,0 +1,14 @@
+services:
+  pacha:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .pacha.env
+    ports:
+      - "5001:5001"
+    extra_hosts:
+      - local.hasura.dev=host-gateway
+    volumes:
+    # NOTE: pacha.db must exist on host: `touch pacha.db` before running
+      - ./pacha.db:/app/pacha.db

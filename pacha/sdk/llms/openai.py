@@ -73,24 +73,28 @@ class OpenAI(Llm):
 
         get_logger().debug(f"OpenAI Messages: {str(messages)}")
 
-        response = await self.client.chat.completions.create(
-            messages=messages,
-            model=MODEL,
-            temperature=temperature,
-            tools=[{"type": "function", "function": {
-                "name": tool.name(),
-                "description": tool.description(),
-                "parameters": tool.input_schema()
-            }} for tool in tools]
-        )
+        try:
+            response = await self.client.chat.completions.create(
+                messages=messages,
+                model=MODEL,
+                temperature=temperature,
+                tools=[{"type": "function", "function": {
+                    "name": tool.name(),
+                    "description": tool.description(),
+                    "parameters": tool.input_schema()
+                }} for tool in tools]
+            )
+        except Exception as e:
+            get_logger().error(str(e))
+            return AssistantTurn(text="Exception raised by LLM, check logs and try again?")
+        else:
+            get_logger().info(f"Token Usage: {response.usage}")
 
-        get_logger().info(f"Token Usage: {response.usage}")
+            message = response.choices[0].message
+            tool_calls = []
+            if message.tool_calls is not None:
+                for tool_call in message.tool_calls:
+                    tool_calls.append(ToolCall(
+                        call_id=tool_call.id, name=tool_call.function.name, input=json.loads(tool_call.function.arguments)))
 
-        message = response.choices[0].message
-        tool_calls = []
-        if message.tool_calls is not None:
-            for tool_call in message.tool_calls:
-                tool_calls.append(ToolCall(
-                    call_id=tool_call.id, name=tool_call.function.name, input=json.loads(tool_call.function.arguments)))
-
-        return AssistantTurn(text=message.content, tool_calls=tool_calls)
+            return AssistantTurn(text=message.content, tool_calls=tool_calls)

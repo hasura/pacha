@@ -1,0 +1,3 @@
+.tab[data-variant='default'][data-active] {
+  background-color: var(--mantine-primary-color-light) !important;
+}

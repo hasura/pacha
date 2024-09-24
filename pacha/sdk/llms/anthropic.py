@@ -2,7 +2,7 @@ from typing import Optional
 import anthropic
 from anthropic.types import Message, MessageParam, ToolParam
 from pacha.sdk.chat import Chat, Turn, ToolCall, UserTurn, AssistantTurn, ToolResponseTurn
-from pacha.sdk.llm import Llm
+from pacha.sdk.llm import Llm, LlmException
 from pacha.sdk.tool import Tool
 from pacha.utils.logging import get_logger
 
@@ -61,29 +61,34 @@ class Anthropic(Llm):
 
         get_logger().debug(f"Anthropic System Prompt: {system_prompt}\nMessages: {str(messages)}")
 
-        raw_response = await self.client.messages.with_raw_response.create(
-            max_tokens=MAX_TOKENS,
-            messages=messages,
-            model=MODEL,
-            temperature=temperature if temperature is not None else anthropic.NotGiven(),
-            system=system_prompt if system_prompt is not None else anthropic.NotGiven(),
-            tools=[{
-                "name": tool.name(),
-                "description": tool.description(),
-                "input_schema": tool.input_schema()
-            } for tool in tools])
-        # print(raw_response.headers)
-        response: Message = raw_response.parse()
+        try:
+            raw_response = await self.client.messages.with_raw_response.create(
+                max_tokens=MAX_TOKENS,
+                messages=messages,
+                model=MODEL,
+                temperature=temperature if temperature is not None else anthropic.NotGiven(),
+                system=system_prompt if system_prompt is not None else anthropic.NotGiven(),
+                tools=[{
+                    "name": tool.name(),
+                    "description": tool.description(),
+                    "input_schema": tool.input_schema()
+                } for tool in tools])
+        except Exception as e:
+            get_logger().error(str(e))
+            return AssistantTurn(text="Exception raised by LLM, check logs and try again?")
+        else:
+            # print(raw_response.headers)
+            response: Message = raw_response.parse()
 
-        get_logger().info(f"Token Usage: {response.usage}")
+            get_logger().info(f"Token Usage: {response.usage}")
 
-        text = None
-        tool_calls = []
-        for content in response.content:
-            if content.type == "text":
-                assert (text is None)
-                text = content.text
-            elif content.type == "tool_use":
-                tool_calls.append(ToolCall(name=content.name,
-                                  call_id=content.id, input=content.input))
-        return AssistantTurn(text=text, tool_calls=tool_calls)
+            text = None
+            tool_calls = []
+            for content in response.content:
+                if content.type == "text":
+                    assert (text is None)
+                    text = content.text
+                elif content.type == "tool_use":
+                    tool_calls.append(ToolCall(name=content.name,
+                                      call_id=content.id, input=content.input))
+            return AssistantTurn(text=text, tool_calls=tool_calls)

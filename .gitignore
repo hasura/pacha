@@ -123,6 +123,7 @@ celerybeat.pid
 
 # Environments
 .env
+*.env
 .venv
 env/
 venv/
@@ -174,3 +175,8 @@ examples/.DS_Store
 examples/chat_server/.DS_Store
 examples/utils/.DS_Store
 eval/.DS_Store
+
+*.db
+
+frontend/node_modules
+frontend//dist
