@@ -85,6 +85,7 @@ class MutationsDisallowed(Exception):
 ServerMessage = RootModel[
     Annotated[
         Union[
+            PrintMessage,
             StoreArtifactMessage,
             GetArtifactMessage,
             ClassifyMessage,
@@ -141,9 +142,7 @@ class Client:
             await websocket.send(hello_message.json())
 
             async for message_json in websocket:
-                message_dict = loads(message_json)
-                # Determine the correct message class based on the type
-                message = ServerMessage(**message_dict)
+                message = ServerMessage.model_validate_json(message_json).root
 
                 match message:
                     case PrintMessage():
@@ -176,8 +175,6 @@ class Client:
                                 f"User did not approve execution of SQL mutation: {message.sql}")
                         
                         await websocket.send(RunSQLResponse(orig_msg_id=message.msg_id, data=data).json())
-                    case _:
-                        raise PachaException(f"Unsupported message type from Python sandbox server: {message.type}")
 
 @dataclass
 class PythonExecutor(ClientHooks):
