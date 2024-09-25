@@ -1,17 +1,18 @@
 from dataclasses import dataclass, field
-import traceback
-from pydantic import BaseModel
-from typing import Callable, Literal, Optional, Any, Union, override
-from pacha.data_engine.artifacts import Artifacts, ArtifactType, ArtifactData
+from pydantic import BaseModel, RootModel, Field
+from typing import Annotated, Callable, Literal, Optional, Any, Union, override
+from pacha.data_engine.artifacts import ArtifactType, ArtifactData
 from pacha.data_engine.context import ExecutionContext
 from pacha.data_engine.data_engine import SqlHooks
 from pacha.data_engine import DataEngine, SqlOutput, SqlStatement
 from pacha.data_engine.user_confirmations import UserConfirmationProvider, UserConfirmationResult
 from pacha.error import PachaException
 from pacha.sdk.llm import Llm
+from websockets.asyncio.client import connect
+from json import loads
 import copy
 import asyncio
-
+import traceback
 
 def noop(*args, **kwargs):
     pass
@@ -44,7 +45,7 @@ class GetArtifactMessage(BaseModel):
 
 class GetArtifactResponse(BaseModel):
     orig_msg_id: int
-    contents: Any
+    contents: ArtifactData
 
 class ClassifyMessage(BaseModel):
     type: Literal["classify"]
@@ -80,6 +81,18 @@ class RunSQLResponse(BaseModel):
 class MutationsDisallowed(Exception):
     def __init__(self):
         super().__init__("Mutations are disallowed")
+
+ServerMessage = RootModel[
+    Annotated[
+        Union[
+            StoreArtifactMessage,
+            GetArtifactMessage,
+            ClassifyMessage,
+            SummarizeMessage,
+            RunSQLMessage
+        ], 
+        Field(discriminator='type')
+    ]]
 
 class ClientHooks:
     async def maybe_cancel(self):
@@ -118,10 +131,7 @@ class Client:
     uri: str
     hooks: ClientHooks
     
-    async def exec_code(self, code: str):
-        from websockets.asyncio.client import connect
-        from json import loads
-        
+    async def exec_code(self, code: str):       
         headers = {
             "Authorization": f"Bearer {self.api_token}"
         }
@@ -133,32 +143,24 @@ class Client:
             async for message_json in websocket:
                 message_dict = loads(message_json)
                 # Determine the correct message class based on the type
-                message_type = message_dict.get("type")
+                message = ServerMessage(**message_dict)
 
-                match message_type:
-                    case "print":
-                        message = PrintMessage(**message_dict)
+                match message:
+                    case PrintMessage():
                         await self.hooks.print(message.text)
-                    case "store_artifact":
-                        message = StoreArtifactMessage(**message_dict)
-
+                    case StoreArtifactMessage():
                         await self.hooks.maybe_cancel()
                         await self.hooks.store_artifact(message.identifier, message.title, message.artifact_type, message.data)
-                    case "get_artifact":
-                        message = GetArtifactMessage(**message_dict)
+                    case GetArtifactMessage():
                         artifact = await self.hooks.get_artifact(message.identifier)
                         await websocket.send(GetArtifactResponse(orig_msg_id=message.msg_id, contents=artifact).json())
-                    case "classify":
-                        message = ClassifyMessage(**message_dict)
+                    case ClassifyMessage():
                         results = await self.hooks.classify(message.instructions, message.inputs_to_classify, message.categories, message.allow_multiple)
                         await websocket.send(ClassifyResponse(orig_msg_id=message.msg_id, results=results).json())
-                    case "summarize":
-                        message = SummarizeMessage(**message_dict)
+                    case SummarizeMessage():
                         summary = await self.hooks.summarize(message.instructions, message.input)
                         await websocket.send(SummarizeResponse(orig_msg_id=message.msg_id, summary=summary).json())
-                    case "run_sql":
-                        message = RunSQLMessage(**message_dict)
-
+                    case RunSQLMessage():
                         data = None
                         
                         try:
@@ -175,7 +177,7 @@ class Client:
                         
                         await websocket.send(RunSQLResponse(orig_msg_id=message.msg_id, data=data).json())
                     case _:
-                        raise PachaException(f"Unsupported message type from Python sandbox server: {message_type}")
+                        raise PachaException(f"Unsupported message type from Python sandbox server: {message.type}")
 
 @dataclass
 class PythonExecutor(ClientHooks):
