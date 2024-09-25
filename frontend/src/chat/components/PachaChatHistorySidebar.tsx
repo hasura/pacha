@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { createSearchParams, useNavigate } from 'react-router-dom';
 
+import { getRoutes } from '@/routing';
 import {
   ActionIcon,
   Button,
@@ -78,7 +79,7 @@ const PachaChatHistorySidebar = ({
               mx="md"
               onClick={() => {
                 navigate({
-                  pathname: '/chat',
+                  pathname: getRoutes().localDev.chat(),
                   search: createSearchParams({}).toString(), // to clear the search params
                 });
               }}
@@ -93,7 +94,7 @@ const PachaChatHistorySidebar = ({
                 timeUnit={'History'}
                 onHistoryItemClick={threadId => {
                   navigate({
-                    pathname: `/chat/thread/${threadId}`,
+                    pathname: getRoutes().localDev.chatThread(threadId),
                     search: createSearchParams({}).toString(),
                   });
                 }}

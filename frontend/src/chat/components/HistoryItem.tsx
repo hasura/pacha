@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 
-import { useConsoleParams } from '@/routing';
+import { getRoutes, useConsoleParams } from '@/routing';
 import {
   Alert,
   CopyActionIcon,
@@ -83,7 +83,7 @@ export function HistoryItem({
               {item.title}
             </Text>
             <CopyActionIcon
-              toCopy={`${window.location.origin}/chat/thread/${item.threadId}`}
+              toCopy={getRoutes().localDev.chatThreadLink(item.threadId)}
               variant="subtle"
               color="gray"
               className="opacity-0 group-hover:opacity-100"
