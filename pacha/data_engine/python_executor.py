@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 import traceback
-from typing import Callable, Optional
-from pacha.data_engine.artifacts import ArtifactData, ArtifactType, Artifacts
+from pydantic import BaseModel
+from typing import Callable, Literal, Optional, Any, Union
+from pacha.data_engine.artifacts import Artifacts, ArtifactType, ArtifactData
 from pacha.data_engine.context import ExecutionContext
 from pacha.data_engine.data_engine import SqlHooks
 from pacha.data_engine import DataEngine, SqlOutput, SqlStatement
@@ -22,6 +23,59 @@ class PythonExecutorHooks:
     on_python_output: Callable[[str], None] = noop
     sql: SqlHooks = field(default_factory=SqlHooks)
 
+class HelloMessage(BaseModel):
+    python: str
+    
+class PrintMessage(BaseModel):
+    type: Literal["print"]
+    text: str
+
+class StoreArtifactMessage(BaseModel):
+    type: Literal["store_artifact"]
+    identifier: str
+    title: str
+    artifact_type: ArtifactType
+    data: ArtifactData
+
+class GetArtifactMessage(BaseModel):
+    type: Literal["get_artifact"]
+    identifier: str
+    msg_id: int
+
+class GetArtifactResponse(BaseModel):
+    orig_msg_id: int
+    contents: Any
+
+class ClassifyMessage(BaseModel):
+    type: Literal["classify"]
+    instructions: str
+    inputs_to_classify: list[str]
+    categories: list[str]
+    allow_multiple: bool
+    msg_id: int
+
+class ClassifyResponse(BaseModel):
+    orig_msg_id: int
+    results: list[str | list[str]]
+
+class SummarizeMessage(BaseModel):
+    type: Literal["summarize"]
+    instructions: str
+    input: Any
+    msg_id: int
+
+class SummarizeResponse(BaseModel):
+    orig_msg_id: int
+    summary: str
+
+class RunSQLMessage(BaseModel):
+    type: Literal["run_sql"]
+    sql: str
+    msg_id: int
+
+class RunSQLResponse(BaseModel):
+    orig_msg_id: int
+    data: SqlOutput
 
 @dataclass
 class PythonExecutor:
@@ -85,7 +139,7 @@ class PythonExecutor:
         try:
             from os import getenv
             from websockets.asyncio.client import connect
-            from json import dumps, loads
+            from json import loads
             
             self.hooks.on_python_execute(code)
             
@@ -102,48 +156,42 @@ class PythonExecutor:
                 raise PachaException("Expected PROMPTQL_URI environment variable")
             
             async with connect(uri, additional_headers=headers) as websocket:
-                data = {
-                    "python": code, 
-                    "config": {}
-                }
-                
-                await websocket.send(dumps(data))
-                
+                hello_message = HelloMessage(python=code)
+                await websocket.send(hello_message.json())
+
                 async for message_json in websocket:
-                    message = loads(message_json)
-                    
-                    match message['type']:
-                        case "print": 
-                            self.output(message['text'])
+                    message_dict = loads(message_json)
+                    # Determine the correct message class based on the type
+                    message_type = message_dict.get("type")
+
+                    match message_type:
+                        case "print":
+                            message = PrintMessage(**message_dict)
+                            self.output(message.text)
                         case "store_artifact":
-                            contents = loads(message['contents'])
-                            
+                            message = StoreArtifactMessage(**message_dict)
+
                             self.maybe_cancel()
-                            (output, is_stored) = self.context.artifacts.store_artifact(
-                                message['identifier'], contents['title'], contents['artifact_type'], contents['data'])
+                            output, is_stored = self.context.artifacts.store_artifact(
+                                message.identifier, message.title, message.artifact_type, message.data)
                             if is_stored:
-                                self.modified_artifact_identifiers.append(message['identifier'])
+                                self.modified_artifact_identifiers.append(message.identifier)
                             self.output(output)
                         case "get_artifact":
-                            artifact = copy.deepcopy(self.context.artifacts.get_artifact(message['identifier']))
-                            await websocket.send(dumps({
-                                "orig_msg_id": message['msg_id'],
-                                "contents": artifact
-                            }))
+                            message = GetArtifactMessage(**message_dict)
+                            artifact = copy.deepcopy(self.context.artifacts.get_artifact(message.identifier))
+                            await websocket.send(GetArtifactResponse(orig_msg_id=message.msg_id, contents=artifact).json())
                         case "classify":
-                            results = await self.classify(message['instructions'], message['inputs_to_classify'], message['categories'], message['allow_multiple'])
-                            await websocket.send(dumps({
-                                "orig_msg_id": message['msg_id'],
-                                "results": results
-                            }))
+                            message = ClassifyMessage(**message_dict)
+                            results = await self.classify(message.instructions, message.inputs_to_classify, message.categories, message.allow_multiple)
+                            await websocket.send(ClassifyResponse(orig_msg_id=message.msg_id, results=results).json())
                         case "summarize":
-                            summary = await self.summarize(message['instructions'], message['input'])
-                            await websocket.send(dumps({
-                                "orig_msg_id": message['msg_id'],
-                                "summary": summary
-                            }))
+                            message = SummarizeMessage(**message_dict)
+                            summary = await self.summarize(message.instructions, message.input)
+                            await websocket.send(SummarizeResponse(orig_msg_id=message.msg_id, summary=summary).json())
                         case "run_sql":
-                            sql = message['sql']
+                            message = RunSQLMessage(**message_dict)
+                            sql = message.sql
                             
                             self.hooks.sql.on_sql_request(sql)
 
@@ -161,14 +209,10 @@ class PythonExecutor:
                                 raise PachaException(
                                     f"User did not approve execution of SQL mutation: {sql}")
                             
-                            await websocket.send(dumps({
-                                "orig_msg_id": message['msg_id'],
-                                "data": data
-                            }))
+                            await websocket.send(RunSQLResponse(orig_msg_id=message.msg_id, data=data).json())
                         case _:
-                            raise PachaException(
-                                f"Unsupported message type from Python sandbox server: {message['type']}")
-                            
+                            raise PachaException(f"Unsupported message type from Python sandbox server: {message_type}")
+            
             self.hooks.on_python_output(self.output_text)
         except Exception as e:
             limit = 1 - len(traceback.extract_tb(e.__traceback__))
