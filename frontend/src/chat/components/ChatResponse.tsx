@@ -116,7 +116,7 @@ const ChatResponse = ({
             return null;
           })}
           {isQuestionPending && <Loader type="dots" />}
-          {!isQuestionPending && isLastMessageFromAi && <PachaFeedback />}
+          {!isQuestionPending && isLastMessageFromAi && <PachaFeedback data={data} />}
         </Stack>
       </Box>
     </ScrollArea.Autosize>
