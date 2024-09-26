@@ -30,6 +30,10 @@ class HelloMessage(BaseModel):
 class PrintMessage(BaseModel):
     type: Literal["print"]
     text: str
+    
+class ErrorMessage(BaseModel):
+    type: Literal["error"]
+    message: str
 
 class StoreArtifactMessage(BaseModel):
     type: Literal["store_artifact"]
@@ -86,6 +90,7 @@ ServerMessage = RootModel[
     Annotated[
         Union[
             PrintMessage,
+            ErrorMessage,
             StoreArtifactMessage,
             GetArtifactMessage,
             ClassifyMessage,
@@ -104,6 +109,10 @@ class ClientHooks:
         
     async def print(self, text: str):
         """Print a message"""
+        pass
+    
+    async def on_error(self, message: str):
+        """Log an error from the Python runtime"""
         pass
 
     async def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData):
@@ -147,6 +156,9 @@ class Client:
                 match message:
                     case PrintMessage():
                         await self.hooks.print(message.text)
+                    case ErrorMessage():
+                        await self.hooks.on_error(message.message)
+                        break
                     case StoreArtifactMessage():
                         await self.hooks.maybe_cancel()
                         await self.hooks.store_artifact(message.identifier, message.title, message.artifact_type, message.data)
@@ -191,6 +203,10 @@ class PythonExecutor(ClientHooks):
     async def print(self, text: str):
         await self.maybe_cancel()
         self.output_text += str(text) + '\n'
+        
+    @override
+    async def on_error(self, message: str):
+        self.error = message
 
     @override
     async def store_artifact(self, identifier: str, title: str, artifact_type: ArtifactType, data: ArtifactData):
