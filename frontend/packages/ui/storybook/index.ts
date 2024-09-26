@@ -5,3 +5,4 @@ export { MockFeatureContext } from './MockFeatureContext';
 export { mockMetadata } from './mockMetadata';
 export { mockProjectData } from './mockProjectData';
 export { mockUser } from './mockUser';
+export { MockAppShell } from './MockAppShell';
