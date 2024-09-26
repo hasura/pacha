@@ -30,6 +30,7 @@ const mockFeatureSet: FeatureContextData = {
         local: false,
       },
     },
+    dataPlaneSettings: true,
     settings: {
       projectSummary: true,
       usage: true,
