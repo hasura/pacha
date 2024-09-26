@@ -6,20 +6,9 @@ import { Icons } from '@/ui/icons';
 import { modals } from '@/ui/modals';
 import { notifications } from '@/ui/notifications';
 import { usePachaLocalChatClient } from '../data/hooks';
-import { NewAiResponse } from '../types';
 import { PachaFeedbackForm } from './PachFeedbackForm';
 
-const getUserMessages = (data: NewAiResponse[]) => {
-  const userMessages = [] as string[];
-  data.forEach(msg => {
-    if (msg.type === 'self') {
-      userMessages.push(msg.message);
-    }
-  });
-  return JSON.stringify(userMessages);
-};
-
-const PachaFeedback = ({ data }: { data: NewAiResponse[] }) => {
+const PachaFeedback = () => {
   const { threadId } = useConsoleParams();
 
   const localChatClient = usePachaLocalChatClient();
@@ -34,8 +23,7 @@ const PachaFeedback = ({ data }: { data: NewAiResponse[] }) => {
     localChatClient
       .submitFeedback({
         threadId,
-        mode: 'consent_message',
-        message: getUserMessages(data),
+        mode: 'no_data',
         feedbackEnum: feedback_enum,
         feedbackText,
       })
