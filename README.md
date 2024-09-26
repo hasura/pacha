@@ -35,7 +35,7 @@ cd pacha
 
 1. Clone the Pacha repository:
    ```bash
-   git clone https://github.com/your-org/pacha.git
+   git clone https://github.com/hasura/pacha.git
    cd pacha
    ```
 2. Create an empty SQLite database file:
