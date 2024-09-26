@@ -1,0 +1,15 @@
+$theme-colors: 'indigo', 'blue', 'cyan', 'gray', 'green', 'orange', 'dark',
+  'pink', 'grape', 'red', 'teal', 'violet', 'lime', 'yellow', 'ruby';
+
+.section {
+  cursor: pointer;
+}
+
+@each $color in $theme-colors {
+  [data-theme-color='#{$color}'] .section {
+    background-color: var(--mantine-color-#{$color}-light);
+    &:active {
+      background-color: var(--mantine-color-#{$color}-light-hover);
+    }
+  }
+}

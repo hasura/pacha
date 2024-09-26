@@ -1,0 +1,154 @@
+/* To remove bootstrap html font size from 10px */
+
+:root {
+  font-size: 13px;
+}
+
+.hasura-graphiql-wrapper,
+.graphiql-container,
+.CodeMirror-info,
+.CodeMirror-lint-tooltip,
+reach-portal,
+.split-sash-content,
+.graphiql-button-group {
+  --font-size-body: 13px;
+}
+
+.cm-editor {
+  /* var(--font-size-body); did not work */
+  font-size: 13px;
+}
+
+.tsqd-transitions-container .tsqd-open-btn-container {
+  top: 155px !important;
+}
+
+*,
+html {
+  font-feature-settings:
+    'ss02' 1,
+    'ss03' 1,
+    'zero' 1,
+    'case' 1,
+    'calt' 1;
+}
+input:not(.font-mono),
+button:not(.font-mono) {
+  font-feature-settings:
+    'ss02' 1,
+    'ss03' 1,
+    'zero' 1,
+    'case' 1,
+    'calt' 1;
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+  font-named-instance: 'Regular';
+  src: url('fonts/Inter.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: italic;
+  font-named-instance: 'Italic';
+  src: url('fonts/Inter-Italic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'JetBrainsMono';
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+  font-named-instance: 'Regular';
+  src: url('fonts/JetBrainsMono.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'JetBrainsMono';
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: italic;
+  font-named-instance: 'Italic';
+  src: url('fonts/JetBrainsMono-Italic.ttf') format('truetype');
+}
+
+/* A waving animation for onboarding */
+.wave {
+  animation-name: wave-animation; /* Refers to the name of your @keyframes element below */
+  animation-duration: 2.5s; /* Change to speed up or slow down */
+  animation-iteration-count: 2; /* Never stop waving :) */
+  transform-origin: 70% 70%; /* Pivot around the bottom-left palm */
+  display: inline-block;
+}
+@keyframes wave-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+  10% {
+    transform: rotate(14deg);
+  } /* The following five values can be played with to make the waving more or less extreme */
+  20% {
+    transform: rotate(-8deg);
+  }
+  30% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  60% {
+    transform: rotate(0deg);
+  } /* Reset for the last half to pause */
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* This layer piece helps keep tailwind from interfering with mantine */
+@layer tailwind {
+  @tailwind base;
+}
+@tailwind components;
+@tailwind utilities;
+/* You can add global styles to this file, and also import other style files */
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hidden-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hidden-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* .rt-TableHeader {
+  @apply bg-slate-50;
+}
+.dark .rt-TableHeader {
+  @apply bg-black;
+} */
+
+input {
+  --tw-ring-shadow: 0 0 #000 !important;
+}
+
+.cm-editor {
+  padding: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-md);
+}
+
+@layer base {
+  ul,
+  ol {
+    list-style: revert;
+    margin: revert;
+    padding: revert;
+  }
+}

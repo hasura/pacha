@@ -1,19 +1,21 @@
-from typing import Any, Literal, Union
+from typing import Annotated, Any, Literal, Union
 from pydantic import BaseModel, Field
 
 
-class TextArtifact(BaseModel):
+class ArtifactBase(BaseModel):
+    identifier: str
+    title: str
+
+
+class TextArtifact(ArtifactBase):
     artifact_type: Literal['text']
     data: str
 
 
-class TableArtifact(BaseModel):
+class TableArtifact(ArtifactBase):
     artifact_type: Literal['table']
     data: list[dict[str, Any]]
 
 
-class Artifact(BaseModel):
-    identifier: str
-    title: str
-    content: Union[TextArtifact, TableArtifact] = Field(
-        discriminator="artifact_type")
+Artifact = Annotated[Union[TextArtifact, TableArtifact],
+                     Field(discriminator='artifact_type')]

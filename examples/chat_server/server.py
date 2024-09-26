@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Callable
@@ -30,9 +31,12 @@ PACHA_TOOL: Tool = None  # type: ignore
 SYSTEM_PROMPT: str = "You are a helpful assistant"
 DATABASE_PATH: str = "pacha.db"
 CORS_ORIGINS: List[str] = ["*"]
+ASSISTANT_NAME: str = 'unknown'
 
 
 app = FastAPI()
+# Mount the static files
+app.mount("/assets", StaticFiles(directory="frontend/dist/assets"), name="static")
 
 # initialize cors
 origins = os.environ.get("CORS_ORIGINS", "*")
@@ -75,7 +79,14 @@ def init_system_prompt(pacha_tool):
         """
 
 
-PUBLIC_ROUTES = ['/', '/console', '/healthz']
+PUBLIC_ROUTES = [
+    '/',
+    '/console',
+    '/healthz',
+    '/chat',
+    '/chat/*',
+    '/assets/*'
+]
 
 
 def init_auth(secret_key):
@@ -85,11 +96,26 @@ def init_auth(secret_key):
 
 @app.middleware("http")
 async def verify_token(request: Request, call_next: Callable):
+    # If SECRET_KEY is not set, all routes are public
+    if SECRET_KEY is None:
+        return await call_next(request)
     # Allow OPTIONS requests to pass through without authentication
     if request.method == "OPTIONS":
         return await call_next(request)
-    if request.url.path in PUBLIC_ROUTES or SECRET_KEY is None:
-        return await call_next(request)
+
+    # Check if the path matches any of the public routes
+    path = request.url.path
+    for public_route in PUBLIC_ROUTES:
+        if public_route[-1] == "*":
+            # For routes ending with *, check if the path starts with the route (excluding *)
+            if path.startswith(public_route[:-1]):
+                return await call_next(request)
+        else:
+            # For routes without *, require an exact match
+            if path == public_route:
+                return await call_next(request)
+
+    # For all other routes, verify the token
     token = request.headers.get('pacha_auth_token')
     if not token or token != SECRET_KEY:
         return JSONResponse(status_code=401, content={"error": "pacha token invalid or not found"})
@@ -234,7 +260,7 @@ class FeedbackInput(BaseModel):
     mode: Optional[FeedbackMode] = FeedbackMode.NO_DATA
     message: Optional[str] = None
     feedback_enum: int
-    feedback_text: Optional[str]
+    feedback_text: Optional[str] = None
 
 
 @app.post("/threads/{thread_id}/submit-feedback")
@@ -244,7 +270,7 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
 
     data = {
         "thread_id": thread_id,
-        "mode": feedback_input.mode,
+        "mode": ASSISTANT_NAME, #TODO: create a new assistant_name column in telemetry instead of using mode
         "feedback_enum": feedback_input.feedback_enum,
     }
 
@@ -298,10 +324,11 @@ async def serve_console():
     </html>
     """
 
-
-@app.get("/", response_class=RedirectResponse)
-async def redirect_home():
-    return RedirectResponse(url='/console')
+# Frontend route (only for root path)
+@app.get("/")
+@app.get("/chat/{path:path}")
+async def serve_frontend_root():
+    return FileResponse("frontend/dist/index.html")
 
 
 async def async_setup():
@@ -309,6 +336,7 @@ async def async_setup():
     global PACHA_TOOL
     global DATABASE_PATH
     global CORS_ORIGINS
+    global ASSISTANT_NAME
 
     parser = argparse.ArgumentParser(description='Pacha Chat Server')
     add_llm_args(parser)
@@ -326,12 +354,20 @@ async def async_setup():
     DATABASE_PATH = os.environ.get("SQLITE_PATH", "pacha.db")
     await init_db(DATABASE_PATH)
 
+    ASSISTANT_NAME = os.environ.get("ASSISTANT_NAME", "unknown")
+
 
 def main():
     asyncio.run(async_setup())
     log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
     setup_logger(log_level)
     port = int(os.environ.get('PORT', 5000))
+
+    # Check if the frontend build exists
+    if not os.path.exists("frontend/dist"):
+        get_logger().warning(
+            "Frontend build not found. Make sure to build the React app and place it in frontend/dist")
+
     uvicorn.run(app, host="0.0.0.0", port=port, log_level=log_level.lower())
 
 
