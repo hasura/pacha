@@ -10,6 +10,7 @@ from pacha.error import PachaException
 from pacha.sdk.llm import Llm
 from websockets.asyncio.client import connect
 from json import loads
+from os import getenv
 import copy
 import asyncio
 import traceback
@@ -281,8 +282,6 @@ class PythonExecutor(ClientHooks):
     
     async def exec_code(self, code: str):
         try:
-            from os import getenv
-            
             self.hooks.on_python_execute(code)
             
             token = getenv("PROMPTQL_SECRET_KEY")
