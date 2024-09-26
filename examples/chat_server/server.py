@@ -31,6 +31,7 @@ PACHA_TOOL: Tool = None  # type: ignore
 SYSTEM_PROMPT: str = "You are a helpful assistant"
 DATABASE_PATH: str = "pacha.db"
 CORS_ORIGINS: List[str] = ["*"]
+ASSISTANT_NAME: str = 'unknown'
 
 
 app = FastAPI()
@@ -87,10 +88,10 @@ PUBLIC_ROUTES = [
     '/assets/*'
 ]
 
+
 def init_auth(secret_key):
     global SECRET_KEY
     SECRET_KEY = secret_key
-
 
 
 @app.middleware("http")
@@ -101,7 +102,7 @@ async def verify_token(request: Request, call_next: Callable):
     # Allow OPTIONS requests to pass through without authentication
     if request.method == "OPTIONS":
         return await call_next(request)
-    
+
     # Check if the path matches any of the public routes
     path = request.url.path
     for public_route in PUBLIC_ROUTES:
@@ -113,8 +114,7 @@ async def verify_token(request: Request, call_next: Callable):
             # For routes without *, require an exact match
             if path == public_route:
                 return await call_next(request)
-    
-    
+
     # For all other routes, verify the token
     token = request.headers.get('pacha_auth_token')
     if not token or token != SECRET_KEY:
@@ -260,7 +260,7 @@ class FeedbackInput(BaseModel):
     mode: Optional[FeedbackMode] = FeedbackMode.NO_DATA
     message: Optional[str] = None
     feedback_enum: int
-    feedback_text: Optional[str]
+    feedback_text: Optional[str] = None
 
 
 @app.post("/threads/{thread_id}/submit-feedback")
@@ -270,7 +270,7 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
 
     data = {
         "thread_id": thread_id,
-        "mode": feedback_input.mode,
+        "mode": ASSISTANT_NAME, #TODO: create a new assistant_name column in telemetry instead of using mode
         "feedback_enum": feedback_input.feedback_enum,
     }
 
@@ -336,6 +336,7 @@ async def async_setup():
     global PACHA_TOOL
     global DATABASE_PATH
     global CORS_ORIGINS
+    global ASSISTANT_NAME
 
     parser = argparse.ArgumentParser(description='Pacha Chat Server')
     add_llm_args(parser)
@@ -353,6 +354,8 @@ async def async_setup():
     DATABASE_PATH = os.environ.get("SQLITE_PATH", "pacha.db")
     await init_db(DATABASE_PATH)
 
+    ASSISTANT_NAME = os.environ.get("ASSISTANT_NAME", "unknown")
+
 
 def main():
     asyncio.run(async_setup())
@@ -362,7 +365,8 @@ def main():
 
     # Check if the frontend build exists
     if not os.path.exists("frontend/dist"):
-        get_logger().warning("Frontend build not found. Make sure to build the React app and place it in frontend/dist")
+        get_logger().warning(
+            "Frontend build not found. Make sure to build the React app and place it in frontend/dist")
 
     uvicorn.run(app, host="0.0.0.0", port=port, log_level=log_level.lower())
 
