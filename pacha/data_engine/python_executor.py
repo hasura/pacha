@@ -9,7 +9,6 @@ from pacha.data_engine.user_confirmations import UserConfirmationProvider, UserC
 from pacha.error import PachaException
 from pacha.sdk.llm import Llm
 from websockets.asyncio.client import connect
-from json import loads
 from os import getenv
 import copy
 import asyncio
@@ -281,17 +280,17 @@ class PythonExecutor(ClientHooks):
                 raise
     
     async def exec_code(self, code: str):
+        token = getenv("PROMPTQL_SECRET_KEY")
+        if token is None:
+            raise PachaException("Expected PROMPTQL_SECRET_KEY")            
+        
+        uri = getenv("PROMPTQL_URI")
+        if uri is None:
+            raise PachaException("Expected PROMPTQL_URI environment variable")
+        
+        self.hooks.on_python_execute(code)
+        
         try:
-            self.hooks.on_python_execute(code)
-            
-            token = getenv("PROMPTQL_SECRET_KEY")
-            if token is None:
-                raise PachaException("Expected PROMPTQL_SECRET_KEY")            
-            
-            uri = getenv("PROMPTQL_URI")
-            if uri is None:
-                raise PachaException("Expected PROMPTQL_URI environment variable")
-            
             client = Client(api_token=token, uri=uri, hooks=self)
             
             await client.exec_code(code)
