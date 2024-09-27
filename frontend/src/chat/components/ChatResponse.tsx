@@ -10,6 +10,7 @@ import {
 } from '../types';
 import ActionAuthorizeCard from './ActionAuthorizeCard';
 import AssistantResponse from './AssistantResponse';
+import PachaChatBanner from './PachaChatBanner';
 import PachaFeedback from './PachaFeedback';
 
 export function SelfMessageBox({ data }: { data: SelfMessage }) {
@@ -116,7 +117,8 @@ const ChatResponse = ({
             return null;
           })}
           {isQuestionPending && <Loader type="dots" />}
-          {!isQuestionPending && isLastMessageFromAi && <PachaFeedback data={data} />}
+          {!isQuestionPending && isLastMessageFromAi && <PachaFeedback />}
+          {data?.length ? null : <PachaChatBanner />}
         </Stack>
       </Box>
     </ScrollArea.Autosize>
