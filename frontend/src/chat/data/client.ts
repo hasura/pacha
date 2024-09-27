@@ -7,6 +7,8 @@ import {
   StartThreadResponse,
 } from './api-types';
 import { Thread } from './api-types-v2';
+import { AssistantResponse } from './Api-Types-v3';
+import { WebSocketClient } from './WebSocketClient';
 
 export class ChatClient {
   private headers: HeadersInit;
@@ -29,6 +31,61 @@ export class ChatClient {
   private getUrl(path: string): string {
     return this.baseUrl ? `${this.baseUrl}${path}` : path;
   }
+  // Assumptions (Do not merge, its for the design thoughts)
+
+  // 1. A web socket connection lifespan is per interaction and if the thread is not doing anything, we will not keep the WS open
+  createChatStreamReaderV2 = async ({
+    threadId,
+    message,
+    onAssistantResponse,
+    onThreadIdChange,
+    onError,
+    onComplete,
+  }: {
+    threadId: string;
+    message: string;
+    onAssistantResponse: (event: AssistantResponse) => void;
+    onThreadIdChange: (newThreadId: string) => void;
+    onError: (error: Error) => void;
+    onComplete: () => void;
+  }) => {
+    const threadsUrl = this.getUrl(
+      `/ws/threads${threadId ? `/${threadId}` : ''}`
+    );
+    let lastMessage;
+
+    const client = new WebSocketClient(threadsUrl);
+    await client.connect();
+
+    client.onMessage(message => {
+      // keeping lastMessage to determine if the current message is a patch or not
+      lastMessage = message;
+
+      if (message.type === 'completion') {
+        client.disconnect();
+        return onComplete();
+      }
+      if (message.type === 'server_error') {
+        return onError(new Error(message.message));
+      }
+      if (message.type === 'assistant_response') {
+        onAssistantResponse(message);
+      }
+
+      console.log(message);
+    });
+
+    client.onClose(() => {
+      onComplete();
+    });
+
+    client.sendMessage({
+      type: 'user_message',
+      message: 'Hello, WebSocket!',
+      timestamp: new Date().toISOString(),
+    });
+
+  };
 
   createChatStreamReader = ({
     threadId,

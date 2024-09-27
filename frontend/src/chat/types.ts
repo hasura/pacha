@@ -63,10 +63,11 @@ export type ResponseMode = 'stream' | 'history';
 export type NewAiResponse =
   | SelfMessage
   | {
-      message: unknown;
+      message: unknown; // no chunks here, this will always be bufferred full output received till that time
       type: 'ai' | 'toolchain';
       confirmation_id?: string;
       tool_calls?: ToolCall[];
+      code?: string; // no chunks here, this will always be bufferred full output received till that time
       threadId: string | null;
       responseMode: ResponseMode;
     }

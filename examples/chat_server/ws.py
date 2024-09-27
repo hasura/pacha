@@ -14,7 +14,6 @@ mock_responses = [
         "code_chunk": "sql = '\n",
     },
     {"type": "assistant_response", "code_chunk": "..."},
-    {"type": "assistant_response", "code_chunk": "..."},
     {"type": "executing_code"},
     {"type": "code_output", "output_chunk": "user_id of abhinav@hasura.io is 1234"},
     {"type": "code_error", "error": "unknown table 'project'"},
@@ -27,6 +26,7 @@ mock_responses = [
     {"type": "artifact_update", "artifact": {"type": "table", "data": {...}}},
     {"type": "code_output", "output_chunk": "issuing credits..."},
     {"type": "user_confirmation_request", "message": "SELECT * FROM IssueCredits(...)"},
+    {"type": "completion"},
 ]
 
 
@@ -44,10 +44,11 @@ async def websocket_endpoint(websocket: WebSocket, thread_id: str = None):
             if "message" in message:
                 user_message = message["message"]
                 # Send a response from responses list in every x seconds
-                for i in range(5):
+                for i in mock_responses:
                     await asyncio.sleep(1)
-                    response = mock_responses[i]
+                    response = i
                     await websocket.send_json(response)
+            await websocket.close()
 
     except Exception as e:
         print(f"Error: {str(e)}")

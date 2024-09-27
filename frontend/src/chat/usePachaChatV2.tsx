@@ -9,9 +9,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import { useConsoleParams } from '@/routing';
+import { AssistantResponse, ServerEvent } from './data/Api-Types-v3';
 import { usePachaLocalChatClient, useThreads } from './data/hooks';
 import { PachaChatContext } from './PachaChatContext';
-import { NewAiResponse, ToolCallResponse } from './types';
+import { NewAiResponse, ToolCall, ToolCallResponse } from './types';
 import { extractModifiedArtifacts, processMessageHistory } from './utils';
 
 const usePachaChatV2 = () => {
@@ -81,6 +82,71 @@ const usePachaChatV2 = () => {
     }
   }, [threadId, localChatClient, navigate, refetchThreads]);
 
+  const handleWsEvents = useCallback(
+    (event: ServerEvent, lastMessage?: ServerEvent) => {
+      const processMessage = (): {
+        data: NewAiResponse | null;
+        toolcallResponses: ToolCallResponse | null;
+      } => {
+        const nullResponse = { data: null, toolcallResponses: null };
+        if (event.type === 'completion') {
+          return nullResponse;
+        }
+
+        // TODO handling full ecents (ignoring chunks/data buffering for now)
+        if (event.type === 'assistant_response') {
+          return {
+            data: {
+              message: event?.response_chunk,
+              type: 'ai',
+              tool_calls: event.code_chunk
+                ? [
+                    {
+                      name: 'execute_python',
+                      call_id: '',
+                      input: {
+                        python_code: event.code_chunk,
+                      },
+                    } as ToolCall,
+                  ]
+                : [],
+              code: event?.code_chunk,
+              threadId: threadId ?? null,
+              responseMode: 'stream',
+            },
+            toolcallResponses: null,
+          };
+        }
+        if (event.type === 'code_output') {
+          return {
+            data: null,
+            toolcallResponses: {
+              call_id: '',
+              output: {
+                output: event?.output_chunk,
+                error: null,
+                sql_statements: [],
+                modified_artifacts: [],
+              },
+            },
+          };
+        }
+        return nullResponse;
+      };
+      const { data: newData, toolcallResponses: newToolCallResponses } =
+        processMessage();
+
+      if (newData)
+        setRawData(prevData => {
+          const newMessages = [...prevData, newData];
+          return newMessages;
+        });
+
+      if (newToolCallResponses)
+        setToolCallResponses(prev => [...prev, newToolCallResponses]);
+    },
+    [threadId]
+  );
   const handleServerEvents = useCallback(
     (eventName: string, dataLine: string) => {
       const processMessage = (
@@ -178,7 +244,7 @@ const usePachaChatV2 = () => {
   );
 
   const sendMessage = useCallback(
-    (message: string) => {
+    async (message: string) => {
       setLoading(true);
       setError(null);
 
@@ -195,10 +261,10 @@ const usePachaChatV2 = () => {
         return newMessages;
       });
 
-      return localChatClient.createChatStreamReader({
+      return await localChatClient.createChatStreamReaderV2({
         threadId: threadId ?? currentThreadId.current ?? '',
         message, // message to send
-        onData: handleServerEvents, // function to handle server events
+        onAssistantResponse: handleWsEvents, // function to handle server events
         onThreadIdChange: newThreadId => {
           // to capture new thread id
           currentThreadId.current = newThreadId;
