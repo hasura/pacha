@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
+from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks, FastAPI, WebSocket
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,7 +22,7 @@ from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.chat_json import to_turn_json
 from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
 from examples.chat_server.db import init_db, fetch_threads, persist_thread, update_user_confirmation
-
+from .ws import websocket_endpoint
 
 # will be initialized in main
 SECRET_KEY: Optional[str] = None
@@ -295,6 +295,14 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
         get_logger().error(f"Error submitting feedback: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"Error submitting feedback")
+
+@app.websocket("/ws")
+async def websocket_global(websocket: WebSocket):
+    await websocket_endpoint(websocket)
+
+@app.websocket("/ws/{thread_id}")
+async def websocket_thread(websocket: WebSocket, thread_id: str):
+    await websocket_endpoint(websocket, thread_id)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)
