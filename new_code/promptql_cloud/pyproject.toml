@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pacha_cloud"
+version = "0.1.0"
+description = "Cloud version of the Pacha assistant"
+authors = []
+packages = [
+    { include = "pacha_cloud", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pacha = { git = "https://github.com/your_user/pacha.git", subdirectory = "src/pacha", rev = "commit_hash" }
+
+[tool.poetry.scripts]
+pacha-cloud-server = "bin.run_cloud_server:main"  # Cloud server binary
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0"
+
+[tool.poetry.extras]
+server = ["fastapi", "uvicorn"]  # Additional server-specific dependencies
