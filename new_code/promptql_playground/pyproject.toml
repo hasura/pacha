@@ -16,10 +16,11 @@ uvicorn = {version = "^0.31.0", optional = true}
 aiosqlite = {version = "^0.20.0", optional = true}
 httpx = {version = "^0.27.2", optional = true}
 anthropic = "^0.34.2"
+openai = "^1.50.2"
 
 [tool.poetry.scripts]
-cli_chat = "bin.run_cli_chat:main"        # CLI interface for the assistant
-chat_server = "bin.run_chat_server:main"  # Chat server binary
+cli_chat = "bin.cli_chat.run_cli_chat:main"        # CLI interface for the assistant
+chat_server = "bin.chat_server.run_chat_server:main"  # Chat server binary
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0"

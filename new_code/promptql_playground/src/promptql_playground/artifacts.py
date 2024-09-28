@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import override
-from promptql_playground.chat.thread import ThreadState
+from promptql_playground.thread import ThreadState
 from promptql.artifacts import ArtifactsProvider, Artifact
 
 

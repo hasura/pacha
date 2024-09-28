@@ -501,6 +501,30 @@ files = [
 ]
 
 [[package]]
+name = "openai"
+version = "1.50.2"
+description = "The official Python library for the openai API"
+optional = false
+python-versions = ">=3.7.1"
+files = [
+    {file = "openai-1.50.2-py3-none-any.whl", hash = "sha256:822dd2051baa3393d0d5406990611975dd6f533020dc9375a34d4fe67e8b75f7"},
+    {file = "openai-1.50.2.tar.gz", hash = "sha256:3987ae027152fc8bea745d60b02c8f4c4a76e1b5c70e73565fa556db6f78c9e6"},
+]
+
+[package.dependencies]
+anyio = ">=3.5.0,<5"
+distro = ">=1.7.0,<2"
+httpx = ">=0.23.0,<1"
+jiter = ">=0.4.0,<1"
+pydantic = ">=1.9.0,<3"
+sniffio = "*"
+tqdm = ">4"
+typing-extensions = ">=4.11,<5"
+
+[package.extras]
+datalib = ["numpy (>=1)", "pandas (>=1.2.3)", "pandas-stubs (>=1.1.0.11)"]
+
+[[package]]
 name = "packaging"
 version = "24.1"
 description = "Core utilities for Python packages"
@@ -1098,4 +1122,4 @@ chat-server = ["aiosqlite", "fastapi", "httpx", "uvicorn"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "9cca94bb02ead86c23f66241b97738942f3ca83cf60b9f127ab953262bc0a9d4"
+content-hash = "8f6f8b9eac4fb13eb923f4f205d894c829acf2a2fe3174cdec84c8834433a502"

@@ -21,7 +21,7 @@ from promptql.sql.engine import SqlOutput
 
 class InvalidCodeError(Exception):
     def __init__(self, message):
-        super().__init__("message")
+        super().__init__(message)
 
 
 @dataclass
@@ -109,14 +109,16 @@ class PromptQl:
                             try:
                                 data = await self.sql_engine.execute_sql(message.sql, allow_mutations=False)
                             except MutationsDisallowed:
-                                if self.confirmation_provider is not None and await self.confirmation_provider.request_confirmation(message.sql):
+                                if self.confirmation_provider is not None:
+                                    response = await self.confirmation_provider.request_confirmation(message.sql)
+                                    if not response:
+                                        raise PromptQlException(
+                                            f"User did not approve execution of mutation: {message.sql}")
                                     data = await self.sql_engine.execute_sql(message.sql, allow_mutations=True)
                                 else:
                                     raise
 
-                            if data is None:
-                                raise PromptQlException(
-                                    f"User did not approve execution of SQL mutation: {message.sql}")
+                            yield CodeOutput(output=f'SQL statement returned {len(data)} rows.\n')
 
                             await websocket.send(RunSQLResponse(orig_msg_id=message.msg_id, data=data).model_dump_json())
                 except Exception as e:

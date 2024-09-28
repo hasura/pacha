@@ -1,6 +1,6 @@
 from promptql import PromptQlTool
 from promptql.llm import Llm, UserTurn, ToolResponseTurn, AssistantTurn, Chat, ToolCallResponse, ToolOutput
-from promptql_playground.chat.thread import ThreadState
+from promptql_playground.thread import ThreadState
 
 
 async def get_assistant_turn(llm: Llm, thread: ThreadState, system_prompt: str, tool: PromptQlTool) -> AssistantTurn:

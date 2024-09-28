@@ -19,6 +19,7 @@ class UserMessage(BaseModel):
 
 class UserConfirmationResponse(BaseModel):
     type: Literal['user_confirmation_response']
+    confirmation_request_id: UUID
     response: Literal['approve', 'deny']
 
 
@@ -26,6 +27,11 @@ ClientMessage = Annotated[Union[ClientInit, UserMessage,
                                 UserConfirmationResponse], Field(discriminator='type')]
 
 # Server events
+
+
+class ThreadCreated(BaseModel):
+    type: Literal['thread_created']
+    thread_id: UUID
 
 
 class AcceptInteraction(BaseModel):
@@ -97,7 +103,7 @@ class ServerCompletion(BaseModel):
     type: Literal['completion']
 
 
-ServerMessage = Annotated[Union[AcceptInteraction, LlmCall, AssistantMessageResponse, AssistantCodeResponse, ExecutingCode, CodeOutput, ArtifactUpdate,
+ServerMessage = Annotated[Union[ThreadCreated, AcceptInteraction, LlmCall, AssistantMessageResponse, AssistantCodeResponse, ExecutingCode, CodeOutput, ArtifactUpdate,
                                 CodeError, UserConfirmationRequest, UserConfirmationTimeout, ServerError, ServerCompletion], Field(discriminator='type')]
 
 
@@ -109,6 +115,7 @@ class WebSocket(ABC):
     @abstractmethod
     async def recv(self) -> ClientMessage:
         ...
+
 
 """
 Client <-> Server
