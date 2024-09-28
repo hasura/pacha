@@ -34,6 +34,11 @@ class ThreadCreated(BaseModel):
     thread_id: UUID
 
 
+class TitleUpdated(BaseModel):
+    type: Literal['title_updated']
+    title: str
+
+
 class AcceptInteraction(BaseModel):
     type: Literal['accept_interaction']
     interaction_id: UUID
@@ -103,7 +108,7 @@ class ServerCompletion(BaseModel):
     type: Literal['completion']
 
 
-ServerMessage = Annotated[Union[ThreadCreated, AcceptInteraction, LlmCall, AssistantMessageResponse, AssistantCodeResponse, ExecutingCode, CodeOutput, ArtifactUpdate,
+ServerMessage = Annotated[Union[ThreadCreated, TitleUpdated, AcceptInteraction, LlmCall, AssistantMessageResponse, AssistantCodeResponse, ExecutingCode, CodeOutput, ArtifactUpdate,
                                 CodeError, UserConfirmationRequest, UserConfirmationTimeout, ServerError, ServerCompletion], Field(discriminator='type')]
 
 

@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 
 from promptql.sql.catalog import Argument, Column, Function, ScalarType, Catalog, Schema, Table, ForeignKey, ForeignKeyMapping, TypeReference
 from promptql.sql.engine import MutationsDisallowed, SqlEngine, SqlOutput
-import requests
 import asyncio
+import httpx
 
 TABLES_QUERY = '''
 SELECT t.schema_name, 
@@ -177,18 +177,22 @@ class DdnSqlEngine(SqlEngine):
     async def execute_sql(self, sql: str, allow_mutations: bool = False) -> SqlOutput:
         headers = {"Content-type": "application/json"} | self.headers
         data = {"sql": sql, "disallowMutations": not allow_mutations}
-        response = requests.post(self.url, json=data, headers=headers)
-        if response.headers["content-length"] == "0":
-            return []
-        response_json = response.json()
-        if isinstance(response_json, list):
-            return response_json
-        if isinstance(response_json, dict):
-            error = response_json.get("error")
-            if error is not None:
-                if "Mutations are requested to be disallowed as part of the request" in str(error):
-                    raise MutationsDisallowed()
-                else:
-                    raise DdnDataEngineException(error)
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(self.url, json=data, headers=headers)
+            if response.headers.get("content-length") == "0":
+                return []
+            response_json = response.json()
+
+            if isinstance(response_json, list):
+                return response_json
+            if isinstance(response_json, dict):
+                error = response_json.get("error")
+                if error is not None:
+                    if "Mutations are requested to be disallowed as part of the request" in str(error):
+                        raise MutationsDisallowed()
+                    else:
+                        raise DdnDataEngineException(error)
+
         raise DdnDataEngineException(
             f"malformed DDN response: {response_json}")

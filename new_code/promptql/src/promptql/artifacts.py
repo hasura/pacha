@@ -107,19 +107,3 @@ class ArtifactsProvider(ABC):
     async def get_artifact(self, identifier: str) -> Artifact:
         """Get an artifact"""
         ...
-
-
-@dataclass
-class InMemoryArtifactsProvider(ArtifactsProvider):
-    artifacts: dict[str, Artifact] = field(default_factory=dict)
-
-    @override
-    async def get_artifact(self, identifier: str) -> Artifact:
-        artifact = self.artifacts.get(identifier)
-        if artifact is None:
-            raise KeyError(f"Unknown artifact {identifier}")
-        return artifact
-
-    @override
-    async def store_validated_artifact(self, artifact: Artifact):
-        self.artifacts[artifact.identifier] = artifact

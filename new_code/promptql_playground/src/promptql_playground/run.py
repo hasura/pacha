@@ -88,6 +88,7 @@ async def run_thread(websocket: protocol.WebSocket,
                         title=user_message.message[:40], state=ThreadState(version='v1', artifacts=[], interactions=[]))
         await update_handler.on_update(thread)
         await websocket.send(protocol.ThreadCreated(type='thread_created', thread_id=thread.thread_id))
+        await websocket.send(protocol.TitleUpdated(type='title_updated', title=thread.title))
 
     thread_state = thread.state
     interaction = ThreadInteraction(interaction_id=uuid4(), user_message=UserMessage(

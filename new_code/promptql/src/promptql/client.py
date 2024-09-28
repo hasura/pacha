@@ -1,22 +1,16 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pydantic import RootModel
 from promptql.ai_primitives.classify import Classifier
 from promptql.ai_primitives.summarize import Summarizer
-from promptql.artifacts import Artifact, ArtifactType, ArtifactData, ArtifactsProvider
+from promptql.artifacts import Artifact, ArtifactsProvider
 from promptql.confirmation import ConfirmationProvider
 from promptql.protocol import ClassifyMessage, ClassifyResponse, ErrorMessage, GetArtifactMessage, GetArtifactResponse, HelloMessage, PrintMessage, RunSQLMessage, RunSQLResponse, ServerMessage, StoreArtifactMessage, SummarizeMessage, SummarizeResponse
-from promptql.sql.engine import MutationsDisallowed, SqlEngine, SqlOutput
+from promptql.sql.engine import MutationsDisallowed, SqlEngine
 from promptql.error import PromptQlException
 from websockets.asyncio.client import connect
-import asyncio
 
 
-from typing import Annotated, Any, AsyncGenerator, Literal, Optional, Union
-from pydantic import BaseModel, Field
-
-from promptql.artifacts import ArtifactData, ArtifactType
-from promptql.sql.engine import SqlOutput
+from typing import AsyncGenerator, Optional, Union
 
 
 class InvalidCodeError(Exception):

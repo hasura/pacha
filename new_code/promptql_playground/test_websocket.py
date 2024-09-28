@@ -7,14 +7,14 @@ from promptql_playground import protocol
 
 
 async def websocket_client():
-    uri = "ws://localhost:5000/threads/865d85e4-c78c-4e14-9487-5ea5cb40d836/continue"
-    # uri = "ws://localhost:5000/threads/start"
+    # uri = "ws://localhost:5000/threads/865d85e4-c78c-4e14-9487-5ea5cb40d836/continue"
+    uri = "ws://localhost:5000/threads/start"
     async with websockets.connect(uri) as websocket:
         # Send a message
         message = {"type": "client_init", "version": "v1"}
         await websocket.send(json.dumps(message))
         message = {"type": "user_message",
-                   "message": "try again"}
+                   "message": "issue $10 in credits to the latest project"}
         await websocket.send(json.dumps(message))
 
         # Receive a message
