@@ -32,19 +32,11 @@ import {
   APP_SHELL_HEADER_HEIGHT,
   APP_SHELL_ID,
   DEFAULT_RADIUS,
-  FONT_SIZE,
   PROJECT_APP_SHELL_NAVBAR_WIDTH,
 } from '../constants';
 import notificationStyles from './custom-styles/notifications.module.css';
 import tabsStyles from './custom-styles/tabs.module.css';
 import textInputStyles from './custom-styles/text-input.module.css';
-
-const defaultMantineFontSize = 16;
-
-// https://mantine.dev/styles/rem/#rem-units-scaling
-const calculateScale = () => {
-  return 1 / (FONT_SIZE / defaultMantineFontSize);
-};
 
 export const defaultContainerProps = {
   radius: DEFAULT_RADIUS,
@@ -58,7 +50,7 @@ export const mantineTheme = createTheme({
   fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
   primaryColor,
   primaryShade: 7,
-  scale: calculateScale(),
+  scale: 1.125, // our font size is 13px. so to compensate, we scale up the mantine theme slightly (default is 16px)
   defaultRadius: DEFAULT_RADIUS,
   headings: {
     fontWeight: '500',
