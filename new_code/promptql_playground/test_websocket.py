@@ -17,18 +17,20 @@ async def websocket_client():
                    "message": "issue $10 in credits to the latest project"}
         await websocket.send(json.dumps(message))
 
-        # Receive a message
-        while True:
-            response = await websocket.recv()
-            print(f"Received: {response}")
-            try:
-                server_message = RootModel[protocol.ServerMessage].model_validate_json(
-                    response).root
-                if isinstance(server_message, protocol.UserConfirmationRequest):
+        try:
+            # Receive a message
+            while True:
+                response = await websocket.recv()
+                print(f"Received: {response}")
+                try:
+                    server_message = RootModel[protocol.ServerMessage].model_validate_json(
+                        response).root
+                    if isinstance(server_message, protocol.UserConfirmationRequest):
+                        await websocket.send(json.dumps({"type": "user_confirmation_response", "response": "approve", "confirmation_request_id": str(server_message.confirmation_request_id)}))
+                except:
                     pass
-                    # await websocket.send(protocol.UserConfirmationResponse(type='user_confirmation_response', response='deny', confirmation_request_id=server_message.confirmation_request_id).model_dump_json())
-            except:
-                pass
+        except websockets.exceptions.ConnectionClosedOK:
+            pass
 
 
 # Run the client

@@ -16,14 +16,14 @@ from promptql.confirmation import ConfirmationProvider
 from promptql.tool import CODE_ARGUMENT_NAME
 from promptql.artifacts import Artifact
 from uuid import uuid4
+import os
 
 from promptql_playground.thread import Thread
 
 
 class ThreadUpdateHandler(ABC):
-    @abstractmethod
     async def on_update(self, thread: Thread):
-        ...
+        pass
 
 
 class InvalidClientInput(Exception):
@@ -71,10 +71,10 @@ class ClientConfirmationProvider(ConfirmationProvider):
 
 
 async def run_thread(websocket: protocol.WebSocket,
-                     thread: Optional[Thread],
+                     thread: Thread,
                      llm: Llm,
                      sql_engine: SqlEngine,
-                     update_handler: ThreadUpdateHandler):
+                     update_handler: ThreadUpdateHandler = ThreadUpdateHandler()):
 
     client_init = await websocket.recv()
     if not isinstance(client_init, protocol.ClientInit):
@@ -83,11 +83,9 @@ async def run_thread(websocket: protocol.WebSocket,
     if not isinstance(user_message, protocol.UserMessage):
         raise InvalidClientInput("Expected user_message")
 
-    if thread is None:
-        thread = Thread(thread_id=uuid4(),
-                        title=user_message.message[:40], state=ThreadState(version='v1', artifacts=[], interactions=[]))
-        await update_handler.on_update(thread)
-        await websocket.send(protocol.ThreadCreated(type='thread_created', thread_id=thread.thread_id))
+    if thread.title == "":
+        # TODO: Improve title generation
+        thread.title = user_message.message[:40]
         await websocket.send(protocol.TitleUpdated(type='title_updated', title=thread.title))
 
     thread_state = thread.state
@@ -96,7 +94,7 @@ async def run_thread(websocket: protocol.WebSocket,
     thread_state.interactions.append(interaction)
     await update_handler.on_update(thread)
 
-    await websocket.send(protocol.AcceptInteraction(type='accept_interaction', interaction_id=interaction.interaction_id))
+    await websocket.send(protocol.AcceptInteraction(type='accept_interaction', interaction_id=interaction.interaction_id, thread_id=thread.thread_id))
 
     catalog = await sql_engine.get_catalog()
     tool = PromptQlTool()
@@ -150,8 +148,8 @@ async def run_thread(websocket: protocol.WebSocket,
         else:
             code_block.output = ""
             promptql_client = PromptQl(
-                uri="ws://localhost:3001",
-                api_token=None,
+                uri=os.environ.get("PROMPTQL_URI", "ws://localhost:3001"),
+                api_token=os.environ.get("PROMPTQL_SECRET_KEY", None),
                 sql_engine=sql_engine,
                 confirmation_provider=ClientConfirmationProvider(
                     code_block=code_block, websocket=websocket),
@@ -181,4 +179,4 @@ async def run_thread(websocket: protocol.WebSocket,
     await update_handler.on_update(thread)
 
     await websocket.send(protocol.ServerCompletion(type='completion'))
-    print(thread.model_dump_json(indent=4))
+    # print(thread.model_dump_json(indent=4))

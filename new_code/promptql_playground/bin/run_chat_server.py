@@ -14,61 +14,21 @@ import os
 import uvicorn
 import aiosqlite
 import promptql
-from promptql.llm import Llm
-from promptql.llms import openai, anthropic
-from promptql.sql import DdnSqlEngine
 import promptql.logging
-from .thread_storage import Thread, ThreadMetadata, fetch_thread, fetch_threads, init_db, insert_thread, update_thread
-from promptql_playground.thread import ThreadState
+
+from promptql_playground.thread import ThreadState, new_thread
+
+from .utils.cli_args import PromptQlConfig, add_promptql_config_args, build_promptql_config
+from .utils.thread_storage import Thread, ThreadMetadata, fetch_thread, fetch_threads, init_db, insert_thread, update_thread
 from promptql_playground import protocol
 from promptql_playground.run import ThreadUpdateHandler, run_thread
 
 DATABASE_PATH = "promptql_playground.db"
 
 
-@dataclass
-class ServerState:
-    llm: Llm
-    ddn: DdnSqlEngine
-
-
-def get_cli_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description='Chat Server for PromptQL playground')
-    parser.add_argument('-u', '--url',
-                        help="Hasura DDN SQL endpoint URL", type=str)
-    parser.add_argument('-H', '--header', dest='headers', type=str, action='append', default=[],
-                        help='Headers to pass during the Hasura DDN request')
-    parser.add_argument('--llm', type=str,
-                        choices=['openai', 'anthropic'], default='anthropic')
-    return parser.parse_args()
-
-
-def get_ddn_engine(args: argparse.Namespace) -> DdnSqlEngine:
-    headers_dict = {}
-    for header in args.headers:
-        header: str = header
-        header_name, header_value = header.split(':', 1)
-        headers_dict[header_name] = header_value.lstrip()
-
-    return DdnSqlEngine(url=args.url, headers=headers_dict)
-
-
-def get_llm(args: argparse.Namespace) -> Llm:
-    if args.llm == 'openai':
-        return openai.OpenAI()
-    elif args.llm == 'anthropic':
-        return anthropic.Anthropic(max_retries=5)
-    print("Invalid LLM choice")
-    exit(1)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ddn = get_ddn_engine(app.state.cli_args)
-    llm = get_llm(app.state.cli_args)
     await init_db(DATABASE_PATH)
-    app.state.server_state = ServerState(llm, ddn)
     yield
 
 
@@ -120,7 +80,7 @@ async def get_thread(thread_id: uuid.UUID, db: aiosqlite.Connection = Depends(ge
 
 
 @dataclass
-class PromptQlWebsocket(protocol.WebSocket):
+class FastApiPromptQlWebsocket(protocol.WebSocket):
     websocket: WebSocket
 
     @override
@@ -136,33 +96,34 @@ class PromptQlWebsocket(protocol.WebSocket):
 @dataclass
 class ThreadPersistenceHandler(ThreadUpdateHandler):
     db: aiosqlite.Connection
-    new_thread: bool
 
     @override
     async def on_update(self, thread: Thread):
-        if self.new_thread:
-            await insert_thread(self.db, thread)
-            self.new_thread = False
-        else:
-            await update_thread(self.db, thread)
+        await update_thread(self.db, thread)
+
+
+def get_promptql_config() -> PromptQlConfig:
+    return app.state.promptql_config
 
 
 @app.websocket("/threads/start")
-async def start_thread(websocket: WebSocket, db: aiosqlite.Connection = Depends(get_db)):
+async def start_thread(websocket: WebSocket, promptql_config: PromptQlConfig = Depends(get_promptql_config), db: aiosqlite.Connection = Depends(get_db)):
     await websocket.accept()
-    update_handler = ThreadPersistenceHandler(db, new_thread=True)
-    await run_thread(llm=app.state.server_state.llm, websocket=PromptQlWebsocket(websocket), sql_engine=app.state.server_state.ddn, thread=None, update_handler=update_handler)
+    thread = new_thread()
+    await insert_thread(db, thread)
+    update_handler = ThreadPersistenceHandler(db)
+    await run_thread(llm=promptql_config.llm, websocket=FastApiPromptQlWebsocket(websocket), sql_engine=promptql_config.ddn, thread=thread, update_handler=update_handler)
     await websocket.close()
 
 
 @app.websocket("/threads/{thread_id}/continue")
-async def continue_thread(websocket: WebSocket, thread_id: uuid.UUID, db: aiosqlite.Connection = Depends(get_db)):
+async def continue_thread(websocket: WebSocket, thread_id: uuid.UUID, promptql_config: PromptQlConfig = Depends(get_promptql_config), db: aiosqlite.Connection = Depends(get_db)):
     thread = await fetch_thread(db, thread_id)
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
     await websocket.accept()
-    update_handler = ThreadPersistenceHandler(db, new_thread=False)
-    await run_thread(llm=app.state.server_state.llm, websocket=PromptQlWebsocket(websocket), sql_engine=app.state.server_state.ddn, thread=thread, update_handler=update_handler)
+    update_handler = ThreadPersistenceHandler(db)
+    await run_thread(llm=promptql_config.llm, websocket=FastApiPromptQlWebsocket(websocket), sql_engine=promptql_config.ddn, thread=thread, update_handler=update_handler)
     await websocket.close()
 
 
@@ -203,7 +164,9 @@ def main():
     log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
     # TODO: setup logging
     port = int(os.environ.get('PORT', 5000))
-    app.state.cli_args = get_cli_args()
+    parser = argparse.ArgumentParser("Chat Server for PromptQL playground")
+    add_promptql_config_args(parser)
+    app.state.promptql_config = build_promptql_config(parser.parse_args())
     uvicorn.run(app, host="0.0.0.0", port=port, log_level=log_level.lower())
 
 

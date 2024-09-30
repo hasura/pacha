@@ -6,7 +6,7 @@ from promptql.artifacts import Artifact
 from promptql.sql import SqlStatement
 from promptql.llm import ToolCall
 from pydantic import BaseModel, Field
-from uuid import UUID
+from uuid import UUID, uuid4
 
 
 class UserConfirmationResponseStatus(str, Enum):
@@ -79,3 +79,7 @@ class ThreadMetadata(BaseModel):
 
 class Thread(ThreadMetadata):
     state: ThreadState
+
+
+def new_thread() -> Thread:
+    return Thread(thread_id=uuid4(), title="", state=ThreadState(version="v1", artifacts=[], interactions=[]))
