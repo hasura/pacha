@@ -18,7 +18,6 @@ import { extractModifiedArtifacts, processMessageHistory } from './utils';
 const usePachaChatV2 = () => {
   const { threadId } = useConsoleParams();
 
-  const [data, setRawData] = useState<NewAiResponse[]>([]);
   const [toolCallResponses, setToolCallResponses] = useState<
     ToolCallResponse[]
   >([]);
@@ -29,14 +28,21 @@ const usePachaChatV2 = () => {
   const currentThreadId = useRef<string | undefined>();
 
   const localChatClient = usePachaLocalChatClient();
-  const { pachaEndpoint, authToken } = useContext(PachaChatContext);
+  const context = useContext(PachaChatContext);
+  if (context === undefined) {
+    throw new Error(
+      'UsePachaChatV2 needs to be called inside PachaChatContext'
+    );
+  }
 
   const {
-    data: threads = [],
-    isPending: isThreadsLoading,
-    refetch: refetchThreads,
-    error: threadsError,
-  } = useThreads(pachaEndpoint, authToken);
+    threads,
+    isThreadsLoading,
+    threadsError,
+    refetchThreads,
+    data,
+    setRawData,
+  } = context;
 
   useEffect(() => {
     // when the user navigates to a new thread, load the new thread

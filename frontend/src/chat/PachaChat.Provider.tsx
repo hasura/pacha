@@ -6,7 +6,9 @@ import {
   DEFAULT_PACHA_ENDPOINT,
   PACHA_CHAT_CONFIG_LOCAL_STORAGE_KEY,
 } from './constants';
+import { useThreads } from './data/hooks';
 import { PachaChatContext } from './PachaChatContext';
+import { NewAiResponse } from './types';
 
 type PachaChatConfig = {
   pachaEndpoint: string;
@@ -57,6 +59,14 @@ const PachaChatProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [setIsMinimized_, navigate, location.pathname]
   );
+  const [data, setRawData] = useState<NewAiResponse[]>([]);
+
+  const {
+    data: threads = [],
+    isPending: isThreadsLoading,
+    refetch: refetchThreads,
+    error: threadsError,
+  } = useThreads(pachaEndpoint, authToken);
 
   return (
     <PachaChatContext.Provider
@@ -67,6 +77,12 @@ const PachaChatProvider = ({ children }: { children: React.ReactNode }) => {
         setPachaEndpoint,
         authToken,
         setAuthToken,
+        data,
+        setRawData,
+        threads,
+        isThreadsLoading,
+        refetchThreads,
+        threadsError,
       }}
     >
       {children}
