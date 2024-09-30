@@ -1,5 +1,6 @@
 import { MRT_Icons } from 'mantine-react-table';
 import { BiGitCompare, BiLogoPostgresql, BiRefresh } from 'react-icons/bi';
+import { BsSortDown, BsSortUp } from 'react-icons/bs';
 import { CgReadme } from 'react-icons/cg';
 import { CiCloudOff, CiCloudOn } from 'react-icons/ci';
 import {
@@ -79,6 +80,7 @@ import {
   PiDatabase,
   PiDatabaseFill,
   PiDoor,
+  PiDotsThreeDuotone,
   PiDotsThreeOutline,
   PiDotsThreeOutlineVertical,
   PiDotsThreeVertical,
@@ -138,9 +140,8 @@ import {
   PiSkipForward,
   PiSliders,
   PiSlidersHorizontal,
-  PiSortAscending,
-  PiSortDescending,
   PiStack,
+  PiStar,
   PiStorefront,
   PiSun,
   PiTable,
@@ -190,7 +191,7 @@ export const MetadataIcons = {
 };
 
 export const ProjectRoles = {
-  ProjectOwner: PiShieldCheck,
+  ProjectOwner: PiStar,
   ProjectAdmin: PiKey,
   ProjectUser: PiUser,
   ProjectExecuteGraphQL: PiTerminal,
@@ -412,7 +413,7 @@ export const MantineReactTableIcons: Partial<MRT_Icons> = {
   IconClearAll: PiX,
   IconColumns: PiTextColumns,
   IconDeviceFloppy: PiFloppyDisk,
-  IconDots: PiDotsThreeOutline,
+  IconDots: PiDotsThreeDuotone,
   IconDotsVertical: PiDotsThreeVertical,
   IconEdit: PiPencil,
   IconEyeOff: PiEyeSlash,
@@ -426,13 +427,13 @@ export const MantineReactTableIcons: Partial<MRT_Icons> = {
   IconPinnedOff: PiPushPinSlash,
   IconSearch: PiMagnifyingGlass,
   IconSearchOff: PiMagnifyingGlassMinus,
-  IconSortAscending: PiSortAscending,
-  IconSortDescending: PiSortDescending,
+  IconSortAscending: BsSortDown,
+  IconSortDescending: BsSortUp,
   IconX: PiX,
 };
 
 export const DDNPlanIcons = {
-  DDNFree: PiUser,
+  DDNFree: PiUsers,
   DDNBase: FaRegBuilding,
   DDNAdvanced: LuBuilding2,
   DDNPrivate: LuServer,
