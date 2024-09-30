@@ -61,9 +61,10 @@ async def closedb(db: aiosqlite.Connection):
 
 
 @app.get("/threads")
-async def get_threads(db: aiosqlite.Connection = Depends(get_db)) -> JSONResponse:
+async def get_threads(db: aiosqlite.Connection = Depends(get_db)):
     threads = await fetch_threads(db)
-    return JSONResponse(content=RootModel[list[ThreadMetadata]](threads).model_dump_json())
+    # Use pydantic to serialize into json instead of fastapi
+    return PlainTextResponse(content=RootModel[list[ThreadMetadata]](threads).model_dump_json(), media_type="application/json")
 
 
 @app.get("/threads/{thread_id}")
@@ -76,7 +77,8 @@ async def get_thread(thread_id: uuid.UUID, db: aiosqlite.Connection = Depends(ge
             status_code=500, detail="Internal error, check logs")
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
-    return JSONResponse(content=thread.model_dump_json())
+    # Use pydantic to serialize into json instead of fastapi
+    return PlainTextResponse(content=thread.model_dump_json(), media_type="application/json")
 
 
 @dataclass
