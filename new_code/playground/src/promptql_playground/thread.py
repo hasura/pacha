@@ -79,7 +79,4 @@ class ThreadMetadata(BaseModel):
 
 class Thread(ThreadMetadata):
     state: ThreadState
-
-
-def new_thread() -> Thread:
-    return Thread(thread_id=uuid4(), title="", state=ThreadState(version="v1", artifacts=[], interactions=[]))
+    ddn_headers: dict[str, str] = {}

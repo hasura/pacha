@@ -8,7 +8,7 @@ from tabulate import tabulate
 
 from promptql_playground import protocol
 from promptql_playground.run import run_thread
-from promptql_playground.thread import Thread, new_thread
+from promptql_playground.thread import Thread
 from promptql.artifacts import Artifact, TableArtifact
 
 from .utils.cli_args import add_promptql_config_args, build_promptql_config
@@ -53,10 +53,13 @@ def replace_artifact_tags(response: str, artifacts: list[Artifact]) -> str:
 @dataclass
 class CliPromptQlWebsocket(protocol.WebSocket):
     user_input: str
-    thread: Thread
+    thread: Optional[Thread] = None
     inited: bool = False
     sent_user_message: bool = False
     user_confirmation_request: Optional[protocol.UserConfirmationRequest] = None
+
+    async def update_thread(self, thread: Thread):
+        self.thread = thread
 
     @override
     async def send(self, message: protocol.ServerMessage):
@@ -67,6 +70,7 @@ class CliPromptQlWebsocket(protocol.WebSocket):
         elif isinstance(message, protocol.LlmCall):
             output("Waiting for LLM...", INFO_COLOR)
         elif isinstance(message, protocol.AssistantMessageResponse):
+            assert(self.thread is not None)
             output("\nAssistant:", ASSISTANT_RESPONSE_COLOR)
             print(replace_artifact_tags(
                 message.message_chunk, self.thread.state.artifacts))
@@ -114,24 +118,24 @@ class CliPromptQlWebsocket(protocol.WebSocket):
             self.user_confirmation_request = None
             return confirmation_response
 
-
 async def amain():
     parser = argparse.ArgumentParser("CLI based PromptQL playground")
     add_promptql_config_args(parser)
     promptql_config = build_promptql_config(parser.parse_args())
     output("=== PromptQL Playground ===", Colors.RED)
-    thread = new_thread()
+    thread = None
     while True:
         print()
         user_input = single_line_input("User", USER_INPUT_COLOR)
         print()
         websocket = CliPromptQlWebsocket(user_input=user_input, thread=thread)
         await run_thread(
-            llm=promptql_config.llm,
             websocket=websocket,
-            sql_engine=promptql_config.ddn,
-            thread=thread
+            thread=thread,
+            config=promptql_config,
+            update_handler=websocket.update_thread
         )
+        thread = websocket.thread
 
 
 def main():

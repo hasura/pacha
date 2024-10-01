@@ -18,6 +18,8 @@ class InvalidCodeError(Exception):
         super().__init__(message)
 
 
+
+
 @dataclass
 class CodeOutput:
     output: str
@@ -58,65 +60,68 @@ class PromptQl:
         if self.api_token is not None:
             headers["Authorization"] = f"Bearer {self.api_token}"
 
-        async with connect(self.uri, additional_headers=headers) as websocket:
-            hello_message = HelloMessage(python=code)
-            await websocket.send(hello_message.model_dump_json())
+        try:
+            async with connect(self.uri, additional_headers=headers) as websocket:
+                hello_message = HelloMessage(python=code)
+                await websocket.send(hello_message.model_dump_json())
 
-            async for message_json in websocket:
-                message = RootModel[ServerMessage].model_validate_json(
-                    message_json).root
+                async for message_json in websocket:
+                    message = RootModel[ServerMessage].model_validate_json(
+                        message_json).root
 
-                try:
-                    match message:
-                        case PrintMessage():
-                            yield CodeOutput(output=message.text + '\n')
-                        case ErrorMessage():
-                            raise InvalidCodeError(message.message)
-                        case StoreArtifactMessage():
-                            if self.artifacts_provider is None:
-                                raise InvalidCodeError(
-                                    "artifacts are not enabled")
-                            artifact = await self.artifacts_provider.store_artifact(message.identifier, message.title, message.artifact_type, message.data)
-                            yield ArtifactUpdate(artifact)
-                            yield CodeOutput(output=f'Stored {artifact.render_for_prompt()}\n')
-                        case GetArtifactMessage():
-                            if self.artifacts_provider is None:
-                                raise InvalidCodeError(
-                                    "artifacts are not enabled")
-                            artifact = await self.artifacts_provider.get_artifact_data(message.identifier)
-                            await websocket.send(GetArtifactResponse(orig_msg_id=message.msg_id, contents=artifact).model_dump_json())
-                        case ClassifyMessage():
-                            if self.classifier is None:
-                                raise InvalidCodeError(
-                                    "classification is not enabled")
-                            results = await self.classifier.classify(message.instructions, message.inputs_to_classify, message.categories, message.allow_multiple)
-                            await websocket.send(ClassifyResponse(orig_msg_id=message.msg_id, results=results).model_dump_json())
-                        case SummarizeMessage():
-                            if self.summarizer is None:
-                                raise InvalidCodeError(
-                                    "classification is not enabled")
-                            summary = await self.summarizer.summarize(message.instructions, message.input)
-                            await websocket.send(SummarizeResponse(orig_msg_id=message.msg_id, summary=summary).model_dump_json())
-                        case RunSQLMessage():
-                            data = None
+                    try:
+                        match message:
+                            case PrintMessage():
+                                yield CodeOutput(output=message.text + '\n')
+                            case ErrorMessage():
+                                raise InvalidCodeError(message.message)
+                            case StoreArtifactMessage():
+                                if self.artifacts_provider is None:
+                                    raise InvalidCodeError(
+                                        "artifacts are not enabled")
+                                artifact = await self.artifacts_provider.store_artifact(message.identifier, message.title, message.artifact_type, message.data)
+                                yield ArtifactUpdate(artifact)
+                                yield CodeOutput(output=f'Stored {artifact.render_for_prompt()}\n')
+                            case GetArtifactMessage():
+                                if self.artifacts_provider is None:
+                                    raise InvalidCodeError(
+                                        "artifacts are not enabled")
+                                artifact = await self.artifacts_provider.get_artifact_data(message.identifier)
+                                await websocket.send(GetArtifactResponse(orig_msg_id=message.msg_id, contents=artifact).model_dump_json())
+                            case ClassifyMessage():
+                                if self.classifier is None:
+                                    raise InvalidCodeError(
+                                        "classification is not enabled")
+                                results = await self.classifier.classify(message.instructions, message.inputs_to_classify, message.categories, message.allow_multiple)
+                                await websocket.send(ClassifyResponse(orig_msg_id=message.msg_id, results=results).model_dump_json())
+                            case SummarizeMessage():
+                                if self.summarizer is None:
+                                    raise InvalidCodeError(
+                                        "classification is not enabled")
+                                summary = await self.summarizer.summarize(message.instructions, message.input)
+                                await websocket.send(SummarizeResponse(orig_msg_id=message.msg_id, summary=summary).model_dump_json())
+                            case RunSQLMessage():
+                                data = None
 
-                            try:
-                                data = await self.sql_engine.execute_sql(message.sql, allow_mutations=False)
-                            except MutationsDisallowed:
-                                if self.confirmation_provider is not None:
-                                    response = await self.confirmation_provider.request_confirmation(message.sql)
-                                    if not response:
-                                        raise PromptQlException(
-                                            f"User did not approve execution of mutation: {message.sql}")
-                                    data = await self.sql_engine.execute_sql(message.sql, allow_mutations=True)
-                                else:
-                                    raise
+                                try:
+                                    data = await self.sql_engine.execute_sql(message.sql, allow_mutations=False)
+                                except MutationsDisallowed:
+                                    if self.confirmation_provider is not None:
+                                        response = await self.confirmation_provider.request_confirmation(message.sql)
+                                        if not response:
+                                            raise PromptQlException(
+                                                f"User did not approve execution of mutation: {message.sql}")
+                                        data = await self.sql_engine.execute_sql(message.sql, allow_mutations=True)
+                                    else:
+                                        raise
 
-                            yield CodeOutput(output=f'SQL statement returned {len(data)} rows.\n')
+                                yield CodeOutput(output=f'SQL statement returned {len(data)} rows.\n')
 
-                            await websocket.send(RunSQLResponse(orig_msg_id=message.msg_id, data=data).model_dump_json())
-                except Exception as e:
-                    yield CodeError(str(e))
+                                await websocket.send(RunSQLResponse(orig_msg_id=message.msg_id, data=data).model_dump_json())
+                    except Exception as e:
+                        yield CodeError(str(e))
+        except Exception as e:
+            raise PromptQlException(str(e))
 
         async def exec_code(self, code: str) -> PromptQlExecutionResult:
             output = ""

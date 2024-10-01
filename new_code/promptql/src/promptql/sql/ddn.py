@@ -179,10 +179,13 @@ class DdnSqlEngine(SqlEngine):
         data = {"sql": sql, "disallowMutations": not allow_mutations}
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(self.url, json=data, headers=headers)
-            if response.headers.get("content-length") == "0":
-                return []
-            response_json = response.json()
+            try:
+                response = await client.post(self.url, json=data, headers=headers)
+                if response.headers.get("content-length") == "0":
+                    return []
+                response_json = response.json()
+            except Exception as e:
+                raise DdnDataEngineException(str(e))
 
             if isinstance(response_json, list):
                 return response_json
@@ -194,5 +197,5 @@ class DdnSqlEngine(SqlEngine):
                     else:
                         raise DdnDataEngineException(error)
 
-        raise DdnDataEngineException(
-            f"malformed DDN response: {response_json}")
+            raise DdnDataEngineException(
+                f"malformed DDN response: {response_json}")

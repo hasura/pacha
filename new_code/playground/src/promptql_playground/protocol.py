@@ -10,6 +10,7 @@ from promptql.artifacts import Artifact
 class ClientInit(BaseModel):
     type: Literal['client_init']
     version: Literal['v1']
+    ddn_headers: Optional[dict[str, str]] = None
 
 
 class UserMessage(BaseModel):
@@ -94,6 +95,11 @@ class UserConfirmationTimeout(BaseModel):
     confirmation_request_id: UUID
 
 
+class ClientError(BaseModel):
+    type: Literal['client_error']
+    message: str
+
+
 class ServerError(BaseModel):
     type: Literal['server_error']
     message: str
@@ -104,7 +110,7 @@ class ServerCompletion(BaseModel):
 
 
 ServerMessage = Annotated[Union[TitleUpdated, AcceptInteraction, LlmCall, AssistantMessageResponse, AssistantCodeResponse, ExecutingCode, CodeOutput, ArtifactUpdate,
-                                CodeError, UserConfirmationRequest, UserConfirmationTimeout, ServerError, ServerCompletion], Field(discriminator='type')]
+                                CodeError, UserConfirmationRequest, UserConfirmationTimeout, ServerError, ClientError, ServerCompletion], Field(discriminator='type')]
 
 
 class WebSocket(ABC):
@@ -115,33 +121,3 @@ class WebSocket(ABC):
     @abstractmethod
     async def recv(self) -> ClientMessage:
         ...
-
-
-"""
-Client <-> Server
--> { type: "client_init", version: "v1" }
--> { type: "user_message", message: "issue $10 in credits to abhinav@hasura.io" }
-<- { type: "llm_call" }
-<- { type: "assistant_response", response_chunk: "Okay, I will" }
-<- { type: "assistant_response", response_chunk: "issue credits" }
-<- { type: "assistant_response", response_chunk: "to abhinav@hasura.io", code_chunk: "sql = '\n" }
-<- { type: "assistant_response", code_chunk: "..." }
-<- { type: "assistant_response", code_chunk: "..." }
-<- { type: "executing_code" }
-<- { type: "code_output", output_chunk: "user_id of abhinav@hasura.io is 1234" }
-<- { type: "code_error", error: "unknown table 'project'" }
-<- { type: "llm_call" }
-<- { type: "assistant_response", response_chunk: "Apologies, let me fix the error" }
-<- { type: "assistant_response", code_chunk: "..." }
-<- { type: "assistant_response", code_chunk: "..." }
-<- { type: "executing_code" }
-<- { type: "code_output", output_chunk: "project_id of abhinav@hasura.io is 5678" }
-<- { type: "artifact_update", artifact: { type: "table", data: { ... } } }
-<- { type: "code_output", output_chunk: "issuing credits..." }
-<- { type: "user_confirmation_request", message: "SELECT * FROM IssueCredits(...)" }
--> { type: "user_confirmation_response", response: "approve" }
-<- { type: "code_output", output_chunk: "refund issued"}
-<- { type: "llm_call" }
-<- { type: "assistant_response", response_chunk: "all done" }
-<- { type: "completion" }
-"""

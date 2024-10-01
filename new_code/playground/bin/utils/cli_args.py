@@ -1,14 +1,16 @@
 import argparse
 from dataclasses import dataclass
+import os
+from typing import Optional
 
 from promptql.llm import Llm
 from promptql.llms import openai, anthropic
 from promptql.sql import DdnSqlEngine
 
-@dataclass
-class PromptQlConfig:
-    llm: Llm
-    ddn: DdnSqlEngine
+from promptql_playground.config import PromptQlConfig
+
+
+
 
 
 def add_promptql_config_args(parser: argparse.ArgumentParser):
@@ -19,23 +21,29 @@ def add_promptql_config_args(parser: argparse.ArgumentParser):
     parser.add_argument('--llm', type=str,
                         choices=['openai', 'anthropic'], default='anthropic')
 
-def get_ddn_engine(args: argparse.Namespace) -> DdnSqlEngine:
+
+def build_promptql_config(args: argparse.Namespace) -> PromptQlConfig:
+    if args.llm == 'openai':
+        llm = openai.OpenAI()
+    elif args.llm == 'anthropic':
+        llm = anthropic.Anthropic(max_retries=5)
+    else:
+        print("Invalid LLM choice")
+        exit(1)
     headers_dict = {}
     for header in args.headers:
         header: str = header
         header_name, header_value = header.split(':', 1)
         headers_dict[header_name] = header_value.lstrip()
 
-    return DdnSqlEngine(url=args.url, headers=headers_dict)
+    promptql_uri = os.environ.get("PROMPTQL_URI", None)
+    if promptql_uri is None:
+        print("PROMPTQL_URI env var is not set")
+        exit(1)
 
-
-def get_llm(args: argparse.Namespace) -> Llm:
-    if args.llm == 'openai':
-        return openai.OpenAI()
-    elif args.llm == 'anthropic':
-        return anthropic.Anthropic(max_retries=5)
-    print("Invalid LLM choice")
-    exit(1)
-
-def build_promptql_config(args: argparse.Namespace) -> PromptQlConfig:
-    return PromptQlConfig(llm=get_llm(args), ddn=get_ddn_engine(args))
+    return PromptQlConfig(
+        llm=llm,
+        ddn_url=args.url,
+        ddn_headers=headers_dict,
+        promptql_uri=promptql_uri,
+        promptql_secret_key=os.environ.get("PROMPTQL_SECRET_KEY", None))

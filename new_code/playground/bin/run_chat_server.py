@@ -16,12 +16,13 @@ import aiosqlite
 import promptql
 import promptql.logging
 
-from promptql_playground.thread import ThreadState, new_thread
+from promptql_playground.config import PromptQlConfig
+from promptql_playground.thread import ThreadState
 
-from .utils.cli_args import PromptQlConfig, add_promptql_config_args, build_promptql_config
+from .utils.cli_args import add_promptql_config_args, build_promptql_config
 from .utils.thread_storage import Thread, ThreadMetadata, fetch_thread, fetch_threads, init_db, insert_thread, update_thread
 from promptql_playground import protocol
-from promptql_playground.run import ThreadUpdateHandler, run_thread
+from promptql_playground.run import run_thread
 
 DATABASE_PATH = "promptql_playground.db"
 
@@ -96,12 +97,16 @@ class FastApiPromptQlWebsocket(protocol.WebSocket):
 
 
 @dataclass
-class ThreadPersistenceHandler(ThreadUpdateHandler):
+class ThreadPersistenceHandler():
     db: aiosqlite.Connection
+    is_new: bool
 
-    @override
     async def on_update(self, thread: Thread):
-        await update_thread(self.db, thread)
+        if self.is_new:
+            await insert_thread(self.db, thread)
+            self.is_new = False
+        else:
+            await update_thread(self.db, thread)
 
 
 def get_promptql_config() -> PromptQlConfig:
@@ -111,11 +116,9 @@ def get_promptql_config() -> PromptQlConfig:
 @app.websocket("/threads/start")
 async def start_thread(websocket: WebSocket, promptql_config: PromptQlConfig = Depends(get_promptql_config), db: aiosqlite.Connection = Depends(get_db)):
     await websocket.accept()
-    thread = new_thread()
-    await insert_thread(db, thread)
-    update_handler = ThreadPersistenceHandler(db)
-    await run_thread(llm=promptql_config.llm, websocket=FastApiPromptQlWebsocket(websocket), sql_engine=promptql_config.ddn, thread=thread, update_handler=update_handler)
-    await websocket.close()
+    update_handler = ThreadPersistenceHandler(db, is_new=True)
+    return_code = await run_thread(config=promptql_config, websocket=FastApiPromptQlWebsocket(websocket), thread=None, update_handler=update_handler.on_update)
+    await websocket.close(return_code)
 
 
 @app.websocket("/threads/{thread_id}/continue")
@@ -124,9 +127,9 @@ async def continue_thread(websocket: WebSocket, thread_id: uuid.UUID, promptql_c
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
     await websocket.accept()
-    update_handler = ThreadPersistenceHandler(db)
-    await run_thread(llm=promptql_config.llm, websocket=FastApiPromptQlWebsocket(websocket), sql_engine=promptql_config.ddn, thread=thread, update_handler=update_handler)
-    await websocket.close()
+    update_handler = ThreadPersistenceHandler(db, is_new=False)
+    return_code = await run_thread(config=promptql_config, websocket=FastApiPromptQlWebsocket(websocket), thread=thread, update_handler=update_handler.on_update)
+    await websocket.close(return_code)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)
