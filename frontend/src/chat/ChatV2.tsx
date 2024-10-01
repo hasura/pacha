@@ -107,7 +107,6 @@ export const Chat = () => {
   }, [artifacts?.length, sidebarOpen, isMinimized]);
 
   const showWide = !artifacts?.length || isMinimized;
-  console.log(data)
 
   return (
     <>

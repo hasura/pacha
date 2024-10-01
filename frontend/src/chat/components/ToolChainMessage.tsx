@@ -162,7 +162,7 @@ export const ToolChainMessage = ({
           </Accordion.Item>
         </Accordion>
       </Paper>
-      <RetryingToolCall hasError={hasError} />
+      {/* <RetryingToolCall hasError={hasError} /> */}
     </>
   );
 };

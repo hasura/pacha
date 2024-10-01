@@ -90,7 +90,6 @@ const usePachaChatV2 = () => {
       // TODO handling full ecents (ignoring chunks/data buffering for now)
       if (event.type === 'assistant_message_response') {
         setRawData(prevData => {
-          console.log("prevData>>>",prevData)
           const newData = {
             message: event?.message_chunk,
             assistant_action_id: event.assistant_action_id,
@@ -104,16 +103,13 @@ const usePachaChatV2 = () => {
         });
       }
       if (event.type === 'assistant_code_response') {
-        console.log("updating ",event.assistant_action_id)
-        
         setRawData(prevData => {
           const newMessages = [...prevData];
-          
+
           // find the assistant message with id
           // const assistantMessageIndex= prevData?.findIndex(prev=>prev.type==='ai' && prev.assistant_action_id===event.assistant_action_id)
           // newMessages[assistantMessageIndex]={
-            
-          console.log("found ",newMessages[newMessages?.length - 1])
+
           newMessages[newMessages?.length - 1] = {
             ...prevData[newMessages?.length - 1],
             assistant_action_id: event.assistant_action_id,
@@ -121,7 +117,7 @@ const usePachaChatV2 = () => {
             type: 'ai',
             tool_calls: [
               {
-                call_id: event.assistant_action_id,
+                call_id: event.code_block_id,
                 input: {
                   python_code: event.code_chunk,
                 },
@@ -132,115 +128,81 @@ const usePachaChatV2 = () => {
         });
       }
       if (event.type === 'code_output') {
-        const newToolCallResponse = {
-          call_id: '',
-          output: {
-            output: event.output_chunk,
-            error: null,
-            sql_statements: [],
-            modified_artifacts: [],
-          },
-        } as ToolCallResponse;
+        setToolCallResponses(prev => {
+          const newResponses = [...prev];
+          const currentToolRespIndex = prev?.findIndex(i => {
+            if (i.call_id === event.code_block_id) return true;
+          });
 
-        setToolCallResponses(prev => [...prev, newToolCallResponse]);
+          if (currentToolRespIndex >= 0) {
+            // partial code output found, need to merge with the existing partial the response
+            newResponses[currentToolRespIndex] = {
+              call_id: event.code_block_id,
+              output: {
+                output: `${newResponses[currentToolRespIndex]?.output?.output ?? ''}${event.output_chunk}`,
+                error: null,
+                sql_statements: [],
+                modified_artifacts: [],
+              },
+            } as ToolCallResponse;
+            return newResponses;
+          } else {
+            // first time code output, create a new tool response entry
+            return [
+              ...prev,
+              {
+                call_id: event.code_block_id,
+                output: {
+                  output: event.output_chunk,
+                  error: null,
+                  sql_statements: [],
+                  modified_artifacts: [],
+                },
+              },
+            ] as ToolCallResponse[];
+          }
+
+          return newResponses;
+        });
+      }
+      if (event.type === 'code_error') {
+        setToolCallResponses(prev => {
+          const newResponses = [...prev];
+          const currentToolRespIndex = prev?.findIndex(i => {
+            if (i.call_id === event.code_block_id) return true;
+          });
+
+          if (currentToolRespIndex >= 0) {
+            // partial code output found, need to merge with the existing partial the response
+            newResponses[currentToolRespIndex] = {
+              call_id: event.code_block_id,
+              output: {
+                ...newResponses[currentToolRespIndex]?.output,
+                error: event.error,
+              },
+            } as ToolCallResponse;
+            return newResponses;
+          } else {
+            // first time code output, create a new tool response entry
+            return [
+              ...prev,
+              {
+                call_id: event.code_block_id,
+                output: {
+                  output: '',
+                  error: event.error,
+                  sql_statements: [],
+                  modified_artifacts: [],
+                },
+              },
+            ] as ToolCallResponse[];
+          }
+
+          return newResponses;
+        });
       }
     },
     [threadId, setRawData, setToolCallResponses]
-  );
-  const handleServerEvents = useCallback(
-    (eventName: string, dataLine: string) => {
-      const processMessage = (
-        message: string
-      ): {
-        data: NewAiResponse | null;
-        toolcallResponses: ToolCallResponse | null;
-      } => {
-        const nullResponse = { data: null, toolcallResponses: null };
-        if (!message) return nullResponse;
-
-        if (eventName === 'error') {
-          const jsonData = JSON.parse(dataLine);
-
-          return {
-            data: {
-              message: jsonData.error,
-              type: 'error',
-              responseMode: 'stream',
-            },
-            toolcallResponses: null,
-          };
-        }
-
-        // ignore all other events for now
-        if (
-          eventName !== 'assistant_response' &&
-          eventName !== 'user_confirmation' &&
-          eventName !== 'tool_response'
-        ) {
-          return nullResponse;
-        }
-
-        if (!dataLine) {
-          return nullResponse;
-        }
-
-        try {
-          const jsonData = JSON.parse(dataLine);
-
-          if (eventName === 'assistant_response') {
-            return {
-              data: {
-                message: jsonData.text,
-                type: 'ai',
-                tool_calls: jsonData.tool_calls,
-                threadId: threadId ?? null,
-                responseMode: 'stream',
-              },
-              toolcallResponses: null,
-            };
-          } else if (eventName === 'tool_response') {
-            return {
-              data: {
-                message: jsonData.output,
-                type: 'toolchain',
-                threadId: threadId ?? null,
-                responseMode: 'stream',
-              },
-              toolcallResponses: jsonData,
-            };
-          } else if (eventName === 'user_confirmation') {
-            return {
-              data: {
-                message: JSON.stringify(jsonData.message),
-                confirmation_id: jsonData.confirmation_id,
-                type: 'user_confirmation',
-                responseMode: 'stream',
-                status: 'PENDING',
-              },
-              toolcallResponses: null,
-            };
-          }
-        } catch (error) {
-          console.error('Error parsing JSON:', error);
-          return nullResponse;
-        }
-
-        return nullResponse;
-      };
-
-      const { data: newData, toolcallResponses: newToolCallResponses } =
-        processMessage(dataLine);
-
-      if (newData)
-        setRawData(prevData => {
-          const newMessages = [...prevData, newData];
-          return newMessages;
-        });
-
-      if (newToolCallResponses)
-        setToolCallResponses(prev => [...prev, newToolCallResponses]);
-    },
-    [threadId]
   );
 
   const sendMessage = useCallback(
@@ -278,7 +240,7 @@ const usePachaChatV2 = () => {
         onComplete: () => setLoading(false),
       });
     },
-    [navigate, threadId, handleServerEvents, refetchThreads, localChatClient]
+    [navigate, threadId, handleWsEvents, refetchThreads, localChatClient]
   );
 
   const artifacts = useMemo(() => extractModifiedArtifacts(data), [data]);

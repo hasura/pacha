@@ -70,7 +70,9 @@ export class ChatClient {
       }
       if (
         message.type === 'assistant_message_response' ||
-        message.type === 'assistant_code_response'
+        message.type === 'assistant_code_response' ||
+        message.type === 'code_error' ||
+        message.type === 'code_output'
       ) {
         return onAssistantResponse(message);
       }

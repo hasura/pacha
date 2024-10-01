@@ -103,6 +103,7 @@ interface ArtifactUpdate {
 
 interface CodeError {
   type: 'code_error';
+  code_block_id: string;
   error: string;
 }
 

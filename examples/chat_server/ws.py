@@ -46,7 +46,7 @@ async def websocket_endpoint(websocket: WebSocket, thread_id: str = None):
                 user_message = message["message"]
                 # Send a response from responses list in every x seconds
                 for i in mock_responses:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(0.5)
                     response = i
                     await websocket.send_json(response)
             await websocket.close()
