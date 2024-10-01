@@ -8,7 +8,9 @@ import {
   Stack,
   StackProps,
 } from '@mantine/core';
+import { ClientError } from 'graphql-request/build/entrypoints/main';
 
+import { getGraphQLErrorMessage } from '@/control-plane-client';
 import { Icons } from '@/ui/icons';
 import { hasMessageProperty } from '@/utils/js-utils';
 import hasuraErrorLogo from './confused_hasura.png';
@@ -78,5 +80,15 @@ export const GenericError = ({
         </Stack>
       </Alert>
     </Stack>
+  );
+};
+
+GenericError.GraphQLError = ({
+  graphQLError,
+}: {
+  graphQLError: ClientError;
+}) => {
+  return (
+    <GenericError message={getGraphQLErrorMessage(graphQLError).message} />
   );
 };

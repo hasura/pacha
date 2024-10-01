@@ -11,7 +11,7 @@ export const MantineProviders = ({
   children: React.ReactNode;
 }) => (
   <MantineProvider theme={mantineTheme}>
-    <MantineNotificationsProvider />
+    <MantineNotificationsProvider notificationMaxHeight={400} />
     <MantineModalsProvider
       modalProps={{
         radius: 'lg',
