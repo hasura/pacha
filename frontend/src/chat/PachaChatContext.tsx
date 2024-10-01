@@ -1,4 +1,4 @@
-import React, { Dispatch, RefObject, SetStateAction } from 'react';
+import React, { Dispatch, RefObject, SetStateAction, useContext } from 'react';
 
 import { DEFAULT_PACHA_ENDPOINT } from './constants';
 import { Thread } from './data/api-types';
@@ -18,7 +18,16 @@ export const PachaChatContext = React.createContext<
       threads: Thread[];
       isThreadsLoading: boolean;
       refetchThreads: () => void;
-      threadsError?: Error | null;
+      threadsError: Error | null;
     }
   | undefined
 >(undefined);
+
+export const usePachaChatContext = () => {
+  const context = useContext(PachaChatContext);
+  if (!context) {
+    throw Error('PachaChatContext is not provided');
+  }
+
+  return context;
+};

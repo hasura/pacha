@@ -68,8 +68,11 @@ export class ChatClient {
       if (message.type === 'server_error') {
         return onError(new Error(message.message));
       }
-      if (message.type === 'assistant_response') {
-        onAssistantResponse(message);
+      if (
+        message.type === 'assistant_message_response' ||
+        message.type === 'assistant_code_response'
+      ) {
+        return onAssistantResponse(message);
       }
 
       console.log(message);
@@ -84,7 +87,6 @@ export class ChatClient {
       message: 'Hello, WebSocket!',
       timestamp: new Date().toISOString(),
     });
-
   };
 
   createChatStreamReader = ({

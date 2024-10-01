@@ -9,9 +9,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import { useConsoleParams } from '@/routing';
-import { AssistantResponse, ServerEvent } from './data/Api-Types-v3';
+import { ServerEvent } from './data/Api-Types-v3';
 import { usePachaLocalChatClient, useThreads } from './data/hooks';
-import { PachaChatContext } from './PachaChatContext';
+import { usePachaChatContext } from './PachaChatContext';
 import { NewAiResponse, ToolCall, ToolCallResponse } from './types';
 import { extractModifiedArtifacts, processMessageHistory } from './utils';
 
@@ -28,13 +28,6 @@ const usePachaChatV2 = () => {
   const currentThreadId = useRef<string | undefined>();
 
   const localChatClient = usePachaLocalChatClient();
-  const context = useContext(PachaChatContext);
-  if (context === undefined) {
-    throw new Error(
-      'UsePachaChatV2 needs to be called inside PachaChatContext'
-    );
-  }
-
   const {
     threads,
     isThreadsLoading,
@@ -42,7 +35,7 @@ const usePachaChatV2 = () => {
     refetchThreads,
     data,
     setRawData,
-  } = context;
+  } = usePachaChatContext();
 
   useEffect(() => {
     // when the user navigates to a new thread, load the new thread
@@ -90,68 +83,69 @@ const usePachaChatV2 = () => {
 
   const handleWsEvents = useCallback(
     (event: ServerEvent, lastMessage?: ServerEvent) => {
-      const processMessage = (): {
-        data: NewAiResponse | null;
-        toolcallResponses: ToolCallResponse | null;
-      } => {
-        const nullResponse = { data: null, toolcallResponses: null };
-        if (event.type === 'completion') {
-          return nullResponse;
-        }
+      if (event.type === 'completion') {
+        return;
+      }
 
-        // TODO handling full ecents (ignoring chunks/data buffering for now)
-        if (event.type === 'assistant_response') {
-          return {
-            data: {
-              message: event?.response_chunk,
-              type: 'ai',
-              tool_calls: event.code_chunk
-                ? [
-                    {
-                      name: 'execute_python',
-                      call_id: '',
-                      input: {
-                        python_code: event.code_chunk,
-                      },
-                    } as ToolCall,
-                  ]
-                : [],
-              code: event?.code_chunk,
-              threadId: threadId ?? null,
-              responseMode: 'stream',
-            },
-            toolcallResponses: null,
-          };
-        }
-        if (event.type === 'code_output') {
-          return {
-            data: null,
-            toolcallResponses: {
-              call_id: '',
-              output: {
-                output: event?.output_chunk,
-                error: null,
-                sql_statements: [],
-                modified_artifacts: [],
-              },
-            },
-          };
-        }
-        return nullResponse;
-      };
-      const { data: newData, toolcallResponses: newToolCallResponses } =
-        processMessage();
-
-      if (newData)
+      // TODO handling full ecents (ignoring chunks/data buffering for now)
+      if (event.type === 'assistant_message_response') {
         setRawData(prevData => {
+          console.log("prevData>>>",prevData)
+          const newData = {
+            message: event?.message_chunk,
+            assistant_action_id: event.assistant_action_id,
+            type: 'ai',
+            tool_calls: [] as ToolCall[],
+            threadId: threadId ?? null,
+            responseMode: 'stream',
+          } as NewAiResponse;
           const newMessages = [...prevData, newData];
           return newMessages;
         });
+      }
+      if (event.type === 'assistant_code_response') {
+        console.log("updating ",event.assistant_action_id)
+        
+        setRawData(prevData => {
+          const newMessages = [...prevData];
+          
+          // find the assistant message with id
+          // const assistantMessageIndex= prevData?.findIndex(prev=>prev.type==='ai' && prev.assistant_action_id===event.assistant_action_id)
+          // newMessages[assistantMessageIndex]={
+            
+          console.log("found ",newMessages[newMessages?.length - 1])
+          newMessages[newMessages?.length - 1] = {
+            ...prevData[newMessages?.length - 1],
+            assistant_action_id: event.assistant_action_id,
+            threadId: threadId ?? null,
+            type: 'ai',
+            tool_calls: [
+              {
+                call_id: event.assistant_action_id,
+                input: {
+                  python_code: event.code_chunk,
+                },
+              } as ToolCall,
+            ],
+          };
+          return newMessages;
+        });
+      }
+      if (event.type === 'code_output') {
+        const newToolCallResponse = {
+          call_id: '',
+          output: {
+            output: event.output_chunk,
+            error: null,
+            sql_statements: [],
+            modified_artifacts: [],
+          },
+        } as ToolCallResponse;
 
-      if (newToolCallResponses)
-        setToolCallResponses(prev => [...prev, newToolCallResponses]);
+        setToolCallResponses(prev => [...prev, newToolCallResponse]);
+      }
     },
-    [threadId]
+    [threadId, setRawData, setToolCallResponses]
   );
   const handleServerEvents = useCallback(
     (eventName: string, dataLine: string) => {

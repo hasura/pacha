@@ -19,7 +19,6 @@ export type Artifact = TableArtifact | TextArtifact;
 // Components UI Type
 
 export type ToolCall = {
-  name: string;
   call_id: string;
   input: {
     python_code: string; // assuming this is the only input for now
@@ -64,7 +63,8 @@ export type NewAiResponse =
   | SelfMessage
   | {
       message: unknown; // no chunks here, this will always be bufferred full output received till that time
-      type: 'ai' | 'toolchain';
+      type: 'ai';
+      assistant_action_id:string;
       confirmation_id?: string;
       tool_calls?: ToolCall[];
       code?: string; // no chunks here, this will always be bufferred full output received till that time
