@@ -12,7 +12,12 @@ import { useConsoleParams } from '@/routing';
 import { ServerEvent } from './data/Api-Types-v3';
 import { usePachaLocalChatClient, useThreads } from './data/hooks';
 import { usePachaChatContext } from './PachaChatContext';
-import { NewAiResponse, ToolCall, ToolCallResponse } from './types';
+import {
+  NewAiResponse,
+  ToolCall,
+  ToolCallResponse,
+  UserConfirmationType,
+} from './types';
 import { extractModifiedArtifacts, processMessageHistory } from './utils';
 
 const usePachaChatV2 = () => {
@@ -115,6 +120,7 @@ const usePachaChatV2 = () => {
             assistant_action_id: event.assistant_action_id,
             threadId: threadId ?? null,
             type: 'ai',
+            responseMode: 'stream',
             tool_calls: [
               {
                 call_id: event.code_block_id,
@@ -125,6 +131,19 @@ const usePachaChatV2 = () => {
             ],
           };
           return newMessages;
+        });
+      }
+      if (event.type === 'user_confirmation_request') {
+        setRawData(prevData => {
+          const newUserRequest: UserConfirmationType = {
+            type: 'user_confirmation',
+            message: event.message,
+            confirmation_id: event.confirmation_request_id,
+            fromHistory: false,
+            status: 'PENDING',
+            responseMode: 'stream',
+          };
+          return [...prevData, newUserRequest];
         });
       }
       if (event.type === 'code_output') {
@@ -144,6 +163,7 @@ const usePachaChatV2 = () => {
                 sql_statements: [],
                 modified_artifacts: [],
               },
+              responseMode: 'stream',
             } as ToolCallResponse;
             return newResponses;
           } else {
@@ -158,6 +178,7 @@ const usePachaChatV2 = () => {
                   sql_statements: [],
                   modified_artifacts: [],
                 },
+                responseMode: 'stream',
               },
             ] as ToolCallResponse[];
           }
@@ -194,6 +215,7 @@ const usePachaChatV2 = () => {
                   sql_statements: [],
                   modified_artifacts: [],
                 },
+                responseMode: 'stream',
               },
             ] as ToolCallResponse[];
           }

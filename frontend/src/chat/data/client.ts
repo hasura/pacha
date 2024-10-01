@@ -68,16 +68,8 @@ export class ChatClient {
       if (message.type === 'server_error') {
         return onError(new Error(message.message));
       }
-      if (
-        message.type === 'assistant_message_response' ||
-        message.type === 'assistant_code_response' ||
-        message.type === 'code_error' ||
-        message.type === 'code_output'
-      ) {
-        return onAssistantResponse(message);
-      }
 
-      console.log(message);
+      return onAssistantResponse(message);
     });
 
     client.onClose(() => {

@@ -109,6 +109,7 @@ interface CodeError {
 
 interface UserConfirmationRequest {
   type: 'user_confirmation_request';
+  confirmation_request_id:string;
   message: string;
 }
 
