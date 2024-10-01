@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "promptql_playground"
+version = "0.1.0"
+description = "AI assistant using PromptQL"
+authors = []
+packages = [
+    { include = "promptql_playground", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pydantic = "^2.9.2"
+promptql = { path = "../promptql" }  # Local path dependency for promptql
+fastapi = {version = "^0.115.0", optional = true}
+uvicorn = {version = "^0.31.0", optional = true}
+aiosqlite = {version = "^0.20.0", optional = true}
+httpx = {version = "^0.27.2", optional = true}
+anthropic = "^0.34.2"
+openai = "^1.50.2"
+tabulate = {version = "^0.9.0", optional = true}
+
+[tool.poetry.scripts]
+cli_chat = "bin.run_cli_chat:main"        # CLI interface for the assistant
+chat_server = "bin.run_chat_server:main"  # Chat server binary
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0"
+
+[tool.poetry.extras]
+chat-server = ["fastapi", "uvicorn", "aiosqlite", "httpx"]  # For chat server-specific dependencies
+cli-chat = ["tabulate"]
