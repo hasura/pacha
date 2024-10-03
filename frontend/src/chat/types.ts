@@ -32,7 +32,7 @@ export type ToolCallResponse = {
   output: {
     output: string;
     error: string | null;
-    sql_statements: Array<{ sql: string; result: unknown[] }>;
+    sql_statements: Array<{ sql: string; result: unknown }>;
     modified_artifacts: [];
   };
 };
@@ -62,18 +62,20 @@ export type ErrorResponseType = {
 };
 export type ResponseMode = 'stream' | 'history';
 
+export type AiMessage = {
+  message: unknown; // no chunks here, this will always be bufferred full output received till that time
+  type: 'ai';
+  assistant_action_id: string;
+  confirmation_id?: string;
+  tool_calls?: ToolCall[];
+  code?: string; // no chunks here, this will always be bufferred full output received till that time
+  threadId: string | null;
+  responseMode: ResponseMode;
+};
+
 export type NewAiResponse =
   | SelfMessage
-  | {
-      message: unknown; // no chunks here, this will always be bufferred full output received till that time
-      type: 'ai';
-      assistant_action_id: string;
-      confirmation_id?: string;
-      tool_calls?: ToolCall[];
-      code?: string; // no chunks here, this will always be bufferred full output received till that time
-      threadId: string | null;
-      responseMode: ResponseMode;
-    }
+  | AiMessage
   | ErrorResponseType
   | UserConfirmationType;
 

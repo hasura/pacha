@@ -15,16 +15,29 @@ interface UserConfirmation {
 }
 
 interface Code {
+  code_block_id: string;
   code: string;
-  output?: string;
-  error?: string;
+  execution_start_timestamp: string | null;
+  execution_end_timestamp: string | null;
+  output: string | null;
+  error: string | null;
   user_confirmations: UserConfirmation[];
+  sql_statements: Array<{ sql: string; result: unknown }>;
+  internal_tool_call?: {
+    name: string;
+    call_id: string;
+    input: Record<string, string>;
+  };
 }
 
 interface AssistantAction {
+  action_id: string;
   message?: string;
   code?: Code;
-  error?: string; // Eg: If the assistant tried to request code execution incorrectly
+  error?: string;
+  action_end_timestamp: string;
+  response_start_timestamp: string;
+  tokens_used: number;
 }
 
 export interface UserMessage {
@@ -50,6 +63,13 @@ interface Artifact {
 export interface ThreadState {
   artifacts: Artifact[];
   interactions: ThreadInteraction[];
+  version: 'v1';
+}
+
+export interface ThreadResponse {
+  state: ThreadState;
+  thread_id: string;
+  title: string;
 }
 
 // Client sent events

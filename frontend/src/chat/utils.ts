@@ -1,5 +1,6 @@
-import { Thread } from './data/api-types-v2';
+import { ThreadResponse } from './data/Api-Types-v3';
 import {
+  AiMessage,
   Artifact,
   NewAiResponse,
   ToolCallResponse,
@@ -40,60 +41,50 @@ export const extractModifiedArtifacts = (data: NewAiResponse[]): Artifact[] => {
   return Array.from(artifactMap.values()).reverse();
 };
 
-export const processMessageHistory = (data: Thread) => {
+export const processMessageHistory = (resp: ThreadResponse) => {
   const history: NewAiResponse[] = [];
   const toolcallResponses: ToolCallResponse[] = [];
+  const interactions = resp.state.interactions;
 
-  const userConfirmationsMap = data?.user_confirmations?.reduce(
-    (acc, confirmation) => {
-      acc[confirmation.confirmation_id] = confirmation.status;
-      return acc;
-    },
-    {} as Record<string, UserConfirmationType['status']>
-  );
-
-  data?.history?.forEach(item => {
-    if (item.type === 'user') {
-      // set user message
-      history.push({
-        message: item.text,
-        type: 'self',
-        threadId: data.thread_id,
-        responseMode: 'history',
-      } as NewAiResponse);
-    } else if (item.type === 'assistant') {
-      // set assistant message
-      history.push({
-        message: item.text,
-        type: 'ai',
-        threadId: data.thread_id,
-        tool_calls: item.tool_calls,
-        responseMode: 'history',
-      } as NewAiResponse);
-    } else if (item.type === 'user_confirmation_request') {
-      history.push({
+  interactions?.forEach(interaction => {
+    history.push({
+      message: interaction?.user_message?.message,
+      type: 'self',
+      threadId: resp.thread_id,
+      responseMode: 'history',
+    } as NewAiResponse);
+    interaction.assistant_actions.forEach(item => {
+      const newVal = {
         message: item.message,
-        type: 'user_confirmation',
-        confirmation_id: item.confirmation_id,
-        fromHistory: true,
+        type: 'ai',
+        threadId: resp.thread_id,
+        tool_calls: [],
         responseMode: 'history',
-        status: userConfirmationsMap[item.confirmation_id],
-      } as UserConfirmationType);
-    } else if (item.type === 'tool_response') {
-      item.tool_responses.forEach(toolResponse => {
-        history.push({
-          message: toolResponse.output,
-          type: 'toolchain',
-          threadId: data.thread_id,
-          responseMode: 'history',
-        } as NewAiResponse);
+        assistant_action_id: item.action_id,
+      } as AiMessage;
 
+      if (item.code && item.code?.code_block_id) {
+        newVal.tool_calls = [
+          {
+            call_id: item.code.code_block_id,
+            input: {
+              python_code: item.code.code,
+            },
+          },
+        ];
         toolcallResponses.push({
-          call_id: toolResponse.call_id,
-          output: toolResponse.output,
-        } as ToolCallResponse);
-      });
-    }
+          call_id: item.code.code_block_id,
+          output: {
+            output: item?.code?.output ?? '',
+            error: item.code.error ?? null,
+            sql_statements:item.code.sql_statements,
+            modified_artifacts: [],
+          },
+        });
+      }
+
+      history.push(newVal);
+    });
   });
   return { history, toolcallResponses };
 };
