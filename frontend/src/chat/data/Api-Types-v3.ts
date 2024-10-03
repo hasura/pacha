@@ -54,7 +54,7 @@ export interface ThreadInteraction {
 }
 
 interface Artifact {
-  artifact_type: string;
+  artifact_type: 'table' | 'text';
   data: Record<string, unknown>[];
   identifier: string;
   title: string;
@@ -122,7 +122,7 @@ export interface CodeOutput {
   code_block_id: string;
 }
 
-interface ArtifactUpdate {
+export interface ArtifactUpdate {
   type: 'artifact_update';
   artifact: Artifact;
 }

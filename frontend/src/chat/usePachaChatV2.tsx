@@ -1,19 +1,13 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useConsoleParams } from '@/routing';
-import { CodeOutput, ServerEvent } from './data/Api-Types-v3';
+import { ArtifactUpdate, CodeOutput, ServerEvent } from './data/Api-Types-v3';
 import { usePachaLocalChatClient, useThreads } from './data/hooks';
 import { WebSocketClient } from './data/WebSocketClient';
 import { usePachaChatContext } from './PachaChatContext';
 import {
+  Artifact,
   NewAiResponse,
   ToolCall,
   ToolCallResponse,
@@ -237,6 +231,9 @@ const usePachaChatV2 = () => {
           }
         });
       }
+      if (event.type === 'artifact_update') {
+        setArtifacts(updateArtifacts(event));
+      }
     },
     [threadId, setRawData, setToolCallResponses]
   );
@@ -298,4 +295,34 @@ const usePachaChatV2 = () => {
   };
 };
 
+const updateArtifacts = (event: ArtifactUpdate) => (prev: Artifact[]) => {
+  const newArtifacts: Artifact[] = [...prev];
+  const currentArtifactIndex = prev?.findIndex(i => {
+    if (i.identifier === event?.artifact?.identifier) return true;
+  });
+
+  if (currentArtifactIndex >= 0) {
+    // partial code output found, need to merge with the existing partial the response
+    newArtifacts[currentArtifactIndex] = {
+      identifier: event?.artifact?.identifier,
+      artifact_type: 'table',
+      title: event?.artifact?.title,
+      data: event?.artifact?.data,
+      responseMode: 'stream',
+    };
+    return newArtifacts;
+  } else {
+    // new artifact push to artifact list
+    return [
+      ...prev,
+      {
+        identifier: event?.artifact?.identifier,
+        artifact_type: 'table',
+        title: event?.artifact?.title,
+        data: event?.artifact?.data,
+        responseMode: 'stream',
+      },
+    ];
+  }
+};
 export default usePachaChatV2;
