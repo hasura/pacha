@@ -96,20 +96,23 @@ const ChatResponse = ({
       >
         <Stack gap={0}>
           {data.map((item, index) => {
+            const key=`${item.type}-${index}`
             if (item?.type === 'ai')
               return (
                 <AssistantResponse
                   data={item}
+                  key={key}
                   toolCallResponses={toolCallResponses}
                 />
               );
 
-            if (item?.type === 'self') return <SelfMessageBox data={item} />;
-            if (item?.type === 'error') return <ErrorMessage data={item} />;
+            if (item?.type === 'self') return <SelfMessageBox data={item} key={key} />;
+            if (item?.type === 'error') return <ErrorMessage data={item} key={key} />;
             if (item?.type === 'user_confirmation')
               return (
                 <ActionAuthorizeCard
                   data={item}
+                  key={key}
                   hasNextAiMessage={!!data?.[index + 1]}
                 />
               );

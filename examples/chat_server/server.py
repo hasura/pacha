@@ -1,5 +1,21 @@
-from fastapi import FastAPI, Request, HTTPException, Depends, Body, BackgroundTasks
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse, FileResponse
+from fastapi import (
+    FastAPI,
+    Request,
+    HTTPException,
+    Depends,
+    Body,
+    BackgroundTasks,
+    FastAPI,
+    WebSocket,
+)
+from fastapi.responses import (
+    JSONResponse,
+    HTMLResponse,
+    RedirectResponse,
+    StreamingResponse,
+    PlainTextResponse,
+    FileResponse,
+)
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -20,9 +36,19 @@ from pacha.utils.logging import setup_logger, get_logger
 from examples.utils.cli import add_llm_args, add_tool_args, get_llm, get_pacha_tool
 from examples.chat_server.pacha_chat import PachaChat
 from examples.chat_server.chat_json import to_turn_json
-from examples.chat_server.threads import ThreadJson, ThreadMessageResponseJson, Thread, ThreadNotFound
-from examples.chat_server.db import init_db, fetch_threads, persist_thread, update_user_confirmation
-
+from examples.chat_server.threads import (
+    ThreadJson,
+    ThreadMessageResponseJson,
+    Thread,
+    ThreadNotFound,
+)
+from examples.chat_server.db import (
+    init_db,
+    fetch_threads,
+    persist_thread,
+    update_user_confirmation,
+)
+from .ws import websocket_endpoint
 
 # will be initialized in main
 SECRET_KEY: Optional[str] = None
@@ -31,7 +57,7 @@ PACHA_TOOL: Tool = None  # type: ignore
 SYSTEM_PROMPT: str = "You are a helpful assistant"
 DATABASE_PATH: str = "pacha.db"
 CORS_ORIGINS: List[str] = ["*"]
-ASSISTANT_NAME: str = 'unknown'
+ASSISTANT_NAME: str = "unknown"
 
 
 app = FastAPI()
@@ -79,14 +105,7 @@ def init_system_prompt(pacha_tool):
         """
 
 
-PUBLIC_ROUTES = [
-    '/',
-    '/console',
-    '/healthz',
-    '/chat',
-    '/chat/*',
-    '/assets/*'
-]
+PUBLIC_ROUTES = ["/", "/console", "/healthz", "/chat", "/chat/*", "/assets/*"]
 
 
 def init_auth(secret_key):
@@ -116,10 +135,13 @@ async def verify_token(request: Request, call_next: Callable):
                 return await call_next(request)
 
     # For all other routes, verify the token
-    token = request.headers.get('pacha_auth_token')
+    token = request.headers.get("pacha_auth_token")
     if not token or token != SECRET_KEY:
-        return JSONResponse(status_code=401, content={"error": "pacha token invalid or not found"})
+        return JSONResponse(
+            status_code=401, content={"error": "pacha token invalid or not found"}
+        )
     return await call_next(request)
+
 
 app.middleware("http")(verify_token)
 
@@ -137,22 +159,25 @@ class ConfirmationInput(BaseModel):
 @app.get("/threads")
 async def get_threads(db: aiosqlite.Connection = Depends(get_db)):
     threads = await fetch_threads(db)
-    return [ThreadJson(thread_id=thread['thread_id'], title=thread['title']) for thread in threads]
+    return [
+        ThreadJson(thread_id=thread["thread_id"], title=thread["title"])
+        for thread in threads
+    ]
 
 
 @app.get("/threads/{thread_id}")
 async def get_thread(thread_id: str, db: aiosqlite.Connection = Depends(get_db)):
     try:
-        default_chat = PachaChat(id=thread_id,
-                                 llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        default_chat = PachaChat(
+            id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT
+        )
         thread = await Thread.from_db(thread_id, default_chat, db)
         return thread.to_json()
     except ThreadNotFound as e:
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
         get_logger().exception(str(e))
-        raise HTTPException(
-            status_code=500, detail="Internal error, check logs")
+        raise HTTPException(status_code=500, detail="Internal error, check logs")
 
 
 @app.post("/threads")
@@ -163,33 +188,43 @@ async def start_thread(message_input: MessageInput):
         thread_id = str(uuid.uuid4())
         title = message_input.message[slice(40)]
         await persist_thread(db, thread_id, title)
-        thread = Thread(id=thread_id, title=title,
-                        chat=PachaChat(id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT), db=db)
+        thread = Thread(
+            id=thread_id,
+            title=title,
+            chat=PachaChat(
+                id=thread_id,
+                llm=LLM,
+                pacha_tool=PACHA_TOOL,
+                system_prompt=SYSTEM_PROMPT,
+            ),
+            db=db,
+        )
         background_tasks = BackgroundTasks()
         background_tasks.add_task(closedb, db)
         if message_input.stream:
             return StreamingResponse(
                 thread.send_streaming(message_input.message),
                 media_type="text/event-stream",
-                headers={"Cache-Control": "no-cache",
-                         "Connection": "keep-alive"},
+                headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
                 status_code=201,
-                background=background_tasks
+                background=background_tasks,
             )
         else:
             messages = await thread.send(message_input.message)
             response: ThreadMessageResponseJson = {
                 "thread_id": thread_id,
                 "messages": list(
-                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
+                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages)
+                ),
             }
-            return JSONResponse(content=response, status_code=201, background=background_tasks)
+            return JSONResponse(
+                content=response, status_code=201, background=background_tasks
+            )
     except Exception as e:
         if db is not None:
             await db.close()
         get_logger().exception(str(e))
-        raise HTTPException(
-            status_code=500, detail="Internal error, check logs")
+        raise HTTPException(status_code=500, detail="Internal error, check logs")
 
 
 @app.post("/threads/{thread_id}")
@@ -197,8 +232,9 @@ async def send_message(thread_id: str, message_input: MessageInput):
     db = None
     try:
         db = await get_db_open()
-        default_chat = PachaChat(id=thread_id,
-                                 llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        default_chat = PachaChat(
+            id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT
+        )
         thread = await Thread.from_db(thread_id, default_chat, db)
         background_tasks = BackgroundTasks()
         background_tasks.add_task(closedb, db)
@@ -206,9 +242,8 @@ async def send_message(thread_id: str, message_input: MessageInput):
             return StreamingResponse(
                 thread.send_streaming(message_input.message),
                 media_type="text/event-stream",
-                headers={"Cache-Control": "no-cache",
-                         "Connection": "keep-alive"},
-                background=background_tasks
+                headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+                background=background_tasks,
             )
         else:
             messages = await thread.send(message_input.message)
@@ -216,9 +251,12 @@ async def send_message(thread_id: str, message_input: MessageInput):
             response: ThreadMessageResponseJson = {
                 "thread_id": thread_id,
                 "messages": list(
-                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages))
+                    map(lambda m: to_turn_json(m, thread.chat.artifacts), messages)
+                ),
             }
-            return JSONResponse(content=response, status_code=200, background=background_tasks)
+            return JSONResponse(
+                content=response, status_code=200, background=background_tasks
+            )
     except ThreadNotFound as e:
         if db is not None:
             await db.close()
@@ -227,27 +265,37 @@ async def send_message(thread_id: str, message_input: MessageInput):
         if db is not None:
             await db.close()
         get_logger().exception(str(e))
-        raise HTTPException(
-            status_code=500, detail="Internal error, check logs")
+        raise HTTPException(status_code=500, detail="Internal error, check logs")
 
 
 @app.post("/threads/{thread_id}/user_confirmation")
-async def send_user_confirmation(thread_id: str, confirmation_input: ConfirmationInput,  db: aiosqlite.Connection = Depends(get_db)):
+async def send_user_confirmation(
+    thread_id: str,
+    confirmation_input: ConfirmationInput,
+    db: aiosqlite.Connection = Depends(get_db),
+):
     try:
-        default_chat = PachaChat(id=thread_id,
-                                 llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT)
+        default_chat = PachaChat(
+            id=thread_id, llm=LLM, pacha_tool=PACHA_TOOL, system_prompt=SYSTEM_PROMPT
+        )
         thread = await Thread.from_db(thread_id, default_chat, db)
-        confirmation_result = UserConfirmationResult.APPROVED if confirmation_input.confirm else UserConfirmationResult.DENIED
-        await update_user_confirmation(db, thread_id, confirmation_input.confirmation_id, confirmation_result)
+        confirmation_result = (
+            UserConfirmationResult.APPROVED
+            if confirmation_input.confirm
+            else UserConfirmationResult.DENIED
+        )
+        await update_user_confirmation(
+            db, thread_id, confirmation_input.confirmation_id, confirmation_result
+        )
         thread.chat.handle_user_confirmation(
-            confirmation_input.confirmation_id, confirmation_input.confirm)
+            confirmation_input.confirmation_id, confirmation_input.confirm
+        )
         return JSONResponse(content={}, status_code=200)
     except ThreadNotFound as e:
         raise HTTPException(status_code=404, detail="Thread not found")
     except Exception as e:
         get_logger().exception(str(e))
-        raise HTTPException(
-            status_code=500, detail="Internal error, check logs")
+        raise HTTPException(status_code=500, detail="Internal error, check logs")
 
 
 class FeedbackMode(str, Enum):
@@ -270,7 +318,7 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
 
     data = {
         "thread_id": thread_id,
-        "mode": ASSISTANT_NAME, #TODO: create a new assistant_name column in telemetry instead of using mode
+        "mode": ASSISTANT_NAME,  # TODO: create a new assistant_name column in telemetry instead of using mode
         "feedback_enum": feedback_input.feedback_enum,
     }
 
@@ -281,10 +329,7 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
     if feedback_input.feedback_text:
         data["feedback_text"] = feedback_input.feedback_text
 
-    payload = {
-        "topic": "pacha_chat",
-        "data": data
-    }
+    payload = {"topic": "pacha_chat", "data": data}
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(telemtry_url, json=payload)
@@ -293,8 +338,17 @@ async def submit_feedback(thread_id: str, feedback_input: FeedbackInput):
         return {"status": "success", "message": "Feedback submitted successfully"}
     except httpx.HTTPError as e:
         get_logger().error(f"Error submitting feedback: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error submitting feedback")
+        raise HTTPException(status_code=500, detail=f"Error submitting feedback")
+
+
+@app.websocket("/ws/threads")
+async def websocket_global(websocket: WebSocket):
+    await websocket_endpoint(websocket)
+
+
+@app.websocket("/ws/threads/{thread_id}")
+async def websocket_thread(websocket: WebSocket, thread_id: str):
+    await websocket_endpoint(websocket, thread_id)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)
@@ -324,6 +378,7 @@ async def serve_console():
     </html>
     """
 
+
 # Frontend route (only for root path)
 @app.get("/")
 @app.get("/chat/{path:path}")
@@ -338,7 +393,7 @@ async def async_setup():
     global CORS_ORIGINS
     global ASSISTANT_NAME
 
-    parser = argparse.ArgumentParser(description='Pacha Chat Server')
+    parser = argparse.ArgumentParser(description="Pacha Chat Server")
     add_llm_args(parser)
     add_tool_args(parser)
     args = parser.parse_args()
@@ -359,14 +414,15 @@ async def async_setup():
 
 def main():
     asyncio.run(async_setup())
-    log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
+    log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
     setup_logger(log_level)
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get("PORT", 5000))
 
     # Check if the frontend build exists
     if not os.path.exists("frontend/dist"):
         get_logger().warning(
-            "Frontend build not found. Make sure to build the React app and place it in frontend/dist")
+            "Frontend build not found. Make sure to build the React app and place it in frontend/dist"
+        )
 
     uvicorn.run(app, host="0.0.0.0", port=port, log_level=log_level.lower())
 

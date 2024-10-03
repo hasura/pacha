@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   ActionIcon,
@@ -17,7 +17,7 @@ import ChatResponse from './components/ChatResponse';
 import ErrorIndicator from './components/ErrorIndicator';
 import PachaChatHistorySidebar from './components/PachaChatHistorySidebar';
 import PachaChatProvider from './PachaChat.Provider';
-import { PachaChatContext } from './PachaChatContext';
+import { usePachaChatContext } from './PachaChatContext';
 import usePachaChatV2 from './usePachaChatV2';
 
 const handleTextareaEnterKey =
@@ -69,9 +69,10 @@ export const Chat = () => {
 
   const [message, setMessage] = useState('');
   const { sidebarOpen } = usePageShellContext();
-  const { isMinimized, setIsMinimized } = useContext(PachaChatContext);
   const [textareaHeight, setTextareaHeight] = useState(100);
   const textareaRef = useRef<HTMLDivElement | null>(null);
+
+  const { isMinimized, setIsMinimized } = usePachaChatContext();
 
   const updateTextareaHeight = () => {
     if (textareaRef.current) {

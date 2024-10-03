@@ -58,7 +58,6 @@ export const ToolChainMessage = ({
 
   const isOutputUndefined = response?.output === undefined;
 
-  if (data?.name !== 'execute_python') return null;
   let output: string | undefined;
   let hasError = false;
 
@@ -163,7 +162,7 @@ export const ToolChainMessage = ({
           </Accordion.Item>
         </Accordion>
       </Paper>
-      <RetryingToolCall hasError={hasError} />
+      {/* <RetryingToolCall hasError={hasError} /> */}
     </>
   );
 };
