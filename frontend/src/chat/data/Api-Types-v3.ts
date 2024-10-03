@@ -27,7 +27,8 @@ interface AssistantAction {
   error?: string; // Eg: If the assistant tried to request code execution incorrectly
 }
 
-interface UserMessage {
+export interface UserMessage {
+  type: 'user_message';
   timestamp: Timestamp;
   message: string;
 }
@@ -57,21 +58,26 @@ interface ClientInit {
   version: 'v1';
 }
 
-interface UserMessage {
-  type: 'user_message';
-  message: string;
-}
-
-interface UserConfirmationResponse {
+export interface UserConfirmationResponseEvent {
   type: 'user_confirmation_response';
   response: 'approve' | 'deny';
+  confirmation_request_id: string;
 }
 
-export type ClientEvent = UserMessage | UserConfirmationResponse;
+export type ClientEvent =
+  | ClientInit
+  | UserMessage
+  | UserConfirmationResponseEvent;
 
 // Server events
 interface CallingLlmEvent {
   type: 'llm_call';
+}
+
+interface AcceptInteraction {
+  type: 'accept_interaction';
+  interaction_id: string;
+  thread_id: string;
 }
 
 export interface AssistantMessageResponse {
@@ -107,9 +113,9 @@ interface CodeError {
   error: string;
 }
 
-interface UserConfirmationRequest {
+export interface UserConfirmationRequest {
   type: 'user_confirmation_request';
-  confirmation_request_id:string;
+  confirmation_request_id: string;
   message: string;
 }
 
@@ -128,6 +134,7 @@ interface Completion {
 
 export type ServerEvent =
   | CallingLlmEvent
+  | AcceptInteraction
   | AssistantMessageResponse
   | AssistantCodeResponse
   | ExecutingCode

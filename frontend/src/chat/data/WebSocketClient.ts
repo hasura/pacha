@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-
-import { ServerEvent, WebSocketEvent } from './Api-Types-v3';
+import { ClientEvent, ServerEvent } from './Api-Types-v3';
 
 export class WebSocketClient {
   private socket: WebSocket | null = null;
@@ -40,13 +38,22 @@ export class WebSocketClient {
     });
   }
 
-  async sendMessage(message: WebSocketEvent): Promise<void> {
+  async sendMessage(message: ClientEvent): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         this.socket.send(JSON.stringify(message));
         resolve();
       } else {
         reject(new Error('WebSocket is not connected'));
+      }
+    });
+  }
+  async isConnected(): Promise<boolean> {
+    return new Promise(resolve => {
+      if (this.socket) {
+        resolve(this.socket.readyState === WebSocket.OPEN);
+      } else {
+        resolve(false);
       }
     });
   }

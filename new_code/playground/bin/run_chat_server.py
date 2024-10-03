@@ -38,7 +38,7 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -165,7 +165,7 @@ async def redirect_home():
 def main():
     log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
     # TODO: setup logging
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5555))
     parser = argparse.ArgumentParser("Chat Server for PromptQL playground")
     add_promptql_config_args(parser)
     app.state.promptql_config = build_promptql_config(parser.parse_args())

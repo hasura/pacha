@@ -1,3 +1,5 @@
+import { WebSocketClient } from './data/WebSocketClient';
+
 type TableArtifact = {
   identifier: string;
   artifact_type: string;
@@ -44,6 +46,7 @@ export type UserConfirmationType = {
   fromHistory?: boolean;
   status: 'PENDING' | 'APPROVED' | 'DENIED' | 'TIMED_OUT' | 'CANCELED';
   responseMode: ResponseMode;
+  client: WebSocketClient;
 };
 
 export type SelfMessage = {
@@ -64,7 +67,7 @@ export type NewAiResponse =
   | {
       message: unknown; // no chunks here, this will always be bufferred full output received till that time
       type: 'ai';
-      assistant_action_id:string;
+      assistant_action_id: string;
       confirmation_id?: string;
       tool_calls?: ToolCall[];
       code?: string; // no chunks here, this will always be bufferred full output received till that time

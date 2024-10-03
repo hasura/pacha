@@ -7,7 +7,7 @@ import {
   StartThreadResponse,
 } from './api-types';
 import { Thread } from './api-types-v2';
-import { AssistantResponse } from './Api-Types-v3';
+import { ServerEvent } from './Api-Types-v3';
 import { WebSocketClient } from './WebSocketClient';
 
 export class ChatClient {
@@ -31,6 +31,14 @@ export class ChatClient {
   private getUrl(path: string): string {
     return this.baseUrl ? `${this.baseUrl}${path}` : path;
   }
+
+  private getThreadsUrl(thread_id: string): string {
+    if (thread_id && thread_id !== '') {
+      return this.getUrl(`/threads/${thread_id}/continue`);
+    } else {
+      return this.getUrl(`/threads/start`);
+    }
+  }
   // Assumptions (Do not merge, its for the design thoughts)
 
   // 1. A web socket connection lifespan is per interaction and if the thread is not doing anything, we will not keep the WS open
@@ -44,14 +52,17 @@ export class ChatClient {
   }: {
     threadId: string;
     message: string;
-    onAssistantResponse: (event: AssistantResponse) => void;
+    onAssistantResponse: (event: ServerEvent, client: WebSocketClient) => void;
     onThreadIdChange: (newThreadId: string) => void;
     onError: (error: Error) => void;
     onComplete: () => void;
-  }) => {
-    const threadsUrl = this.getUrl(
-      `/ws/threads${threadId ? `/${threadId}` : ''}`
-    );
+  }): Promise<{
+    sendMessage: (message: string) => void;
+    disconnect: () => void;
+    isConnected: () => Promise<boolean>;
+  }> => {
+    const threadsUrl = this.getThreadsUrl(threadId);
+
     let lastMessage;
 
     const client = new WebSocketClient(threadsUrl);
@@ -68,92 +79,36 @@ export class ChatClient {
       if (message.type === 'server_error') {
         return onError(new Error(message.message));
       }
+      if (message.type === 'accept_interaction') {
+        return onThreadIdChange(message.thread_id);
+      }
 
-      return onAssistantResponse(message);
+      return onAssistantResponse(message, client);
     });
 
     client.onClose(() => {
       onComplete();
     });
+    client.sendMessage({ type: 'client_init', version: 'v1' });
 
     client.sendMessage({
       type: 'user_message',
-      message: 'Hello, WebSocket!',
+      message,
       timestamp: new Date().toISOString(),
     });
-  };
-
-  createChatStreamReader = ({
-    threadId,
-    message,
-    onData,
-    onThreadIdChange,
-    onError,
-    onComplete,
-  }: {
-    threadId: string;
-    message: string;
-    onData: (eventName: string, dataLine: string) => void;
-    onThreadIdChange: (newThreadId: string) => void;
-    onError: (error: Error) => void;
-    onComplete: () => void;
-  }) => {
-    const reader = this.sendMessageStream({ threadId, message }).then(
-      response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.body!.getReader();
-      }
-    );
-
-    const decoder = new TextDecoder();
-
-    // Buffering logic to handle scenarios where a chunk contains multiple events and partial events.
-    let buffer = '';
-    const processBuffer = () => {
-      // separates the buffer into potential events.
-      const events = buffer.split('\n\n');
-
-      // takes all but the last element, ensuring we only process complete events.
-      const completeEvents = events.slice(0, -1);
-
-      //keeps the last (potentially partial) event in the buffer for the next processing cycle.
-      buffer = events[events.length - 1];
-
-      completeEvents.forEach(event => {
-        // as per the spec, each event should have two lines
-        const [eventLine, dataLine] = event.split('\n');
-        if (eventLine && dataLine) {
-          const eventName = eventLine.replace('event: ', '');
-          const eventData = dataLine.replace('data: ', '');
-
-          if (eventName === 'start') {
-            const newThreadId = JSON.parse(eventData).thread_id;
-            onThreadIdChange(newThreadId);
-          } else {
-            onData(eventName, eventData);
-          }
-        }
-      });
-    };
-    const read = (
-      reader: ReadableStreamDefaultReader<Uint8Array>
-    ): Promise<void> => {
-      return reader.read().then(({ done, value }) => {
-        if (done) {
-          processBuffer(); // Process any remaining data in the buffer
-          onComplete();
-          return;
-        }
-        const chunkRaw = decoder.decode(value, { stream: true });
-        buffer += chunkRaw;
-        processBuffer();
-        return read(reader);
+    const sendMessage = (newMessage: string) => {
+      client.sendMessage({
+        type: 'user_message',
+        message: newMessage,
+        timestamp: new Date().toISOString(),
       });
     };
 
-    reader.then(read).catch(onError);
+    const disconnect = () => {
+      client.disconnect();
+    };
+
+    return { sendMessage, disconnect, isConnected: client.isConnected };
   };
 
   async getThreads(): Promise<GetThreadsResponse> {
@@ -174,10 +129,10 @@ export class ChatClient {
     const response = await fetch(this.getUrl('/config-check'), {
       method: 'GET',
       credentials: 'include',
-      headers: {
-        ...(this.headers ?? {}),
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
-      },
+      // headers: {
+      //   ...(this.headers ?? {}),
+      //   // [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+      // },
     });
     if (!response.ok) {
       throw new Error(response.statusText);

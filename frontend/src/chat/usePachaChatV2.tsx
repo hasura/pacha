@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useConsoleParams } from '@/routing';
 import { ServerEvent } from './data/Api-Types-v3';
 import { usePachaLocalChatClient, useThreads } from './data/hooks';
+import { WebSocketClient } from './data/WebSocketClient';
 import { usePachaChatContext } from './PachaChatContext';
 import {
   NewAiResponse,
@@ -87,7 +88,7 @@ const usePachaChatV2 = () => {
   }, [threadId, localChatClient, navigate, refetchThreads]);
 
   const handleWsEvents = useCallback(
-    (event: ServerEvent, lastMessage?: ServerEvent) => {
+    (event: ServerEvent, client: WebSocketClient) => {
       if (event.type === 'completion') {
         return;
       }
@@ -112,10 +113,13 @@ const usePachaChatV2 = () => {
           const newMessages = [...prevData];
 
           // find the assistant message with id
-          // const assistantMessageIndex= prevData?.findIndex(prev=>prev.type==='ai' && prev.assistant_action_id===event.assistant_action_id)
-          // newMessages[assistantMessageIndex]={
-
-          newMessages[newMessages?.length - 1] = {
+          const assistantMessageIndex = prevData?.findIndex(
+            prev =>
+              prev.type === 'ai' &&
+              prev.assistant_action_id === event.assistant_action_id
+          );
+          newMessages[assistantMessageIndex] = {
+            // newMessages[newMessages?.length - 1] = {
             ...prevData[newMessages?.length - 1],
             assistant_action_id: event.assistant_action_id,
             threadId: threadId ?? null,
@@ -142,6 +146,7 @@ const usePachaChatV2 = () => {
             fromHistory: false,
             status: 'PENDING',
             responseMode: 'stream',
+            client,
           };
           return [...prevData, newUserRequest];
         });
@@ -228,7 +233,12 @@ const usePachaChatV2 = () => {
   );
 
   const sendMessage = useCallback(
-    async (message: string) => {
+    async (
+      message: string
+    ): Promise<{
+      sendMessage: (message: string) => void;
+      disconnect: () => void;
+    }> => {
       setLoading(true);
       setError(null);
 
