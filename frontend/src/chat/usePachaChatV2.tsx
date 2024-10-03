@@ -9,7 +9,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import { useConsoleParams } from '@/routing';
-import { ServerEvent } from './data/Api-Types-v3';
+import { CodeOutput, ServerEvent } from './data/Api-Types-v3';
 import { usePachaLocalChatClient, useThreads } from './data/hooks';
 import { WebSocketClient } from './data/WebSocketClient';
 import { usePachaChatContext } from './PachaChatContext';
@@ -19,7 +19,45 @@ import {
   ToolCallResponse,
   UserConfirmationType,
 } from './types';
-import { extractModifiedArtifacts, processMessageHistory } from './utils';
+import { processMessageHistory } from './utils';
+
+const updateToolCallResponses =
+  (event: CodeOutput) => (prev: ToolCallResponse[]) => {
+    const newResponses = [...prev];
+    const currentToolRespIndex = prev?.findIndex(i => {
+      if (i.call_id === event.code_block_id) return true;
+    });
+
+    if (currentToolRespIndex >= 0) {
+      // partial code output found, need to merge with the existing partial the response
+      newResponses[currentToolRespIndex] = {
+        call_id: event.code_block_id,
+        output: {
+          output: `${newResponses[currentToolRespIndex]?.output?.output ?? ''}${event.output_chunk}`,
+          error: null,
+          sql_statements: [],
+          modified_artifacts: [],
+        },
+        responseMode: 'stream',
+      } as ToolCallResponse;
+      return newResponses;
+    } else {
+      // first time code output, create a new tool response entry
+      return [
+        ...prev,
+        {
+          call_id: event.code_block_id,
+          output: {
+            output: event.output_chunk,
+            error: null,
+            sql_statements: [],
+            modified_artifacts: [],
+          },
+          responseMode: 'stream',
+        },
+      ] as ToolCallResponse[];
+    }
+  };
 
 const usePachaChatV2 = () => {
   const { threadId } = useConsoleParams();
@@ -41,7 +79,17 @@ const usePachaChatV2 = () => {
     refetchThreads,
     data,
     setRawData,
+    artifacts,
+    setArtifacts,
   } = usePachaChatContext();
+
+  const resetState = useCallback(() => {
+    setRawData([]);
+    setToolCallResponses([]);
+    setArtifacts([]);
+    setError(null);
+    setLoading(false);
+  }, [setRawData, setToolCallResponses, setArtifacts, setError, setLoading]);
 
   useEffect(() => {
     // when the user navigates to a new thread, load the new thread
@@ -52,26 +100,26 @@ const usePachaChatV2 = () => {
     if (!threadId) {
       // if threadId is undefined, clear the chat history
       // user is at the chat home page
-      setRawData([]);
-      setLoading(false);
+      resetState();
       currentThreadId.current = undefined;
       return;
     }
 
     if (threadId) {
       // if threadId is defined, reset the chat history
-      setRawData([]);
+      resetState();
       setLoading(true);
-      setError(null);
 
       currentThreadId.current = threadId;
       // load the chat history for the new thread
       localChatClient
         .getThread({ threadId })
         .then(data => {
-          const { history, toolcallResponses } = processMessageHistory(data);
+          const { history, toolcallResponses, artifacts } =
+            processMessageHistory(data);
           setRawData(history);
           setToolCallResponses(toolcallResponses);
+          setArtifacts(artifacts);
           return data;
         })
         .catch(err => {
@@ -152,44 +200,7 @@ const usePachaChatV2 = () => {
         });
       }
       if (event.type === 'code_output') {
-        setToolCallResponses(prev => {
-          const newResponses = [...prev];
-          const currentToolRespIndex = prev?.findIndex(i => {
-            if (i.call_id === event.code_block_id) return true;
-          });
-
-          if (currentToolRespIndex >= 0) {
-            // partial code output found, need to merge with the existing partial the response
-            newResponses[currentToolRespIndex] = {
-              call_id: event.code_block_id,
-              output: {
-                output: `${newResponses[currentToolRespIndex]?.output?.output ?? ''}${event.output_chunk}`,
-                error: null,
-                sql_statements: [],
-                modified_artifacts: [],
-              },
-              responseMode: 'stream',
-            } as ToolCallResponse;
-            return newResponses;
-          } else {
-            // first time code output, create a new tool response entry
-            return [
-              ...prev,
-              {
-                call_id: event.code_block_id,
-                output: {
-                  output: event.output_chunk,
-                  error: null,
-                  sql_statements: [],
-                  modified_artifacts: [],
-                },
-                responseMode: 'stream',
-              },
-            ] as ToolCallResponse[];
-          }
-
-          return newResponses;
-        });
+        setToolCallResponses(updateToolCallResponses(event));
       }
       if (event.type === 'code_error') {
         setToolCallResponses(prev => {
@@ -224,8 +235,6 @@ const usePachaChatV2 = () => {
               },
             ] as ToolCallResponse[];
           }
-
-          return newResponses;
         });
       }
     },
@@ -274,8 +283,6 @@ const usePachaChatV2 = () => {
     },
     [navigate, threadId, handleWsEvents, refetchThreads, localChatClient]
   );
-
-  const artifacts = useMemo(() => extractModifiedArtifacts(data), [data]);
 
   return {
     threadId,

@@ -2,7 +2,7 @@ import { WebSocketClient } from './data/WebSocketClient';
 
 type TableArtifact = {
   identifier: string;
-  artifact_type: string;
+  artifact_type: 'table';
   title: string;
   data: Record<string, unknown>[];
   responseMode: ResponseMode;

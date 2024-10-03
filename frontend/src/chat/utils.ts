@@ -1,50 +1,22 @@
 import { ThreadResponse } from './data/Api-Types-v3';
-import {
-  AiMessage,
-  Artifact,
-  NewAiResponse,
-  ToolCallResponse,
-  ToolchainResult,
-  UserConfirmationType,
-} from './types';
-
-export const extractModifiedArtifacts = (data: NewAiResponse[]): Artifact[] => {
-  const artifactMap = new Map<string, Artifact>();
-
-  data.forEach(item => {
-    if (item.type === 'toolchain') {
-      try {
-        const parsedMessage: ToolchainResult =
-          typeof item.message === 'string'
-            ? JSON.parse(item.message)
-            : item.message;
-
-        if (
-          parsedMessage.modified_artifacts &&
-          parsedMessage.modified_artifacts.length > 0
-        ) {
-          parsedMessage.modified_artifacts.forEach(artifact => {
-            if (artifact.identifier) {
-              artifactMap.set(artifact.identifier, {
-                ...artifact,
-                responseMode: item.responseMode,
-              });
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error parsing toolchain message:', error);
-      }
-    }
-  });
-
-  return Array.from(artifactMap.values()).reverse();
-};
+import { AiMessage, Artifact, NewAiResponse, ToolCallResponse } from './types';
 
 export const processMessageHistory = (resp: ThreadResponse) => {
   const history: NewAiResponse[] = [];
   const toolcallResponses: ToolCallResponse[] = [];
+  const artifacts: Artifact[] = [];
   const interactions = resp.state.interactions;
+  resp.state.artifacts.forEach(artifact => {
+    if (artifact.artifact_type === 'table') {
+      artifacts.push({
+        identifier: artifact.identifier,
+        artifact_type: 'table',
+        title: artifact.title,
+        data: artifact.data,
+        responseMode: 'history',
+      });
+    }
+  });
 
   interactions?.forEach(interaction => {
     history.push({
@@ -77,7 +49,7 @@ export const processMessageHistory = (resp: ThreadResponse) => {
           output: {
             output: item?.code?.output ?? '',
             error: item.code.error ?? null,
-            sql_statements:item.code.sql_statements,
+            sql_statements: item.code.sql_statements,
             modified_artifacts: [],
           },
         });
@@ -86,7 +58,7 @@ export const processMessageHistory = (resp: ThreadResponse) => {
       history.push(newVal);
     });
   });
-  return { history, toolcallResponses };
+  return { history, toolcallResponses, artifacts };
 };
 
 export function downloadObjectAsCsv(

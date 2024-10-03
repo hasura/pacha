@@ -6,8 +6,7 @@ import {
   SendMessageRequest,
   StartThreadResponse,
 } from './api-types';
-import { Thread } from './api-types-v2';
-import { ServerEvent } from './Api-Types-v3';
+import { ServerEvent, ThreadResponse } from './Api-Types-v3';
 import { WebSocketClient } from './WebSocketClient';
 
 export class ChatClient {
@@ -140,7 +139,7 @@ export class ChatClient {
     return response.text();
   }
 
-  async getThread({ threadId }: GetThreadRequest): Promise<Thread> {
+  async getThread({ threadId }: GetThreadRequest): Promise<ThreadResponse> {
     const response = await fetch(this.getUrl(`/threads/${threadId}`), {
       method: 'GET',
       credentials: 'include',

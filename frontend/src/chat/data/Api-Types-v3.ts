@@ -54,10 +54,10 @@ export interface ThreadInteraction {
 }
 
 interface Artifact {
-  // Define the structure of Artifact here
-  // For example:
-  type: string;
-  data: unknown;
+  artifact_type: string;
+  data: Record<string, unknown>[];
+  identifier: string;
+  title: string;
 }
 
 export interface ThreadState {
@@ -116,7 +116,7 @@ interface ExecutingCode {
   type: 'executing_code';
 }
 
-interface CodeOutput {
+export interface CodeOutput {
   type: 'code_output';
   output_chunk: string;
   code_block_id: string;

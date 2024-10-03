@@ -3,7 +3,7 @@ import React, { Dispatch, RefObject, SetStateAction, useContext } from 'react';
 import { DEFAULT_PACHA_ENDPOINT } from './constants';
 import { Thread } from './data/api-types';
 import { usePachaLocalChatClient } from './data/hooks';
-import { NewAiResponse, ToolCallResponse } from './types';
+import { Artifact, NewAiResponse, ToolCallResponse } from './types';
 
 export const PachaChatContext = React.createContext<
   | {
@@ -15,6 +15,8 @@ export const PachaChatContext = React.createContext<
       setAuthToken: (token: string) => void;
       data: NewAiResponse[];
       setRawData: Dispatch<SetStateAction<NewAiResponse[]>>;
+      artifacts: Artifact[];
+      setArtifacts: Dispatch<SetStateAction<Artifact[]>>;
       threads: Thread[];
       isThreadsLoading: boolean;
       refetchThreads: () => void;

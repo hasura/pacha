@@ -8,7 +8,7 @@ import {
 } from './constants';
 import { useThreads } from './data/hooks';
 import { PachaChatContext } from './PachaChatContext';
-import { NewAiResponse } from './types';
+import { Artifact, NewAiResponse } from './types';
 
 type PachaChatConfig = {
   pachaEndpoint: string;
@@ -60,6 +60,7 @@ const PachaChatProvider = ({ children }: { children: React.ReactNode }) => {
     [setIsMinimized_, navigate, location.pathname]
   );
   const [data, setRawData] = useState<NewAiResponse[]>([]);
+  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
 
   const {
     data: threads = [],
@@ -83,6 +84,8 @@ const PachaChatProvider = ({ children }: { children: React.ReactNode }) => {
         isThreadsLoading,
         refetchThreads,
         threadsError,
+        artifacts,
+        setArtifacts,
       }}
     >
       {children}
