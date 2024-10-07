@@ -1,11 +1,11 @@
 import { MantineRadius, MantineSpacing } from '@mantine/core';
 
-export const APP_SHELL_HEADER_HEIGHT = 0;
+export const APP_SHELL_HEADER_HEIGHT = 54;
 export const PAGE_SHELL_TAB_BAR_HEIGHT = 46;
-export const PROJECT_APP_SHELL_NAVBAR_WIDTH = 64;
+export const PROJECT_APP_SHELL_NAVBAR_WIDTH = 60;
 export const HASURA_BLUE = '#3970FD';
 export const APP_SHELL_ID = 'hasura-app-shell';
-export const FONT_SIZE = 14;
+
 export const MAX_CONTENT_WIDTH = 1280;
 export const CONTENT_PADDING: MantineSpacing = 'md';
 export const CONTENT_MARGIN: MantineSpacing = 'md';

@@ -24,6 +24,7 @@ export * from './page-shell';
 export * from './lazy-loader';
 export * from './hybrid-menu';
 export * from './acceptable-list';
+export * from './hover-wrappers';
 export * from './withProps';
 
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
