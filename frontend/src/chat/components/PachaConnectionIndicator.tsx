@@ -1,13 +1,13 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Loader, ThemeIcon, Tooltip } from '@/ui/core';
 import { Icons } from '@/ui/icons';
 import { notifications } from '@/ui/notifications';
 import { usePachaConnectionStatus } from '../data/hooks';
-import { PachaChatContext } from '../PachaChatContext';
+import { usePachaChatContext } from '../PachaChatContext';
 
 const PachaConnectionIndicator = ({ onClick }: { onClick?: () => void }) => {
-  const { pachaEndpoint, authToken } = useContext(PachaChatContext);
+  const { pachaEndpoint, authToken } = usePachaChatContext();
   const { data, isError, isPending } = usePachaConnectionStatus(
     pachaEndpoint,
     authToken
