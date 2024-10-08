@@ -1,5 +1,6 @@
 import { MRT_Icons } from 'mantine-react-table';
 import { BiGitCompare, BiLogoPostgresql, BiRefresh } from 'react-icons/bi';
+import { BsSortDown, BsSortUp } from 'react-icons/bs';
 import { CgReadme } from 'react-icons/cg';
 import { CiCloudOff, CiCloudOn } from 'react-icons/ci';
 import {
@@ -54,6 +55,7 @@ import {
   PiCaretUp,
   PiCaretUpDown,
   PiChartBar,
+  PiChartBarFill,
   PiChartDonut,
   PiChartLine,
   PiChatCircle,
@@ -67,6 +69,7 @@ import {
   PiClockCounterClockwise,
   PiCloud,
   PiCloudLightning,
+  PiCode,
   PiCodeBlock,
   PiCodeSimple,
   PiCompass,
@@ -79,6 +82,7 @@ import {
   PiDatabase,
   PiDatabaseFill,
   PiDoor,
+  PiDotsThreeDuotone,
   PiDotsThreeOutline,
   PiDotsThreeOutlineVertical,
   PiDotsThreeVertical,
@@ -138,9 +142,8 @@ import {
   PiSkipForward,
   PiSliders,
   PiSlidersHorizontal,
-  PiSortAscending,
-  PiSortDescending,
   PiStack,
+  PiStarLight,
   PiStorefront,
   PiSun,
   PiTable,
@@ -152,12 +155,12 @@ import {
   PiTrash,
   PiTrendDown,
   PiTrendUp,
-  PiUser,
   PiUserCircle,
   PiUsers,
   PiWallet,
   PiWarning,
   PiWarningCircleFill,
+  PiWrench,
   PiX,
   PiXCircle,
 } from 'react-icons/pi';
@@ -190,10 +193,16 @@ export const MetadataIcons = {
 };
 
 export const ProjectRoles = {
-  ProjectOwner: PiShieldCheck,
-  ProjectAdmin: PiKey,
-  ProjectUser: PiUser,
+  ProjectOwner: PiStarLight,
+  ProjectAdmin: PiShieldCheck,
+  ProjectUser: PiEye,
   ProjectExecuteGraphQL: PiTerminal,
+  SubgraphDev: PiCode,
+  SubgraphAdmin: PiWrench,
+};
+
+export const ProjectAccess = {
+  AccessLevel: PiChartBarFill,
 };
 
 // Basic App Actions
@@ -412,7 +421,7 @@ export const MantineReactTableIcons: Partial<MRT_Icons> = {
   IconClearAll: PiX,
   IconColumns: PiTextColumns,
   IconDeviceFloppy: PiFloppyDisk,
-  IconDots: PiDotsThreeOutline,
+  IconDots: PiDotsThreeDuotone,
   IconDotsVertical: PiDotsThreeVertical,
   IconEdit: PiPencil,
   IconEyeOff: PiEyeSlash,
@@ -426,13 +435,13 @@ export const MantineReactTableIcons: Partial<MRT_Icons> = {
   IconPinnedOff: PiPushPinSlash,
   IconSearch: PiMagnifyingGlass,
   IconSearchOff: PiMagnifyingGlassMinus,
-  IconSortAscending: PiSortAscending,
-  IconSortDescending: PiSortDescending,
+  IconSortAscending: BsSortDown,
+  IconSortDescending: BsSortUp,
   IconX: PiX,
 };
 
 export const DDNPlanIcons = {
-  DDNFree: PiUser,
+  DDNFree: PiUsers,
   DDNBase: FaRegBuilding,
   DDNAdvanced: LuBuilding2,
   DDNPrivate: LuServer,
@@ -465,4 +474,5 @@ export const Icons = {
   ...ShareProjectIcons,
   ...DDNInfraIcons,
   ...ChatIcons,
+  ...ProjectAccess,
 };
