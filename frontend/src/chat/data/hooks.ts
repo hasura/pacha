@@ -1,7 +1,7 @@
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { createQuery } from '@/utils/react-query';
-import { PachaChatContext } from '../PachaChatContext';
+import { usePachaChatContext } from '../PachaChatContext';
 import { ChatClient } from './client';
 
 export const getLocalChatClient = (baseUrl: string, authToken: string) =>
@@ -11,7 +11,7 @@ export const getLocalChatClient = (baseUrl: string, authToken: string) =>
   });
 
 export const usePachaLocalChatClient = () => {
-  const { pachaEndpoint, authToken } = useContext(PachaChatContext);
+  const { pachaEndpoint, authToken } = usePachaChatContext();
   return useMemo(() => {
     return new ChatClient({
       baseUrl: pachaEndpoint,
