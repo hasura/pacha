@@ -12,3 +12,4 @@ export * from './useHoverableTextStyle';
 export * from './useUIState';
 
 export { useLocalStorage, useSessionStorage } from './useStorage';
+export * from './useHasOverflowX';

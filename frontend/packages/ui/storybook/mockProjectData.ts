@@ -17,6 +17,7 @@ export const mockProjectData = {
     private_ddn: {
       fqdn: 'ddn.hasura.me',
       name: 'hasura-public',
+      ddn_kind: 'self_hosted',
     },
     can_request_access: false,
   },
