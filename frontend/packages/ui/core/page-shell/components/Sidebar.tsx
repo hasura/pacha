@@ -80,6 +80,7 @@ export const Sidebar = ({
         radius={'md'}
         onClick={() => toggleSidebar()}
         className="transition-all duration-300 ease-in-out"
+        aria-label="toggle-side-bar"
       >
         <Icons.ChevronDoubleLeft
           className={clsx(
