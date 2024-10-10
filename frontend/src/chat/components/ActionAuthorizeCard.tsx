@@ -1,18 +1,8 @@
-import { useConsoleParams } from '@/routing';
-import {
-  Alert,
-  Button,
-  Card,
-  Group,
-  LoadingOverlay,
-  Text,
-  Title,
-} from '@/ui/core';
+import { Alert, Button, Card, Group, Text, Title } from '@/ui/core';
 import { useSchemeColors } from '@/ui/hooks';
 import { Icons } from '@/ui/icons';
 import { CodeMirrorProvider, ReactCodeMirror } from '@/ui/lazy';
 import { UserConfirmationType } from '../types';
-import useUserConfirmation from '../useUserConfirmation';
 import { safeJSONParse } from '../utils';
 
 const getAlertRendereConfig = ({
@@ -20,13 +10,11 @@ const getAlertRendereConfig = ({
   isDenied,
   isCanceled,
   isTimedOut,
-  error,
 }: {
   isApproved: boolean;
   isDenied: boolean;
   isCanceled: boolean;
   isTimedOut: boolean;
-  error: Error | null;
 }) => {
   if (isApproved)
     return {
@@ -60,14 +48,6 @@ const getAlertRendereConfig = ({
       icon: <Icons.Environment />,
       message: 'Action timed out. The action will not be executed.',
     };
-  if (error)
-    return {
-      variant: 'light',
-      color: 'red',
-      title: 'Error',
-      icon: <Icons.Environment />,
-      message: 'Error updating the confirmation status. Please try again.',
-    };
   return null;
 };
 
@@ -79,9 +59,8 @@ const ActionAuthorizeCard = ({
   hasNextAiMessage: boolean;
 }) => {
   const { bg } = useSchemeColors();
-  const { threadId } = useConsoleParams();
 
-  const { update, loading, error, status } = useUserConfirmation();
+  // const { update, loading, error, status } = useUserConfirmation();
   const isApproved = status === 'approved' || data?.status === 'APPROVED';
   const isDenied = status === 'denied' || data?.status === 'DENIED';
   const isCanceled = data?.status === 'CANCELED';
@@ -95,12 +74,18 @@ const ActionAuthorizeCard = ({
     isDenied,
     isCanceled,
     isTimedOut,
-    error,
   });
+  const update = (b: 'approve' | 'deny') => {
+    data.client?.sendMessage({
+      type: 'user_confirmation_response',
+      response: b,
+      confirmation_request_id: data.confirmation_id,
+    });
+  };
 
   return (
     <Card bg={bg.level1} withBorder maw={'100%'} miw={'100%'}>
-      <LoadingOverlay visible={loading} />
+      {/* <LoadingOverlay visible={loading} /> */}
       <Card.Section withBorder inheritPadding py="sm">
         <Title order={5} size="sm">
           Action Required
@@ -137,14 +122,11 @@ const ActionAuthorizeCard = ({
           <Button
             disabled={!!status}
             variant="light"
-            onClick={() => update(data?.confirmation_id, threadId ?? '', false)}
+            onClick={() => update('deny')}
           >
             Deny
           </Button>
-          <Button
-            disabled={!!status}
-            onClick={() => update(data?.confirmation_id, threadId ?? '', true)}
-          >
+          <Button disabled={!!status} onClick={() => update('approve')}>
             Approve {'>'}
           </Button>
         </Group>
