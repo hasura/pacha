@@ -43,6 +43,7 @@ export function CopyButton(props: CopyButtonProps) {
           clipboard.copy(toCopy);
         }}
         data-testid={testId}
+        aria-label="copy code snippet"
       >
         {children ?? toCopy}
       </Button>
