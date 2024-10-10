@@ -25,6 +25,12 @@ export function useMRTDefaultOptions<TData extends MRT_RowData>(props?: {
   const defaultOptions = React.useMemo(
     () =>
       ({
+        mantineHighlightProps: {
+          color: 'blue',
+        },
+        mantineTopToolbarProps: {
+          bg: props?.grayHeader ? bg.level4 : undefined,
+        },
         mantineBottomToolbarProps: {
           p: 'lg',
         },

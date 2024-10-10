@@ -13,6 +13,7 @@ export * from './generic-error';
 export * from './selectable-list';
 export * from './collapsible-alert-card';
 export * from './content-container';
+export * from './animated-border-box';
 
 export { Table } from './table';
 
@@ -24,6 +25,7 @@ export * from './page-shell';
 export * from './lazy-loader';
 export * from './hybrid-menu';
 export * from './acceptable-list';
+export * from './hover-wrappers';
 export * from './withProps';
 
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
