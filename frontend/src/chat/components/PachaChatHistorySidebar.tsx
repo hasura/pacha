@@ -1,4 +1,3 @@
-import { useContext } from 'react';
 import { createSearchParams, useNavigate } from 'react-router-dom';
 
 import { getRoutes } from '@/routing';
@@ -17,7 +16,7 @@ import { useSchemeColors } from '@/ui/hooks';
 import { ChatIcons, Icons } from '@/ui/icons';
 import { modals } from '@/ui/modals';
 import { Thread } from '../data/api-types';
-import { PachaChatContext } from '../PachaChatContext';
+import { usePachaChatContext } from '../PachaChatContext';
 import { HistoryGroup } from './HistoryItem';
 import { PachaChatSettingsForm } from './PachaChatSettingsForm';
 import PachaConnectionIndicator from './PachaConnectionIndicator';
@@ -35,7 +34,7 @@ const PachaChatHistorySidebar = ({
   const { bg } = useSchemeColors();
 
   const { pachaEndpoint, setPachaEndpoint, authToken, setAuthToken } =
-    useContext(PachaChatContext);
+    usePachaChatContext();
 
   const handleOpenPachaSettings = () => {
     modals.open({
