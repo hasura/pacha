@@ -64,7 +64,7 @@ cd pacha
 #### Accessing Pacha UI
 
 
-1. Open [https://console.hasura.io/local/chat](https://console.hasura.io/local/chat) to open Pacha UI on Hasura Console. 
+1. Open [http://localhost:5001](http://localhost:5001) to open Pacha UI. 
 
 2. Use the settings icon (gear) next to the "Pacha Chat" title to configure:
    - Pacha server URL (e.g., `http://localhost:5001` if running locally)
