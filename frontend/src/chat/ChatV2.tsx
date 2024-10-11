@@ -1,7 +1,9 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ErrorBoundary } from '@console/ui/common';
 
 import {
   ActionIcon,
+  GenericError,
   Grid,
   Group,
   PageShell,
@@ -17,7 +19,7 @@ import ChatResponse from './components/ChatResponse';
 import ErrorIndicator from './components/ErrorIndicator';
 import PachaChatHistorySidebar from './components/PachaChatHistorySidebar';
 import PachaChatProvider from './PachaChat.Provider';
-import { PachaChatContext } from './PachaChatContext';
+import { usePachaChatContext } from './PachaChatContext';
 import usePachaChatV2 from './usePachaChatV2';
 
 const handleTextareaEnterKey =
@@ -69,9 +71,10 @@ export const Chat = () => {
 
   const [message, setMessage] = useState('');
   const { sidebarOpen } = usePageShellContext();
-  const { isMinimized, setIsMinimized } = useContext(PachaChatContext);
   const [textareaHeight, setTextareaHeight] = useState(100);
   const textareaRef = useRef<HTMLDivElement | null>(null);
+
+  const { isMinimized, setIsMinimized } = usePachaChatContext();
 
   const updateTextareaHeight = () => {
     if (textareaRef.current) {
@@ -138,6 +141,7 @@ export const Chat = () => {
                     }
                     toolCallResponses={toolCallResponses}
                     isQuestionPending={isQuestionPending}
+                    error={error}
                   />
                   <ErrorIndicator error={error} />
                   {/* Message Input: */}
@@ -210,9 +214,13 @@ export const Chat = () => {
 export const ChatPageShell = () => {
   return (
     <PageShell headerHeight={50} sidebarWidth={rem(250)}>
-      <PachaChatProvider>
-        <Chat />
-      </PachaChatProvider>
+      <ErrorBoundary
+        errorHandler={err => <GenericError message={err?.message ?? ''} />}
+      >
+        <PachaChatProvider>
+          <Chat />
+        </PachaChatProvider>
+      </ErrorBoundary>
     </PageShell>
   );
 };
