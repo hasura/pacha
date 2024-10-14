@@ -7,7 +7,6 @@ import {
   Flex,
   Group,
   Highlight,
-  lighten,
   Loader,
   Menu,
   MenuProps,
@@ -191,7 +190,7 @@ export function SearchableMenu<ItemType extends Record<string, unknown>>({
                     )}
 
                     {itemSubtitle?.(project, filterKeyword) && (
-                      <Text size="sm" fw={400} c={lighten('gray', 0.6)}>
+                      <Text size="sm" c={isDarkMode ? 'gray.5' : 'gray.8'}>
                         {itemSubtitle?.(project, filterKeyword) || '---'}
                       </Text>
                     )}
