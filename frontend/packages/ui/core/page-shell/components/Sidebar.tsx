@@ -43,6 +43,7 @@ export const Sidebar = ({
   return (
     <Box
       pos={'relative'}
+      id="page-shell-sidebar"
       w={sidebarOpen ? sidebarWidth : 0}
       maw={sidebarWidth}
       bg={bgProp ?? bg}
@@ -65,7 +66,12 @@ export const Sidebar = ({
           {...scrollAreaProps}
           className="!overflow-x-hidden"
         >
-          <Flex direction={'column'} flex={1} mih={height}>
+          <Flex
+            direction={'column'}
+            flex={1}
+            mih={height}
+            id="page-shell-sidebar-content"
+          >
             {typeof children === 'function' ? children(height) : children}
           </Flex>
         </ScrollArea.Autosize>
@@ -80,6 +86,7 @@ export const Sidebar = ({
         radius={'md'}
         onClick={() => toggleSidebar()}
         className="transition-all duration-300 ease-in-out"
+        aria-label="toggle-side-bar"
       >
         <Icons.ChevronDoubleLeft
           className={clsx(
