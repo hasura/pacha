@@ -4,7 +4,7 @@ import { contextDataFromMetadata } from '@console/context/metadata/contextDataFr
 import { generateMockMetadata } from '@console/features/metadata-explorer/Visualization/generateMockMetadata';
 
 import { Metadata } from '@/utils/metadata-types';
-import { mockMetadata } from './mockMetadata';
+import { mockMetadata } from '../mock-data';
 
 // Store the metadata in local storage to avoid re-generating it on every page load
 // Store legacy keys to clean up old data, otherwise local storage quickly fills up due to the large size of the metadata
