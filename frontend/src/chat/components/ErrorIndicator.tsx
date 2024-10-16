@@ -1,9 +1,11 @@
-import { getRoutes, useConsoleParams } from '@/routing';
+import { useConsoleParams } from '@/routing';
 import { Anchor, Center, Image, Stack, Text, Title } from '@/ui/core';
+import { usePachaChatContext } from '../PachaChatContext';
 import notFound from './not-found.png';
 
 const ErrorIndicator = ({ error }: { error?: Error | null }) => {
   const { threadId } = useConsoleParams();
+  const { routes } = usePachaChatContext();
 
   if (
     threadId &&
@@ -26,8 +28,8 @@ const ErrorIndicator = ({ error }: { error?: Error | null }) => {
               config error.
               <br />
               <br /> Try starting a{' '}
-              <Anchor href={getRoutes().localDev.chat()}>new chat</Anchor> or
-              check your connection settings.
+              <Anchor href={routes.newChat}>new chat</Anchor> or check your
+              connection settings.
             </Text>
           </Stack>
         </Stack>
