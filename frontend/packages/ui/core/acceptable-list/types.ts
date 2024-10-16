@@ -19,9 +19,9 @@ export type AcceptableListProps<ItemType = unknown> = {
   acceptingAll: boolean;
   // do not allow loader customization, but otherwise allow customization
   acceptAllButton?: Omit<ButtonProps, 'loading' | 'loaderProps'> & {
-    onClick: () => void;
     label?: string;
   };
+  onAcceptAll: () => void;
   acceptingIds: string[];
   decliningIds: string[];
   getItemId: (item: ItemType) => string;
