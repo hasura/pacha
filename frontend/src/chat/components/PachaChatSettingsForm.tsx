@@ -12,12 +12,12 @@ export function PachaChatSettingsForm({
 }: {
   pachaEndpoint: string;
   setPachaEndpoint: (pachaEndpoint: string) => void;
-  authToken: string;
-  setAuthToken: (authToken: string) => void;
+  authToken?: string;
+  setAuthToken: (authToken?: string) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
-  const form = useForm<{ pachaUrl: string; pachaAuthToken: string }>({
+  const form = useForm<{ pachaUrl: string; pachaAuthToken?: string }>({
     initialValues: {
       pachaUrl: pachaEndpoint,
       pachaAuthToken: authToken,
