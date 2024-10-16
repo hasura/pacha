@@ -10,6 +10,8 @@ import {
 } from '../types';
 import ActionAuthorizeCard from './ActionAuthorizeCard';
 import AssistantResponse from './AssistantResponse';
+import ErrorIndicator from './ErrorIndicator';
+import PachaChatBanner from './PachaChatBanner';
 import PachaFeedback from './PachaFeedback';
 
 export function SelfMessageBox({ data }: { data: SelfMessage }) {
@@ -31,19 +33,33 @@ export function SelfMessageBox({ data }: { data: SelfMessage }) {
   );
 }
 
-export function ErrorMessage({ data }: { data: ErrorResponseType }) {
+export function ErrorMessage({
+  data,
+  error,
+}: {
+  data: ErrorResponseType;
+  error?: Error;
+}) {
   const { bg } = useSchemeColors();
+  if (error?.message?.startsWith(`Error loading chat thread:`))
+    return <ErrorIndicator error={error} />;
+
   return (
     <Paper
-      maw={'70%'}
-      my={'lg'}
-      withBorder
       style={{
         whiteSpace: 'pre-wrap',
       }}
+      my={'lg'}
+      withBorder
+      p={'md'}
       bg={bg.color('red')}
     >
-      {data?.message}
+      {data?.message ??
+        `An unexpected error occurred. The server did not provide specific details, but you can try the following steps:
+
+	•	Check your network connection.
+	•	Try refreshing the page or submitting the request again.
+	•	If the problem persists, please contact support with the steps that led to this error.`}
     </Paper>
   );
 }
@@ -55,6 +71,7 @@ const ChatResponse = ({
   isQuestionPending,
   mih,
   mah,
+  error,
 }: {
   data: NewAiResponse[];
   toolCallResponses: ToolCallResponse[];
@@ -62,6 +79,7 @@ const ChatResponse = ({
   mah: BoxProps['mah'];
   mih: BoxProps['mih'];
   isQuestionPending: boolean;
+  error?: Error | null;
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -96,27 +114,45 @@ const ChatResponse = ({
       >
         <Stack gap={0}>
           {data.map((item, index) => {
+            const key = `${item.type}-${index}`;
             if (item?.type === 'ai')
               return (
                 <AssistantResponse
                   data={item}
+                  key={key}
                   toolCallResponses={toolCallResponses}
                 />
               );
 
-            if (item?.type === 'self') return <SelfMessageBox data={item} />;
-            if (item?.type === 'error') return <ErrorMessage data={item} />;
+            if (item?.type === 'self')
+              return <SelfMessageBox data={item} key={key} />;
+            if (item?.type === 'error')
+              return <ErrorMessage data={item} key={key} />;
             if (item?.type === 'user_confirmation')
               return (
                 <ActionAuthorizeCard
                   data={item}
+                  key={key}
                   hasNextAiMessage={!!data?.[index + 1]}
                 />
               );
             return null;
           })}
           {isQuestionPending && <Loader type="dots" />}
-          {!isQuestionPending && isLastMessageFromAi && <PachaFeedback data={data} />}
+          {!isQuestionPending && isLastMessageFromAi && (
+            <PachaFeedback data={data} />
+          )}
+          {data?.length ? null : <PachaChatBanner />}
+          {error ? (
+            <ErrorMessage
+              data={{
+                message: error?.message,
+                type: 'error',
+                responseMode: 'history',
+              }}
+              error={error}
+            />
+          ) : null}
         </Stack>
       </Box>
     </ScrollArea.Autosize>
