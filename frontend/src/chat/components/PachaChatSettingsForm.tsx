@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button, TextInput } from '@/ui/core';
 import { useForm } from '@/ui/forms';
 import { modals } from '@/ui/modals';
+import { testId } from '@/utils/js-utils';
 
 export function PachaChatSettingsForm({
   pachaEndpoint,
@@ -12,12 +13,12 @@ export function PachaChatSettingsForm({
 }: {
   pachaEndpoint: string;
   setPachaEndpoint: (pachaEndpoint: string) => void;
-  authToken: string;
-  setAuthToken: (authToken: string) => void;
+  authToken?: string;
+  setAuthToken: (authToken?: string) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
-  const form = useForm<{ pachaUrl: string; pachaAuthToken: string }>({
+  const form = useForm<{ pachaUrl: string; pachaAuthToken?: string }>({
     initialValues: {
       pachaUrl: pachaEndpoint,
       pachaAuthToken: authToken,
@@ -58,6 +59,10 @@ export function PachaChatSettingsForm({
         fullWidth
         type="submit"
         mt="md"
+        data-testid={testId({
+          feature: 'promptql-settings',
+          id: 'save',
+        })}
       >
         Save
       </Button>
