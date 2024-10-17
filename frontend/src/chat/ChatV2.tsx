@@ -1,10 +1,13 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ErrorBoundary } from '@console/ui/common';
 
 import {
   ActionIcon,
+  GenericError,
   Grid,
   Group,
   PageShell,
+  Popover,
   rem,
   Stack,
   Textarea,
@@ -14,10 +17,10 @@ import { useSchemeColors } from '@/ui/hooks';
 import { Icons } from '@/ui/icons';
 import Artifacts from './components/Artifacts';
 import ChatResponse from './components/ChatResponse';
-import ErrorIndicator from './components/ErrorIndicator';
 import PachaChatHistorySidebar from './components/PachaChatHistorySidebar';
+import PlaygroundHeaders from './components/PlaygroundHeaders';
 import PachaChatProvider from './PachaChat.Provider';
-import { PachaChatContext } from './PachaChatContext';
+import { usePachaChatContext } from './PachaChatContext';
 import usePachaChatV2 from './usePachaChatV2';
 
 const handleTextareaEnterKey =
@@ -65,13 +68,20 @@ export const Chat = () => {
     artifacts,
     error,
     threadsError,
+    threadId,
   } = usePachaChatV2();
 
   const [message, setMessage] = useState('');
   const { sidebarOpen } = usePageShellContext();
-  const { isMinimized, setIsMinimized } = useContext(PachaChatContext);
   const [textareaHeight, setTextareaHeight] = useState(100);
   const textareaRef = useRef<HTMLDivElement | null>(null);
+
+  const {
+    isMinimized,
+    setIsMinimized,
+    setHeadersRef,
+    headersRef: headers,
+  } = usePachaChatContext();
 
   const updateTextareaHeight = () => {
     if (textareaRef.current) {
@@ -87,7 +97,8 @@ export const Chat = () => {
   function handleSendMessage() {
     if (!message) return;
 
-    sendMessage(message);
+    sendMessage(message, headers?.current ?? {});
+    setHeadersRef({});
     setMessage('');
   }
   const chatBodyWidthConfig = useMemo(() => {
@@ -106,6 +117,8 @@ export const Chat = () => {
   }, [artifacts?.length, sidebarOpen, isMinimized]);
 
   const showWide = !artifacts?.length || isMinimized;
+
+  const canShowHeaders = !data.length && !error && !threadId; // when there is no data, no error and new thread mode
 
   return (
     <>
@@ -126,7 +139,6 @@ export const Chat = () => {
               >
                 <Stack mah={height} gap={0} flex={1} pos={'relative'}>
                   {/* Main Chat Body: */}
-
                   <ChatResponse
                     chatBodyWidthConfig={chatBodyWidthConfig}
                     data={data}
@@ -134,63 +146,80 @@ export const Chat = () => {
                     mih={
                       data?.length
                         ? `calc(${height} - ${textareaHeight - 10}px)`
-                        : '10vh'
+                        : '500px'
                     }
                     toolCallResponses={toolCallResponses}
                     isQuestionPending={isQuestionPending}
+                    error={error}
                   />
-                  <ErrorIndicator error={error} />
                   {/* Message Input: */}
-                  <Stack h={`${textareaHeight + 10}px`} justify="center">
-                    <Group
-                      w={'100%'}
-                      justify="center"
-                      p={'md'}
-                      ref={textareaRef}
-                    >
-                      <Textarea
-                        mb={'xl'}
-                        variant="filled"
-                        size="xl"
-                        placeholder={
-                          isQuestionPending
-                            ? 'Generating response...'
-                            : 'Act with your data 🙌'
-                        }
-                        styles={{
-                          input: {
-                            fontSize: 16,
-                            backgroundColor: bg.level1,
-                          },
-                        }}
-                        disabled={isQuestionPending}
-                        w="100%"
-                        maw={chatBodyWidthConfig}
-                        radius="xl"
-                        value={isQuestionPending ? '' : message}
-                        onChange={e => setMessage(e.target.value)}
-                        onKeyDown={handleTextareaEnterKey(() => {
-                          handleSendMessage();
-                        })}
-                        rightSection={
-                          <ActionIcon
-                            loading={isQuestionPending}
-                            onClick={() => {
-                              handleSendMessage();
+                  <Popover position="top" opened={canShowHeaders}>
+                    <Popover.Target>
+                      <Stack h={`${textareaHeight + 10}px`} justify="center">
+                        <Group
+                          w={'100%'}
+                          justify="center"
+                          p={'md'}
+                          ref={textareaRef}
+                        >
+                          <Textarea
+                            mb={'xl'}
+                            variant="filled"
+                            size="xl"
+                            placeholder={
+                              isQuestionPending
+                                ? 'Generating response...'
+                                : 'Act with your data 🙌'
+                            }
+                            styles={{
+                              input: {
+                                fontSize: 16,
+                                backgroundColor: bg.level1,
+                              },
                             }}
-                            disabled={!message}
-                            radius={'xl'}
-                            size={'lg'}
-                          >
-                            <Icons.ArrowUp size={20} />
-                          </ActionIcon>
-                        }
-                        autosize
-                        maxRows={6}
-                        minRows={1}
-                      />
-                    </Group>
-                  </Stack>
+                            disabled={isQuestionPending}
+                            w="100%"
+                            maw={chatBodyWidthConfig}
+                            radius="xl"
+                            value={isQuestionPending ? '' : message}
+                            onChange={e => setMessage(e.target.value)}
+                            onKeyDown={handleTextareaEnterKey(() => {
+                              handleSendMessage();
+                            })}
+                            rightSection={
+                              <ActionIcon
+                                loading={isQuestionPending}
+                                onClick={() => {
+                                  handleSendMessage();
+                                }}
+                                disabled={!message}
+                                radius={'xl'}
+                                size={'lg'}
+                              >
+                                <Icons.ArrowUp size={20} />
+                              </ActionIcon>
+                            }
+                            autosize
+                            maxRows={6}
+                            minRows={1}
+                          />
+                        </Group>
+                      </Stack>
+                    </Popover.Target>
+                    <Popover.Dropdown
+                      maw={{
+                        md: '40rem',
+                        lg: '50rem',
+                        xl: '53rem',
+                      }}
+                      w={'100%'}
+                      style={{
+                        zIndex: 200, // keeping it lesser than modal so that the modals would still appear on top
+                      }}
+                    >
+                      <PlaygroundHeaders />
+                    </Popover.Dropdown>
+                  </Popover>
                 </Stack>
               </Grid.Col>
               <Artifacts
@@ -207,12 +236,16 @@ export const Chat = () => {
   );
 };
 
-export const ChatPageShell = () => {
+export const ChatPageShell = ({ mode }: { mode: 'cloud' | 'local' }) => {
   return (
     <PageShell headerHeight={50} sidebarWidth={rem(250)}>
-      <PachaChatProvider>
-        <Chat />
-      </PachaChatProvider>
+      <ErrorBoundary
+        errorHandler={err => <GenericError message={err?.message ?? ''} />}
+      >
+        <PachaChatProvider mode={mode}>
+          <Chat />
+        </PachaChatProvider>
+      </ErrorBoundary>
     </PageShell>
   );
 };

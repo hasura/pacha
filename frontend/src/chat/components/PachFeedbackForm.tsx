@@ -1,6 +1,7 @@
 import { Button, Group, Textarea } from '@/ui/core';
 import { useForm } from '@/ui/forms';
 import { modals } from '@/ui/modals';
+import { testId } from '@/utils/js-utils';
 
 export function PachaFeedbackForm({
   onSubmit,
@@ -28,10 +29,19 @@ export function PachaFeedbackForm({
         {...form.getInputProps('feedback')}
       />
       <Group mt="lg" justify="flex-end">
-        <Button variant="subtle" onClick={modals.closeAll}>
+        <Button
+          data-testid={testId({ feature: 'promptql-feedback', id: 'skip' })}
+          variant="subtle"
+          onClick={modals.closeAll}
+        >
           Skip
         </Button>
-        <Button type="submit">Submit</Button>
+        <Button
+          type="submit"
+          data-testid={testId({ feature: 'promptql-feedback', id: 'submit' })}
+        >
+          Submit
+        </Button>
       </Group>
     </form>
   );
