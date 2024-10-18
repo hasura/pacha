@@ -30,6 +30,7 @@ const mockFeatureSet: FeatureContextData = {
         local: false,
       },
     },
+    dataPlaneSettings: true,
     settings: {
       projectSummary: true,
       usage: true,
@@ -38,6 +39,7 @@ const mockFeatureSet: FeatureContextData = {
       supergraphBuilds: true,
       subgraphBuilds: true,
       connectors: true,
+      promptql: true,
     },
   },
 };
