@@ -1,23 +1,61 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useConsoleParams } from '@/routing';
-import { usePachaLocalChatClient, useThreads } from './data/hooks';
-import { PachaChatContext } from './PachaChatContext';
-import { NewAiResponse, ToolCallResponse } from './types';
-import { extractModifiedArtifacts, processMessageHistory } from './utils';
+import { ArtifactUpdate, CodeOutput, ServerEvent } from './data/Api-Types-v3';
+import { usePachaLocalChatClient } from './data/hooks';
+import { WebSocketClient } from './data/WebSocketClient';
+import { usePachaChatContext } from './PachaChatContext';
+import {
+  Artifact,
+  NewAiResponse,
+  ToolCall,
+  ToolCallResponse,
+  UserConfirmationType,
+} from './types';
+import { processMessageHistory } from './utils';
+
+const updateToolCallResponses =
+  (event: CodeOutput) => (prev: ToolCallResponse[]) => {
+    const newResponses = [...prev];
+    const currentToolRespIndex = prev?.findIndex(i => {
+      if (i.call_id === event.code_block_id) return true;
+    });
+
+    if (currentToolRespIndex >= 0) {
+      // partial code output found, need to merge with the existing partial the response
+      newResponses[currentToolRespIndex] = {
+        call_id: event.code_block_id,
+        output: {
+          output: `${newResponses[currentToolRespIndex]?.output?.output ?? ''}${event.output_chunk}`,
+          error: null,
+          sql_statements: [],
+          modified_artifacts: [],
+        },
+        responseMode: 'stream',
+      } as ToolCallResponse;
+      return newResponses;
+    } else {
+      // first time code output, create a new tool response entry
+      return [
+        ...prev,
+        {
+          call_id: event.code_block_id,
+          output: {
+            output: event.output_chunk,
+            error: null,
+            sql_statements: [],
+            modified_artifacts: [],
+          },
+          responseMode: 'stream',
+        },
+      ] as ToolCallResponse[];
+    }
+  };
 
 const usePachaChatV2 = () => {
   const { threadId } = useConsoleParams();
 
-  const [data, setRawData] = useState<NewAiResponse[]>([]);
   const [toolCallResponses, setToolCallResponses] = useState<
     ToolCallResponse[]
   >([]);
@@ -28,14 +66,24 @@ const usePachaChatV2 = () => {
   const currentThreadId = useRef<string | undefined>();
 
   const localChatClient = usePachaLocalChatClient();
-  const { pachaEndpoint, authToken } = useContext(PachaChatContext);
-
   const {
-    data: threads = [],
-    isPending: isThreadsLoading,
-    refetch: refetchThreads,
-    error: threadsError,
-  } = useThreads(pachaEndpoint, authToken);
+    threads,
+    isThreadsLoading,
+    threadsError,
+    refetchThreads,
+    data,
+    setRawData,
+    artifacts,
+    setArtifacts,
+  } = usePachaChatContext();
+
+  const resetState = useCallback(() => {
+    setRawData([]);
+    setToolCallResponses([]);
+    setArtifacts([]);
+    setError(null);
+    setLoading(false);
+  }, [setRawData, setToolCallResponses, setArtifacts, setError, setLoading]);
 
   useEffect(() => {
     // when the user navigates to a new thread, load the new thread
@@ -46,26 +94,26 @@ const usePachaChatV2 = () => {
     if (!threadId) {
       // if threadId is undefined, clear the chat history
       // user is at the chat home page
-      setRawData([]);
-      setLoading(false);
+      resetState();
       currentThreadId.current = undefined;
       return;
     }
 
     if (threadId) {
       // if threadId is defined, reset the chat history
-      setRawData([]);
+      resetState();
       setLoading(true);
-      setError(null);
 
       currentThreadId.current = threadId;
       // load the chat history for the new thread
       localChatClient
         .getThread({ threadId })
         .then(data => {
-          const { history, toolcallResponses } = processMessageHistory(data);
+          const { history, toolcallResponses, artifacts } =
+            processMessageHistory(data);
           setRawData(history);
           setToolCallResponses(toolcallResponses);
+          setArtifacts(artifacts);
           return data;
         })
         .catch(err => {
@@ -79,106 +127,148 @@ const usePachaChatV2 = () => {
           setLoading(false);
         });
     }
-  }, [threadId, localChatClient, navigate, refetchThreads]);
+  }, [
+    threadId,
+    localChatClient,
+    navigate,
+    refetchThreads,
+    resetState,
+    setRawData,
+    setToolCallResponses,
+    setArtifacts,
+  ]);
 
-  const handleServerEvents = useCallback(
-    (eventName: string, dataLine: string) => {
-      const processMessage = (
-        message: string
-      ): {
-        data: NewAiResponse | null;
-        toolcallResponses: ToolCallResponse | null;
-      } => {
-        const nullResponse = { data: null, toolcallResponses: null };
-        if (!message) return nullResponse;
+  const handleWsEvents = useCallback(
+    (event: ServerEvent, client: WebSocketClient) => {
+      if (event.type === 'completion') {
+        return;
+      }
 
-        if (eventName === 'error') {
-          const jsonData = JSON.parse(dataLine);
-
-          return {
-            data: {
-              message: jsonData.error,
-              type: 'error',
-              responseMode: 'stream',
-            },
-            toolcallResponses: null,
-          };
-        }
-
-        // ignore all other events for now
-        if (
-          eventName !== 'assistant_response' &&
-          eventName !== 'user_confirmation' &&
-          eventName !== 'tool_response'
-        ) {
-          return nullResponse;
-        }
-
-        if (!dataLine) {
-          return nullResponse;
-        }
-
-        try {
-          const jsonData = JSON.parse(dataLine);
-
-          if (eventName === 'assistant_response') {
-            return {
-              data: {
-                message: jsonData.text,
-                type: 'ai',
-                tool_calls: jsonData.tool_calls,
-                threadId: threadId ?? null,
-                responseMode: 'stream',
-              },
-              toolcallResponses: null,
-            };
-          } else if (eventName === 'tool_response') {
-            return {
-              data: {
-                message: jsonData.output,
-                type: 'toolchain',
-                threadId: threadId ?? null,
-                responseMode: 'stream',
-              },
-              toolcallResponses: jsonData,
-            };
-          } else if (eventName === 'user_confirmation') {
-            return {
-              data: {
-                message: JSON.stringify(jsonData.message),
-                confirmation_id: jsonData.confirmation_id,
-                type: 'user_confirmation',
-                responseMode: 'stream',
-                status: 'PENDING',
-              },
-              toolcallResponses: null,
-            };
-          }
-        } catch (error) {
-          console.error('Error parsing JSON:', error);
-          return nullResponse;
-        }
-
-        return nullResponse;
-      };
-
-      const { data: newData, toolcallResponses: newToolCallResponses } =
-        processMessage(dataLine);
-
-      if (newData)
+      // TODO handling full ecents (ignoring chunks/data buffering for now)
+      if (event.type === 'assistant_message_response') {
         setRawData(prevData => {
+          const newData = {
+            message: event?.message_chunk,
+            assistant_action_id: event.assistant_action_id,
+            type: 'ai',
+            tool_calls: [] as ToolCall[],
+            threadId: threadId ?? null,
+            responseMode: 'stream',
+          } as NewAiResponse;
           const newMessages = [...prevData, newData];
           return newMessages;
         });
+      }
+      if (event.type === 'assistant_code_response') {
+        setRawData(prevData => {
+          const newMessages = [...prevData];
 
-      if (newToolCallResponses)
-        setToolCallResponses(prev => [...prev, newToolCallResponses]);
+          // find the assistant message with id
+          const assistantMessageIndex = prevData?.findIndex(
+            prev =>
+              prev.type === 'ai' &&
+              prev.assistant_action_id === event.assistant_action_id
+          );
+          newMessages[assistantMessageIndex] = {
+            // newMessages[newMessages?.length - 1] = {
+            ...prevData[newMessages?.length - 1],
+            assistant_action_id: event.assistant_action_id,
+            threadId: threadId ?? null,
+            type: 'ai',
+            responseMode: 'stream',
+            tool_calls: [
+              {
+                call_id: event.code_block_id,
+                input: {
+                  python_code: event.code_chunk,
+                },
+              } as ToolCall,
+            ],
+          };
+          return newMessages;
+        });
+      }
+      if (event.type === 'user_confirmation_request') {
+        setRawData(prevData => {
+          const newUserRequest: UserConfirmationType = {
+            type: 'user_confirmation',
+            message: event.message,
+            confirmation_id: event.confirmation_request_id,
+            fromHistory: false,
+            status: 'PENDING',
+            responseMode: 'stream',
+            client,
+          };
+          return [...prevData, newUserRequest];
+        });
+      }
+      if (event.type === 'code_output') {
+        setToolCallResponses(updateToolCallResponses(event));
+      }
+      if (event.type === 'code_error') {
+        setToolCallResponses(prev => {
+          const newResponses = [...prev];
+          const currentToolRespIndex = prev?.findIndex(i => {
+            if (i.call_id === event.code_block_id) return true;
+          });
+
+          if (currentToolRespIndex >= 0) {
+            // partial code output found, need to merge with the existing partial the response
+            newResponses[currentToolRespIndex] = {
+              call_id: event.code_block_id,
+              output: {
+                ...newResponses[currentToolRespIndex]?.output,
+                error: event.error,
+              },
+            } as ToolCallResponse;
+            return newResponses;
+          } else {
+            // first time code output, create a new tool response entry
+            return [
+              ...prev,
+              {
+                call_id: event.code_block_id,
+                output: {
+                  output: '',
+                  error: event.error,
+                  sql_statements: [],
+                  modified_artifacts: [],
+                },
+                responseMode: 'stream',
+              },
+            ] as ToolCallResponse[];
+          }
+        });
+      }
+      if (event.type === 'artifact_update') {
+        setArtifacts(updateArtifacts(event));
+      }
+      if (event.type === 'server_error') {
+        setRawData(prevData => {
+          const newMessages = [
+            ...prevData,
+            {
+              message: event.message,
+              type: 'error',
+              threadId: threadId ?? null,
+              responseMode: 'stream',
+            } as NewAiResponse,
+          ];
+          return newMessages;
+        });
+      }
     },
-    [threadId]
+    [threadId, setRawData, setToolCallResponses, setArtifacts]
   );
 
   const sendMessage = useCallback(
-    (message: string) => {
+    async (
+      message: string,
+      headers?: Record<string, string>
+    ): Promise<{
+      sendMessage: (message: string) => void;
+      disconnect: () => void;
+    }> => {
       setLoading(true);
       setError(null);
 
@@ -195,27 +285,49 @@ const usePachaChatV2 = () => {
         return newMessages;
       });
 
-      return localChatClient.createChatStreamReader({
-        threadId: threadId ?? currentThreadId.current ?? '',
-        message, // message to send
-        onData: handleServerEvents, // function to handle server events
-        onThreadIdChange: newThreadId => {
-          // to capture new thread id
-          currentThreadId.current = newThreadId;
-          navigate('../../chat/thread/' + newThreadId, { replace: true });
-          refetchThreads();
-        },
-        onError: err => {
+      const isNewMessage = !(threadId ?? currentThreadId.current);
+
+      return await localChatClient
+        .createChatStreamReaderV2({
+          threadId: threadId ?? currentThreadId.current ?? '',
+          message, // message to send
+          headers, // headers to send on client init
+          onAssistantResponse: handleWsEvents, // function to handle server events
+          onThreadIdChange: newThreadId => {
+            // to capture new thread id
+            currentThreadId.current = newThreadId;
+
+            // navigate to correct thread routes
+            if (isNewMessage)
+              navigate('./thread/' + newThreadId, {
+                replace: true,
+              });
+            refetchThreads();
+          },
+          onError: err => {
+            setError(err);
+            setLoading(false);
+          },
+          onComplete: () => setLoading(false),
+        })
+        .catch(err => {
           setError(err);
           setLoading(false);
-        },
-        onComplete: () => setLoading(false),
-      });
+          return {
+            sendMessage,
+            disconnect: () => {},
+          };
+        });
     },
-    [navigate, threadId, handleServerEvents, refetchThreads, localChatClient]
+    [
+      navigate,
+      threadId,
+      handleWsEvents,
+      refetchThreads,
+      localChatClient,
+      setRawData,
+    ]
   );
-
-  const artifacts = useMemo(() => extractModifiedArtifacts(data), [data]);
 
   return {
     threadId,
@@ -231,4 +343,34 @@ const usePachaChatV2 = () => {
   };
 };
 
+const updateArtifacts = (event: ArtifactUpdate) => (prev: Artifact[]) => {
+  const newArtifacts: Artifact[] = [...prev];
+  const currentArtifactIndex = prev?.findIndex(i => {
+    if (i.identifier === event?.artifact?.identifier) return true;
+  });
+
+  if (currentArtifactIndex >= 0) {
+    // partial code output found, need to merge with the existing partial the response
+    newArtifacts[currentArtifactIndex] = {
+      identifier: event?.artifact?.identifier,
+      artifact_type: 'table',
+      title: event?.artifact?.title,
+      data: event?.artifact?.data,
+      responseMode: 'stream',
+    } as Artifact;
+    return newArtifacts;
+  } else {
+    // new artifact push to artifact list
+    return [
+      ...prev,
+      {
+        identifier: event?.artifact?.identifier,
+        artifact_type: 'table',
+        title: event?.artifact?.title,
+        data: event?.artifact?.data,
+        responseMode: 'stream',
+      } as Artifact,
+    ];
+  }
+};
 export default usePachaChatV2;
