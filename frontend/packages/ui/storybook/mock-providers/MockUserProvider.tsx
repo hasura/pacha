@@ -1,6 +1,6 @@
 import { UserContext } from '@console/context';
 
-import { mockUser } from './mockUser';
+import { mockUser } from '../mock-data';
 
 export function MockUserProvider({ children }: { children: React.ReactNode }) {
   return (
