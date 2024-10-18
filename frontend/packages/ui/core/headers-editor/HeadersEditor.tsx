@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Grid, Paper } from '@mantine/core';
 import { produce } from 'immer';
+import { uniqueId } from 'lodash';
 
 import { useSchemeColors } from '@/ui/hooks';
 import { Table } from '../table/';
@@ -42,9 +43,7 @@ export const HeadersEditor = ({
   );
 
   const [unmaskedHeaders, setUnmaskedHeaders] = React.useState<string[]>([]);
-  const [draftId, setDraftId] = React.useState<string>(() =>
-    crypto.randomUUID()
-  );
+  const [draftId, setDraftId] = React.useState<string>(() => uniqueId());
 
   const { bg } = useSchemeColors();
 
@@ -142,7 +141,7 @@ export const HeadersEditor = ({
                   // we need to wait for the mount because the "isDraft" flag is used
                   // to transfer focus to the newly added row
                   // but after mount and focus transfer we need to reset the draft id
-                  setDraftId(crypto.randomUUID());
+                  setDraftId(uniqueId());
                 }}
               />
             ))}
