@@ -1,5 +1,6 @@
 import { Button, Group } from '@mantine/core';
 
+import { testId } from '@/utils/js-utils';
 import { HoverPaper } from '../withProps/HoverPaper';
 import { AcceptableListItemProps } from './types';
 
@@ -25,7 +26,10 @@ export function AcceptableListItem<ItemType = unknown>({
           loading={isAccepting}
           disabled={isDeclining}
           variant="filled"
-          data-testid="accept-single-invitation"
+          data-testid={testId({
+            feature: 'acceptable-list-item',
+            id: 'accept',
+          })}
         >
           {acceptLabel ?? 'Accept'}
         </Button>
@@ -38,7 +42,10 @@ export function AcceptableListItem<ItemType = unknown>({
           onClick={() => {
             onDecline(item);
           }}
-          data-testid="decline-single-invitation"
+          data-testid={testId({
+            feature: 'acceptable-list-item',
+            id: 'decline',
+          })}
         >
           {declineLabel ?? 'Decline'}
         </Button>
