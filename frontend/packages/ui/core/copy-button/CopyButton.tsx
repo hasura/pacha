@@ -2,6 +2,7 @@ import { Box, Button, rem, Tooltip } from '@mantine/core';
 import { useClipboard } from '@mantine/hooks';
 
 import { useColorScheme } from '@/ui/hooks/';
+import { testId } from '@/utils/js-utils';
 import { CopyIcon } from './components/CopyIcon';
 import { CopyButtonProps } from './types';
 import { codeStyleProps } from './utils';
@@ -14,7 +15,7 @@ export function CopyButton(props: CopyButtonProps) {
     tooltipPosition = 'bottom',
     tooltipMessage = 'Copied!',
     icon,
-    testId,
+    testId: _testId,
     ...buttonProps
   } = props;
 
@@ -42,7 +43,11 @@ export function CopyButton(props: CopyButtonProps) {
         onClick={() => {
           clipboard.copy(toCopy);
         }}
-        data-testid={testId}
+        data-testid={testId({
+          feature: 'copy-button-component',
+          id: _testId ?? 'no-test-id-passed',
+        })}
+        aria-label="copy code snippet"
       >
         {children ?? toCopy}
       </Button>
