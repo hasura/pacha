@@ -1,8 +1,8 @@
-import { ProjectNavigationDrawer } from '@console/routing/layout';
-import { ConsoleAppShell, ErrorBoundary } from '@console/ui/common';
+import { ErrorBoundary } from '@console/ui/common';
 import { Container, Skeleton } from '@mantine/core';
 import { Meta, StoryObj } from '@storybook/react';
 
+import { MockAppShell } from '@/ui/storybook';
 import { hasMessageProperty } from '@/utils/js-utils';
 import { GenericError } from '../generic-error';
 import { PageShellTab } from './components/TabBar';
@@ -38,27 +38,6 @@ const mockTabs: PageShellTab[] = [
   },
 ];
 
-function StoryLayout({
-  children,
-  headerText,
-}: {
-  children: React.ReactNode;
-  headerText?: string;
-}) {
-  return (
-    <ConsoleAppShell
-      navbar={<ProjectNavigationDrawer />}
-      header={
-        <div>
-          {headerText ??
-            'Navigation does not work. Disregard the sidebar data.'}
-        </div>
-      }
-    >
-      {children}
-    </ConsoleAppShell>
-  );
-}
 function SomeContent() {
   return (
     <Container fluid m="xs">
@@ -74,7 +53,7 @@ function SomeContent() {
 export const Basic: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell>
           <PageShell.Sidebar>
             <SomeContent />
@@ -86,7 +65,7 @@ export const Basic: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
@@ -94,7 +73,7 @@ export const Basic: StoryObj<typeof PageShell> = {
 export const WithTabBar: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell tabs={mockTabs}>
           <PageShell.Sidebar>
             <SomeContent />
@@ -106,7 +85,7 @@ export const WithTabBar: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
@@ -114,7 +93,7 @@ export const WithTabBar: StoryObj<typeof PageShell> = {
 export const NoHeader: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell>
           <PageShell.Sidebar>
             <SomeContent />
@@ -125,14 +104,14 @@ export const NoHeader: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
 export const NoHeaderWithTabs: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell tabs={mockTabs}>
           <PageShell.Sidebar>
             <SomeContent />
@@ -143,14 +122,14 @@ export const NoHeaderWithTabs: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
 export const NoSidebar: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell>
           <PageShell.Main>
             <PageShell.Header>Header</PageShell.Header>
@@ -159,7 +138,7 @@ export const NoSidebar: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
@@ -167,7 +146,7 @@ export const NoSidebar: StoryObj<typeof PageShell> = {
 export const ScrollAreaProps: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell>
           <PageShell.Sidebar>
             <SomeContent />
@@ -181,14 +160,14 @@ export const ScrollAreaProps: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
 export const LargerHeader: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell headerHeight={120}>
           <PageShell.Sidebar>
             <SomeContent />
@@ -200,14 +179,14 @@ export const LargerHeader: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
 export const ScrollClamp: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell scrollClamp>
           <PageShell.Sidebar>
             <SomeContent />
@@ -224,14 +203,14 @@ export const ScrollClamp: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
 export const BackgroundColors: StoryObj<typeof PageShell> = {
   render: () => {
     return (
-      <StoryLayout>
+      <MockAppShell>
         <PageShell sideBarHeaderBg={'var(--mantine-color-indigo-light)'}>
           <PageShell.Sidebar>
             <SomeContent />
@@ -243,7 +222,7 @@ export const BackgroundColors: StoryObj<typeof PageShell> = {
             </PageShell.Content>
           </PageShell.Main>
         </PageShell>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
@@ -252,7 +231,7 @@ export const PageShellHierarchyError: StoryObj<typeof PageShell> = {
   name: '<PageShell /> hierarchy error',
   render: () => {
     return (
-      <StoryLayout headerText="Inner PageShell components should only be used within <PageShell />. If they are used incorrectly, an error will be thrown.">
+      <MockAppShell headerText="Inner PageShell components should only be used within <PageShell />. If they are used incorrectly, an error will be thrown.">
         <ErrorBoundary
           errorHandler={e => (
             <GenericError
@@ -262,7 +241,7 @@ export const PageShellHierarchyError: StoryObj<typeof PageShell> = {
         >
           <PageShell.Main>foo</PageShell.Main>
         </ErrorBoundary>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
@@ -271,7 +250,7 @@ export const PageShellMainHierarchyError: StoryObj<typeof PageShell> = {
   name: '<PageShell.Main /> hierarchy error',
   render: () => {
     return (
-      <StoryLayout headerText="PageShell.Content and PageShell.Header should only be used within <PageShell.Main />. If they are used incorrectly, an error will be thrown.">
+      <MockAppShell headerText="PageShell.Content and PageShell.Header should only be used within <PageShell.Main />. If they are used incorrectly, an error will be thrown.">
         <ErrorBoundary
           errorHandler={e => (
             <GenericError
@@ -281,7 +260,7 @@ export const PageShellMainHierarchyError: StoryObj<typeof PageShell> = {
         >
           <PageShell.Content>foo</PageShell.Content>
         </ErrorBoundary>
-      </StoryLayout>
+      </MockAppShell>
     );
   },
 };
