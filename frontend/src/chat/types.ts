@@ -1,6 +1,8 @@
+import { WebSocketClient } from './data/WebSocketClient';
+
 type TableArtifact = {
   identifier: string;
-  artifact_type: string;
+  artifact_type: 'table';
   title: string;
   data: Record<string, unknown>[];
   responseMode: ResponseMode;
@@ -19,7 +21,6 @@ export type Artifact = TableArtifact | TextArtifact;
 // Components UI Type
 
 export type ToolCall = {
-  name: string;
   call_id: string;
   input: {
     python_code: string; // assuming this is the only input for now
@@ -31,7 +32,7 @@ export type ToolCallResponse = {
   output: {
     output: string;
     error: string | null;
-    sql_statements: Array<{ sql: string; result: unknown[] }>;
+    sql_statements: Array<{ sql: string; result: unknown }>;
     modified_artifacts: [];
   };
 };
@@ -45,6 +46,7 @@ export type UserConfirmationType = {
   fromHistory?: boolean;
   status: 'PENDING' | 'APPROVED' | 'DENIED' | 'TIMED_OUT' | 'CANCELED';
   responseMode: ResponseMode;
+  client: WebSocketClient;
 };
 
 export type SelfMessage = {
@@ -60,16 +62,20 @@ export type ErrorResponseType = {
 };
 export type ResponseMode = 'stream' | 'history';
 
+export type AiMessage = {
+  message: unknown; // no chunks here, this will always be bufferred full output received till that time
+  type: 'ai';
+  assistant_action_id: string;
+  confirmation_id?: string;
+  tool_calls?: ToolCall[];
+  code?: string; // no chunks here, this will always be bufferred full output received till that time
+  threadId: string | null;
+  responseMode: ResponseMode;
+};
+
 export type NewAiResponse =
   | SelfMessage
-  | {
-      message: unknown;
-      type: 'ai' | 'toolchain';
-      confirmation_id?: string;
-      tool_calls?: ToolCall[];
-      threadId: string | null;
-      responseMode: ResponseMode;
-    }
+  | AiMessage
   | ErrorResponseType
   | UserConfirmationType;
 
