@@ -1,3 +1,6 @@
+import captureCustomEvents from '@console/utils/captureCustomEvents';
+
+import { globals } from '@/data/globals';
 import { AUTH_TOKEN_HEADER_KEY } from '../constants';
 import {
   AIResponse,
@@ -6,124 +9,173 @@ import {
   SendMessageRequest,
   StartThreadResponse,
 } from './api-types';
-import { Thread } from './api-types-v2';
+import { ServerEvent, ThreadResponse } from './Api-Types-v3';
+import { WebSocketClient } from './WebSocketClient';
 
 export class ChatClient {
   private headers: HeadersInit;
   private baseUrl: string;
-  private authToken: string;
+  private authToken?: string;
+  private projectId?: string;
+  private buildId?: string;
 
   constructor({
     headers,
     baseUrl,
     authToken,
+    projectId,
+    buildId,
   }: {
     headers?: HeadersInit;
     baseUrl?: string;
-    authToken: string;
+    authToken?: string;
+    projectId?: string;
+    buildId?: string;
   }) {
-    this.headers = headers ?? {};
+    this.headers = {
+      ...(globals.controlPlanePAT?.trim() &&
+        ({ authorization: `pat ${globals.controlPlanePAT}` } as HeadersInit)),
+    };
     this.baseUrl = baseUrl ?? '';
-    this.authToken = authToken;
+    this.projectId = projectId;
+    this.buildId = buildId;
+    if (authToken) this.authToken = authToken;
   }
   private getUrl(path: string): string {
     return this.baseUrl ? `${this.baseUrl}${path}` : path;
   }
 
-  createChatStreamReader = ({
+  private getThreadsUrl(thread_id: string): string {
+    if (thread_id && thread_id !== '') {
+      return this.getUrl(`/threads/${thread_id}/continue`);
+    } else {
+      return this.getUrl(
+        this.projectId && this.buildId
+          ? `/threads/start?project_id=${this.projectId}&build_id=${this.buildId}`
+          : `/threads/start` // single tenant
+      ); // TODO test remove before merge
+    }
+  }
+
+  createChatStreamReaderV2 = async ({
     threadId,
     message,
-    onData,
+    headers,
+    onAssistantResponse,
     onThreadIdChange,
     onError,
     onComplete,
   }: {
     threadId: string;
     message: string;
-    onData: (eventName: string, dataLine: string) => void;
+    headers?: Record<string, string>;
+    onAssistantResponse: (event: ServerEvent, client: WebSocketClient) => void;
     onThreadIdChange: (newThreadId: string) => void;
     onError: (error: Error) => void;
     onComplete: () => void;
-  }) => {
-    const reader = this.sendMessageStream({ threadId, message }).then(
-      response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.body!.getReader();
+  }): Promise<{
+    sendMessage: (message: string) => void;
+    disconnect: () => void;
+    isConnected: () => Promise<boolean>;
+  }> => {
+    const isNewMessage = !threadId;
+    const threadsUrl = this.getThreadsUrl(threadId);
+
+    const client = new WebSocketClient(threadsUrl);
+    await client.connect();
+
+    client.onMessage(message => {
+      if (message.type === 'completion') {
+        captureCustomEvents('promptql_completion');
+        client.disconnect();
+        return onComplete();
       }
-    );
+      if (message.type === 'server_error') {
+        captureCustomEvents('promptql_server_error');
+        onAssistantResponse(message, client);
+        return onError(new Error(message.message));
+      }
+      if (message.type === 'accept_interaction') {
+        captureCustomEvents('promptql_accept_interaction');
+        return onThreadIdChange(message.thread_id);
+      }
 
-    const decoder = new TextDecoder();
+      return onAssistantResponse(message, client);
+    });
 
-    // Buffering logic to handle scenarios where a chunk contains multiple events and partial events.
-    let buffer = '';
-    const processBuffer = () => {
-      // separates the buffer into potential events.
-      const events = buffer.split('\n\n');
+    client.onClose(() => {
+      onComplete();
+    });
 
-      // takes all but the last element, ensuring we only process complete events.
-      const completeEvents = events.slice(0, -1);
+    client.sendMessage({
+      type: 'client_init',
+      version: 'v1',
+      // add ddn_headers to the client_init message if isNewMessage
+      ...(isNewMessage && {
+        ddn_headers: headers,
+        ...(globals.controlPlanePAT &&
+          globals?.controlPlanePAT !== '' && {
+            headers: {
+              Authorization: `pat ${globals.controlPlanePAT}`,
+            },
+          }),
+      }),
+    });
 
-      //keeps the last (potentially partial) event in the buffer for the next processing cycle.
-      buffer = events[events.length - 1];
+    client.sendMessage({
+      type: 'user_message',
+      message,
+      timestamp: new Date().toISOString(),
+    });
+    captureCustomEvents('promptql_user_message_new');
 
-      completeEvents.forEach(event => {
-        // as per the spec, each event should have two lines
-        const [eventLine, dataLine] = event.split('\n');
-        if (eventLine && dataLine) {
-          const eventName = eventLine.replace('event: ', '');
-          const eventData = dataLine.replace('data: ', '');
-
-          if (eventName === 'start') {
-            const newThreadId = JSON.parse(eventData).thread_id;
-            onThreadIdChange(newThreadId);
-          } else {
-            onData(eventName, eventData);
-          }
-        }
+    const sendMessage = (newMessage: string) => {
+      client.sendMessage({
+        type: 'user_message',
+        message: newMessage,
+        timestamp: new Date().toISOString(),
       });
-    };
-    const read = (
-      reader: ReadableStreamDefaultReader<Uint8Array>
-    ): Promise<void> => {
-      return reader.read().then(({ done, value }) => {
-        if (done) {
-          processBuffer(); // Process any remaining data in the buffer
-          onComplete();
-          return;
-        }
-        const chunkRaw = decoder.decode(value, { stream: true });
-        buffer += chunkRaw;
-        processBuffer();
-        return read(reader);
-      });
+      captureCustomEvents('promptql_user_message_followup');
     };
 
-    reader.then(read).catch(onError);
+    const disconnect = () => {
+      client.disconnect();
+    };
+
+    return { sendMessage, disconnect, isConnected: client.isConnected };
   };
 
-  async getThreads(): Promise<GetThreadsResponse> {
-    const response = await fetch(this.getUrl('/threads'), {
+  async getThreads(projectId?: string): Promise<GetThreadsResponse> {
+    let url = this.getUrl('/threads');
+
+    // Add projectId as a URL parameter if it exists (for cloud)
+    if (projectId && projectId !== 'local') {
+      url += `?project_id=${encodeURIComponent(projectId)}`;
+    }
+
+    const response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
       headers: {
         ...(this.headers ?? {}),
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
       },
     });
+
     if (!response.ok) {
       throw new Error(response.statusText);
     }
+
     return response.json();
   }
+
   async getPachaConnectionConfigCheck(): Promise<string> {
     const response = await fetch(this.getUrl('/config-check'), {
       method: 'GET',
       credentials: 'include',
       headers: {
         ...(this.headers ?? {}),
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
       },
     });
     if (!response.ok) {
@@ -132,13 +184,13 @@ export class ChatClient {
     return response.text();
   }
 
-  async getThread({ threadId }: GetThreadRequest): Promise<Thread> {
+  async getThread({ threadId }: GetThreadRequest): Promise<ThreadResponse> {
     const response = await fetch(this.getUrl(`/threads/${threadId}`), {
       method: 'GET',
       credentials: 'include',
       headers: {
         ...(this.headers ?? {}),
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
       },
     });
     if (!response.ok) {
@@ -154,7 +206,7 @@ export class ChatClient {
       headers: {
         ...(this.headers ?? {}),
         'Content-Type': 'application/json',
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
       },
       body: JSON.stringify({}),
     });
@@ -177,7 +229,7 @@ export class ChatClient {
       headers: {
         ...(this.headers ?? {}),
         'Content-Type': 'application/json',
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
       },
       body: JSON.stringify({ message }),
     });
@@ -201,7 +253,7 @@ export class ChatClient {
       headers: {
         ...(this.headers ?? {}),
         'Content-Type': 'application/json',
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
       },
       body: JSON.stringify({ message }),
       signal,
@@ -223,7 +275,7 @@ export class ChatClient {
       headers: {
         ...(this.headers ?? {}),
         'Content-Type': 'application/json',
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
       },
       body: JSON.stringify({
         confirmation_id: confirmationId,
@@ -250,7 +302,7 @@ export class ChatClient {
       headers: {
         ...(this.headers ?? {}),
         'Content-Type': 'application/json',
-        [AUTH_TOKEN_HEADER_KEY]: this.authToken,
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
       },
       body: JSON.stringify({
         thread_id: threadId,
@@ -259,6 +311,17 @@ export class ChatClient {
         message,
         feedback_text: feedbackText ?? '',
       }),
+    });
+  }
+  async deleteThread({ threadId }: { threadId: string }): Promise<Response> {
+    return fetch(this.getUrl(`/threads/${threadId}`), {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        ...(this.headers ?? {}),
+        'Content-Type': 'application/json',
+        ...(this.authToken && { [AUTH_TOKEN_HEADER_KEY]: this.authToken }),
+      },
     });
   }
 }
