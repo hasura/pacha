@@ -1,7 +1,10 @@
 /* To remove bootstrap html font size from 10px */
 
 :root {
-  font-size: 13px;
+  /* Changes to this need to be synced to ../constants.ts */
+  --app-font-size: 13px;
+
+  font-size: var(--app-font-size);
 }
 
 .hasura-graphiql-wrapper,
@@ -11,12 +14,12 @@
 reach-portal,
 .split-sash-content,
 .graphiql-button-group {
-  --font-size-body: 13px;
+  --font-size-body: var(--app-font-size);
 }
 
 .cm-editor {
   /* var(--font-size-body); did not work */
-  font-size: 13px;
+  font-size: var(--app-font-size);
 }
 
 .tsqd-transitions-container .tsqd-open-btn-container {
