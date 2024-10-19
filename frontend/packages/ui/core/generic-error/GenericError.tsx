@@ -8,9 +8,11 @@ import {
   Stack,
   StackProps,
 } from '@mantine/core';
+import { ClientError } from 'graphql-request/build/entrypoints/main';
 
+import { getGraphQLErrorMessage } from '@/control-plane-client';
 import { Icons } from '@/ui/icons';
-import { hasMessageProperty } from '@/utils/js-utils';
+import { hasMessageProperty, testId } from '@/utils/js-utils';
 import hasuraErrorLogo from './confused_hasura.png';
 
 function isReactNode(node: unknown): node is React.ReactNode {
@@ -69,6 +71,10 @@ export const GenericError = ({
               : 'Unknown error'}
           {actionButton && (
             <Button
+              data-testid={testId({
+                feature: 'generic-error',
+                id: 'action-button',
+              })}
               {...actionButton}
               style={{ ...actionButton.style, alignSelf: 'center' }}
             >
@@ -78,5 +84,15 @@ export const GenericError = ({
         </Stack>
       </Alert>
     </Stack>
+  );
+};
+
+GenericError.GraphQLError = ({
+  graphQLError,
+}: {
+  graphQLError: ClientError;
+}) => {
+  return (
+    <GenericError message={getGraphQLErrorMessage(graphQLError).message} />
   );
 };
