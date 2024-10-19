@@ -12,9 +12,10 @@ import {
 import { useSchemeColors } from '@/ui/hooks';
 import { Icons } from '@/ui/icons';
 import { CodeHighlight, CodeMirrorProvider, ReactCodeMirror } from '@/ui/lazy';
+import { testId } from '@/utils/js-utils';
 import { ToolCall, ToolCallResponse } from '../types';
 
-const RetryingToolCall = ({ hasError }: { hasError: boolean }) => {
+const ToolcallErroredOut = ({ hasError }: { hasError: boolean }) => {
   if (!hasError) return null;
   return (
     <Group style={{ color: 'var(--mantine-color-yellow-filled)' }}>
@@ -24,7 +25,7 @@ const RetryingToolCall = ({ hasError }: { hasError: boolean }) => {
       >
         <Icons.Warning />
       </ThemeIcon>
-      There was an error in the output. Initiating retry...
+      There was an error in the output. Assessing next steps...
     </Group>
   );
 };
@@ -58,7 +59,6 @@ export const ToolChainMessage = ({
 
   const isOutputUndefined = response?.output === undefined;
 
-  if (data?.name !== 'execute_python') return null;
   let output: string | undefined;
   let hasError = false;
 
@@ -109,13 +109,24 @@ export const ToolChainMessage = ({
                 <Group c={text.highContrast('indigo')}>
                   {accordionValue === null ? (
                     <Button
+                      data-testid={testId({
+                        feature: 'promptql-toolchain-message',
+                        id: 'show-details',
+                      })}
                       variant="subtle"
                       rightSection={<Icons.ArrowRight />}
                     >
                       Show Details
                     </Button>
                   ) : (
-                    <Button variant="subtle" rightSection={<Icons.ArrowUp />}>
+                    <Button
+                      variant="subtle"
+                      rightSection={<Icons.ArrowUp />}
+                      data-testid={testId({
+                        feature: 'promptql-toolchain-message',
+                        id: 'collapse',
+                      })}
+                    >
                       Collapse
                     </Button>
                   )}
@@ -163,7 +174,7 @@ export const ToolChainMessage = ({
           </Accordion.Item>
         </Accordion>
       </Paper>
-      <RetryingToolCall hasError={hasError} />
+      <ToolcallErroredOut hasError={hasError} />
     </>
   );
 };
