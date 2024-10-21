@@ -1,9 +1,8 @@
-import React, { useContext } from 'react';
-
 import { Button, Card, Flex, Text } from '@/ui/core';
 import { useSchemeColors } from '@/ui/hooks';
 import { Icons } from '@/ui/icons';
-import { PachaChatContext } from '../PachaChatContext';
+import { testId } from '@/utils/js-utils';
+import { usePachaChatContext } from '../PachaChatContext';
 import { NewAiResponse, ToolCall, ToolCallResponse } from '../types';
 import useSelectedArtifacts from '../useSelectedArtifacts';
 import ToolChainMessage from './ToolChainMessage';
@@ -13,7 +12,7 @@ interface ArtifactTextProps {
 }
 
 const ArtifactText: React.FC<ArtifactTextProps> = ({ text }) => {
-  const { setIsMinimized } = useContext(PachaChatContext);
+  const { setIsMinimized } = usePachaChatContext();
   const { updateSelectedArtifacts } = useSelectedArtifacts();
 
   if (!text) return <Text>No content</Text>;
@@ -44,6 +43,10 @@ const ArtifactText: React.FC<ArtifactTextProps> = ({ text }) => {
                 variant="default"
                 my="xs"
                 onClick={() => handleArtifactClick(identifier)}
+                data-testid={testId({
+                  feature: 'promptql-assistant-response',
+                  id: 'artifact-button',
+                })}
               >
                 {identifier}
               </Button>
