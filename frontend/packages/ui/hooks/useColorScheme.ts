@@ -53,10 +53,23 @@ export const useColorScheme = () => {
     [colorSchemeStored, setColorScheme, setColorSchemeStored]
   );
 
+  /**
+   * A function that accepts two styles and returns the one that matches the current color scheme.
+   * @param lightStyle The style to use when the color scheme is light.
+   * @param darkStyle The style to use when the color scheme is dark.
+   */
+  const lightDark = React.useCallback(
+    (lightStyle: string, darkStyle: string) => {
+      return isDarkMode ? darkStyle : lightStyle;
+    },
+    [isDarkMode]
+  );
+
   return {
     isDarkMode,
     isLightMode,
     colorScheme: colorSchemeStored ?? 'light',
     toggleColorScheme,
+    lightDark,
   };
 };
