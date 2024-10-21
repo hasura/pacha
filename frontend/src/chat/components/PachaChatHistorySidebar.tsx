@@ -1,7 +1,5 @@
-import { useContext } from 'react';
 import { createSearchParams, useNavigate } from 'react-router-dom';
 
-import { getRoutes } from '@/routing';
 import {
   ActionIcon,
   Button,
@@ -16,8 +14,9 @@ import {
 import { useSchemeColors } from '@/ui/hooks';
 import { ChatIcons, Icons } from '@/ui/icons';
 import { modals } from '@/ui/modals';
+import { testId } from '@/utils/js-utils';
 import { Thread } from '../data/api-types';
-import { PachaChatContext } from '../PachaChatContext';
+import { usePachaChatContext } from '../PachaChatContext';
 import { HistoryGroup } from './HistoryItem';
 import { PachaChatSettingsForm } from './PachaChatSettingsForm';
 import PachaConnectionIndicator from './PachaConnectionIndicator';
@@ -34,13 +33,19 @@ const PachaChatHistorySidebar = ({
   const navigate = useNavigate();
   const { bg } = useSchemeColors();
 
-  const { pachaEndpoint, setPachaEndpoint, authToken, setAuthToken } =
-    useContext(PachaChatContext);
+  const {
+    pachaEndpoint,
+    setPachaEndpoint,
+    authToken,
+    setAuthToken,
+    mode,
+    routes,
+  } = usePachaChatContext();
 
   const handleOpenPachaSettings = () => {
     modals.open({
       id: 'pacha-settings',
-      title: 'Pacha Settings',
+      title: 'PromptQL Playground Settings',
       children: (
         <PachaChatSettingsForm
           pachaEndpoint={pachaEndpoint}
@@ -56,20 +61,22 @@ const PachaChatHistorySidebar = ({
     <PageShell.Sidebar bg={bg.level1}>
       {contentHeight => (
         <ScrollArea.Autosize mah={contentHeight}>
-          <Group pl={'md'} py={'md'}>
-            <Text size="sm" fw={600}>
-              Pacha Chat
-            </Text>
-            <ActionIcon
-              variant="subtle"
-              size="xs"
-              color="dimmed"
-              onClick={handleOpenPachaSettings}
-            >
-              <Icons.Settings />
-            </ActionIcon>
-            <PachaConnectionIndicator onClick={handleOpenPachaSettings} />
-          </Group>
+          {mode === 'local' ? (
+            <Group pl={'md'} py={'md'}>
+              <Text size="sm" fw={600}>
+                PromptQl Playground
+              </Text>
+              <ActionIcon
+                variant="subtle"
+                size="xs"
+                color="dimmed"
+                onClick={handleOpenPachaSettings}
+              >
+                <Icons.Settings />
+              </ActionIcon>
+              <PachaConnectionIndicator onClick={handleOpenPachaSettings} />
+            </Group>
+          ) : null}
           <Divider />
           <Group justify="center" mt={'md'}>
             <Button
@@ -79,10 +86,14 @@ const PachaChatHistorySidebar = ({
               mx="md"
               onClick={() => {
                 navigate({
-                  pathname: getRoutes().localDev.chat(),
+                  pathname: routes.newChat,
                   search: createSearchParams({}).toString(), // to clear the search params
                 });
               }}
+              data-testid={testId({
+                feature: 'promptql-history-sidebar',
+                id: 'start-new-chat',
+              })}
             >
               Start New Chat
             </Button>
@@ -93,10 +104,14 @@ const PachaChatHistorySidebar = ({
               <HistoryGroup
                 timeUnit={'History'}
                 onHistoryItemClick={threadId => {
-                  navigate({
-                    pathname: getRoutes().localDev.chatThread(threadId),
-                    search: createSearchParams({}).toString(),
-                  });
+                  const pathname = routes.chatThreadLink(threadId);
+                  navigate(
+                    {
+                      pathname,
+                      search: createSearchParams({}).toString(),
+                    },
+                    { replace: true }
+                  );
                 }}
                 items={(threads ?? [])
                   .map(thread => ({
