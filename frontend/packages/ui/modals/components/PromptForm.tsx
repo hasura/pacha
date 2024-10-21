@@ -3,6 +3,7 @@ import { modals } from '@mantine/modals';
 
 import { Button, TextInput } from '@/ui/core';
 import { useForm } from '@/ui/forms';
+import { testId } from '@/utils/js-utils';
 import { ConfirmProps } from '../confirm';
 
 export type PromptFormProps<T = unknown> = {
@@ -72,6 +73,10 @@ export function PromptForm({
         fullWidth
         type="submit"
         mt="md"
+        data-testid={testId({
+          feature: 'prompt-form',
+          id: 'confirm:' + confirmLabel.toLowerCase(),
+        })}
         {...confirmProps}
       >
         {confirmLabel}

@@ -1,3 +1,4 @@
+/* eslint-disable v3-console/require-data-testid */
 import React, { useState } from 'react';
 
 import {
