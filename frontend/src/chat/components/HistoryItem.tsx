@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
 
-import { getRoutes, useConsoleParams } from '@/routing';
+import { useConsoleParams } from '@/routing';
 import {
+  ActionIcon,
   Alert,
-  CopyActionIcon,
   Group,
   NavLink,
   Stack,
@@ -12,6 +12,9 @@ import {
   Tooltip,
 } from '@/ui/core';
 import { Icons } from '@/ui/icons';
+import { modals } from '@/ui/modals';
+import { usePachaLocalChatClient } from '../data/hooks';
+import { usePachaChatContext } from '../PachaChatContext';
 
 export type HistoryItem = {
   title: string;
@@ -34,9 +37,14 @@ export function HistoryGroup({
         {timeUnit}
       </Text>
       <Stack gap={0}>
-        {items.map((item, index) => (
+        {items?.map((item, index) => (
           <HistoryItem key={index} item={item} onClick={onHistoryItemClick} />
         ))}
+        {items?.length === 0 ? (
+          <Text c={'dimmed'} size="xs">
+            No conversations yet.
+          </Text>
+        ) : null}
         {error && error.message ? (
           <Alert color="red">Error loading threads</Alert>
         ) : null}
@@ -54,6 +62,31 @@ export function HistoryItem({
 }) {
   const { threadId } = useConsoleParams();
   const isActive = threadId === item.threadId;
+  const { refetchThreads } = usePachaChatContext();
+  const client = usePachaLocalChatClient();
+  const [deleting, setDeleting] = useState(false);
+
+  const deleteThread = useCallback(
+    ({ threadId, title }: HistoryItem) => {
+      modals.confirm({
+        title: 'Delete Chat Thread?',
+        children: `Are you sure you want to delete this chat thread ${title}?`,
+        onConfirm: () => {
+          setDeleting(true);
+          client
+            ?.deleteThread({ threadId })
+            .then(() => {
+              refetchThreads();
+              setDeleting(false);
+            })
+            .catch(() => {
+              setDeleting(false);
+            });
+        },
+      });
+    },
+    [client, refetchThreads]
+  );
 
   const [isCopied, setIsCopied] = useState(false);
 
@@ -82,15 +115,19 @@ export function HistoryItem({
             <Text w={165} truncate>
               {item.title}
             </Text>
-            <CopyActionIcon
-              toCopy={getRoutes().localDev.chatThreadLink(item.threadId)}
+
+            <ActionIcon
+              size="sm"
               variant="subtle"
-              color="gray"
               className="opacity-0 group-hover:opacity-100"
-              tooltipMessage="Copied!"
-              radius={'lg'}
-              icon={<Icons.CopyLink />}
-            />
+              loading={deleting}
+              onClick={e => {
+                e.stopPropagation();
+                deleteThread(item);
+              }}
+            >
+              <Icons.Delete />
+            </ActionIcon>
           </Group>
         }
       />
