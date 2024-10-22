@@ -18,6 +18,7 @@ import {
 } from '@/ui/core';
 import { useSchemeColors } from '@/ui/hooks';
 import { Icons } from '@/ui/icons';
+import { testId } from '@/utils/js-utils';
 import { Artifact } from '../types';
 import useSelectedArtifacts from '../useSelectedArtifacts';
 import { downloadObjectAsCsv, downloadObjectAsJson } from '../utils';
@@ -41,9 +42,12 @@ export const Artifacts = ({
   const { updateSelectedArtifacts } = useSelectedArtifacts();
 
   useEffect(() => {
-    if (artifacts.length > prevArtifacts.current.length) {
+    if (
+      artifacts.length > prevArtifacts.current.length &&
+      artifacts?.[artifacts?.length - 1].identifier
+    ) {
       // when new artifacts are added, select the latest one
-      updateSelectedArtifacts([artifacts[0].identifier]);
+      updateSelectedArtifacts([artifacts[artifacts?.length - 1].identifier]);
       setIsMinimized(false);
     }
     prevArtifacts.current = artifacts;
@@ -78,6 +82,10 @@ export const Artifacts = ({
               {artifacts.length}
             </Badge>
           }
+          data-testid={testId({
+            feature: 'promptql-artifacts',
+            id: 'expand-artifacts',
+          })}
         >
           Memory Artifacts
         </Button>
@@ -107,6 +115,10 @@ export const Artifacts = ({
                 size="compact-sm"
                 color={text.normal}
                 onClick={() => setIsMinimized(true)}
+                data-testid={testId({
+                  feature: 'promptql-artifacts',
+                  id: 'minimize-artifacts',
+                })}
               >
                 <Icons.Close />
               </Button>
@@ -164,6 +176,10 @@ const ArtifactsList = ({ artifacts }: { artifacts: Artifact[] }) => {
                       e.stopPropagation();
                       handleDownload(artifact);
                     }}
+                    data-testid={testId({
+                      feature: 'promptql-artifacts',
+                      id: 'download-artifact',
+                    })}
                   >
                     <Icons.FaDownload />
                   </Button>
