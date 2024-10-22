@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  ContainerProps,
   Flex,
   ScrollArea,
   ScrollAreaAutosizeProps,
@@ -8,6 +9,7 @@ import {
 
 import { ExtendedCustomColors } from '@/types';
 import { useSchemeColors } from '@/ui/hooks';
+import { ContentContainer } from '../../content-container/ContentContainer';
 import {
   useIsInMain,
   useIsInPageShell,
@@ -15,14 +17,35 @@ import {
   usePageShellContext,
 } from '../hooks';
 
+const Wrapper = ({
+  children,
+  contentContainer,
+  contentContainerProps,
+}: {
+  children: React.ReactNode;
+  contentContainer?: boolean;
+  contentContainerProps?: ContainerProps;
+}) => {
+  if (contentContainer) {
+    return (
+      <ContentContainer id="page-shell-content" {...contentContainerProps}>
+        {children}
+      </ContentContainer>
+    );
+  } else return <>{children}</>;
+};
+
 export const Content = ({
   children,
   bg,
   scrollAreaProps,
+  ...contentProps
 }: {
   children: React.ReactNode | ((height: string) => React.ReactNode);
   bg?: StyleProp<ExtendedCustomColors> | undefined;
   scrollAreaProps?: ScrollAreaAutosizeProps;
+  contentContainer?: boolean;
+  contentContainerProps?: ContainerProps;
 }) => {
   useIsInMain('Content');
   useIsInPageShell('Content');
@@ -43,7 +66,9 @@ export const Content = ({
         mah={height}
         style={{ overflow: 'hidden' }}
       >
-        {typeof children === 'function' ? children(height) : children}
+        <Wrapper {...contentProps}>
+          {typeof children === 'function' ? children(height) : children}
+        </Wrapper>
       </Flex>
     );
   }
@@ -55,7 +80,9 @@ export const Content = ({
       {...scrollAreaProps}
     >
       <Flex direction={'column'} flex={1} mih={height}>
-        {typeof children === 'function' ? children(height) : children}
+        <Wrapper {...contentProps}>
+          {typeof children === 'function' ? children(height) : children}
+        </Wrapper>
       </Flex>
     </ScrollArea.Autosize>
   );
