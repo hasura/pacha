@@ -2,6 +2,7 @@ import React, { ReactNode, useMemo, useState } from 'react';
 import { Badge, Button, Checkbox } from '@mantine/core';
 import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 
+import { testId } from '@/utils/js-utils';
 import { Table } from '../table';
 import { TextInput } from '../text-input';
 import { VirtualTable, VirtualTableHeader } from '../virtual-table';
@@ -156,7 +157,14 @@ export const SelectableList = <T extends Record<string, unknown>>({
                 </div>
               </Table.Cell>
               <Table.Cell colSpan={2}>
-                <Button variant="subtle" onClick={() => handleItemClick(key)}>
+                <Button
+                  variant="subtle"
+                  data-testid={testId({
+                    feature: 'selectable-list',
+                    id: label,
+                  })}
+                  onClick={() => handleItemClick(key)}
+                >
                   {displayElement ? displayElement : label}
                 </Button>
               </Table.Cell>

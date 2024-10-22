@@ -7,7 +7,6 @@ import {
   Flex,
   Group,
   Highlight,
-  lighten,
   Loader,
   Menu,
   MenuProps,
@@ -20,7 +19,7 @@ import {
 
 import { useColorScheme, useSchemeColors } from '@/ui/hooks';
 import { Icons } from '@/ui/icons';
-import { filterObjects } from '@/utils/js-utils';
+import { filterObjects, testId } from '@/utils/js-utils';
 import { TextInput } from '../text-input/';
 
 export type SearchableMenuProps<ItemType extends Record<string, unknown>> = {
@@ -115,6 +114,10 @@ export function SearchableMenu<ItemType extends Record<string, unknown>>({
               <Text>{title}</Text>
             </Center>
             <Button
+              data-testid={testId({
+                feature: `searchable-menu-${title.toLowerCase()}`,
+                id: 'view-all',
+              })}
               onClick={() => {
                 onViewAllClick?.();
                 setOpened(false);
@@ -191,7 +194,7 @@ export function SearchableMenu<ItemType extends Record<string, unknown>>({
                     )}
 
                     {itemSubtitle?.(project, filterKeyword) && (
-                      <Text size="sm" fw={400} c={lighten('gray', 0.6)}>
+                      <Text size="sm" c={isDarkMode ? 'gray.5' : 'gray.8'}>
                         {itemSubtitle?.(project, filterKeyword) || '---'}
                       </Text>
                     )}
