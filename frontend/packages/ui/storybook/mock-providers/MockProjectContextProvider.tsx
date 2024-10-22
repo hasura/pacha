@@ -1,6 +1,6 @@
 import { ProjectContext } from '@console/context';
 
-import { mockProjectData } from './mockProjectData';
+import { mockProjectData } from '../mock-data';
 
 export function MockProjectContext({
   children,

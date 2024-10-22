@@ -38,9 +38,7 @@ const args: StoryObj<typeof AcceptableList<MockItem>>['args'] = {
   decliningIds: [],
   // @ts-ignore
   getItemId: item => item.id,
-  acceptAllButton: {
-    onClick: action('acceptAll'),
-  },
+  onAcceptAll: action('onAcceptAll'),
   // @ts-ignore
   renderItemDetail: item => {
     return <div>{item.label}</div>;
